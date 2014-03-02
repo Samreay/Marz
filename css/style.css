@@ -1,0 +1,180 @@
+html, body, .main {
+    height: 100%;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;}
+.main {
+    position: absolute;
+    width: 100%;
+}
+.content {
+    position: absolute;
+    bottom: 0px;
+    width: 100%;
+    top: 50px;
+}
+body {
+    padding: 0;
+    margin: 0;
+    background-color: #DDD;
+    font-family: Helvetica,Arial,sans-serif;
+}
+h1 {
+    margin: 0;
+    padding: 0;
+    display: inline-block;
+}
+.header {
+    height: 50px;
+    color: #DDD;
+    padding-left: 20px;
+    line-height: 50px;
+    background-color: #222222;
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.004);
+    background: linear-gradient(to bottom,  #444 0%,#222 100%);
+}
+.header nav, .header ul {
+    display: inline-block;
+    vertical-align: top;
+}
+.header h1 {
+    margin-right: 30px;
+}
+nav ul li {
+    display: inline-block;
+    transition: color 0.25s;
+    margin-right: 30px;
+    text-transform: uppercase;
+    text-align: center;
+    color: #CCC;
+    cursor: hand;
+    cursor: pointer;
+}
+nav ul li.active {
+    color: #5E99FF;
+}
+.boxed {
+    margin: 10px;
+    box-sizing: border-box;
+}
+.lined {
+    border: 1px solid #AAA;
+    background-color: #E8E8E8;
+}
+.left {
+    width: 280px;
+}
+.scroll {
+    position: absolute;
+    bottom: 0px;
+    top: 250px;
+    overflow: auto;
+}
+div[dropzone] {
+    height: 230px;
+    border: 4px dashed #bbb;
+    transition: border 0.25s;
+    border-radius: 5px;
+    padding: 10px 0 10px 0;
+    text-align: center;
+    font-size: 16pt;
+    font-weight: bold;
+    color: #bbb;
+    margin-bottom: 20px;
+}
+div[dropzone].dropover {
+    border: 3px dashed #5E99FF;
+}
+
+div[dropzone] .info {
+    color: #333;
+    font-weight: normal;
+
+}
+div[dropzone] .info ul {
+    margin-top: 20px;
+}
+div[dropzone] .info li {
+    color: #333;
+    font-size: 12pt;
+    text-align: left;
+    margin-bottom: 3px;
+}
+div[dropzone] .info li .label {
+    width: 100px;
+    display: inline-block;
+    padding-left: 10px;
+    font-weight: bold;
+    text-align: left;
+}
+
+.spectraSmall {
+    width: 100%;
+    height: 50px;
+    line-height: 50px;
+    vertical-align: middle;
+}
+.spectraSmall p {
+    width: 20%;
+    height: 100%;
+    display: inline-block;
+    box-sizing: border-box;
+    border-left: 10px solid transparent;
+    font-weight: bold;
+    vertical-align: middle;
+}
+.spectraSmall .info {
+    width: 80%;
+    height: 100%;
+    display: inline-block;
+    vertical-align: middle;
+    overflow: hidden;
+}
+.central {
+    margin: 10px;
+    position: absolute;
+    left: 300px;
+    top: 0px;
+    bottom: 0px;
+    right: 0px;
+    /*border: 1px solid red;*/
+    overflow: auto;
+}
+.overviewList {
+    overflow: auto;
+}
+.overviewItem {
+    width: 300px;
+    height: 150px;
+    margin-right: 10px;
+    margin-bottom: 10px;
+    float: left;
+}
+.activeSelect {
+    background-color: #D3DFF5;
+    border: 1px solid #5E99FF;
+}
+.topbar b {
+    padding: 0 10px 0 10px;
+}
+.topbar {
+    height: 30px;
+    line-height: 30px;
+    vertical-align: middle;
+    overflow: hidden;
+    width: 100%;
+    background-color: #CCC;
+    background: linear-gradient(to bottom,  #DDD 0%,#CCC 100%);
+    display: block;
+}
+
+.overviewItem .graph {
+    display: block;
+}
+
+#big {
+    height: 500px;
+}

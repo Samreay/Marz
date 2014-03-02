@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>InterfaceZ: Return of the Z-iffying</title>
+    <link rel="shortcut icon" href="images/favicon.ico" />
+    <link href="css/normalize.css" rel="stylesheet"/>
+    <link href="css/style.css" rel="stylesheet"/>
+    <script src="js/jquery-2.1.0.js"></script>
+    <script src="js/amcharts.js"></script>
+    <script src="js/amexport.js"></script>
+    <script src="js/serial.js"></script>
+    <script src="js/light.js"></script>
+    <script src="js/fits.js"></script>
+    <script src="js/tools.js"></script>
+    <script src="js/classes.js"></script>
+    <script src="js/angular.js"></script>
+    <script src="js/angular-animate.js"></script>
+    <script src="js/angular-drop.js"></script>
+    <script src="js/app.js"></script>
+
+</head>
+<body ng-app="thesis" ng-controller="MainController">
+    <div class="main">
+        <div class="header">
+            <h1>InterfaceZ</h1>
+            <nav class="menu" ng-click="$event.preventDefault()">
+                <ul>
+                    <li ng-repeat="i in menuOptions" ng-click="$parent.active=i" ng-class="{active:i==active}">
+                        <h2>{{i}}</h2>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+        <div class="content">
+            <div class="boxed fitsFileSelector left" dropzone>
+                <h3 ng-show="!fitsFile.name">Drop a FITS File</h3>
+                <div class="info" ng-show="fitsFile.name">
+                    <h3>{{fitsFile.name}}</h3>
+                    <ul>
+                        <li ng-repeat="i in fits.properties | onlyDisplay"><b class="label">{{i.label}}:</b> {{i.displayValue}}</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="boxed lined left spectralList scroll">
+                <ul>
+                    <li ng-repeat="i in fits.spectra track by i.id" ng-dblclick="$parent.active='Detailed'" ng-click="$parent.setActiveIndex(i.index)" ng-class="{activeSelect:activeIndex==i.index}" class="spectraSmall"><p>{{i.id}}</p><div class="info" id="spectra{{i.id}}">Analysis conclusions here</div></li>
+                </ul>
+            </div>
+            <div class="central">
+                <div class="overviewList" ng-show="active=='Overview'">
+                    <ul>
+                        <li class="overviewItem lined" ng-dblclick="$parent.active='Detailed'" ng-click="$parent.setActiveIndex(i.index)" ng-class="{activeSelect:activeIndex==i.index}" ng-repeat="i in fits.spectra track by i.id">
+                            <div class="topbar"><b>ID: {{i.id}}</b>Template: todo, Redshift: todo</div>
+                            <div id="smallGraph{{i.id}}" class="graph"><canvas id="smallGraphCanvas{{i.id}}" style="width:100%; height:100%;"></canvas>{{fits.renderOverview(i.index)}}</div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="settingsList" ng-show="active=='Settings'">
+                    <h3>Global Properties:</h3>
+                    <ul>
+                        <li ng-repeat="(name, prop) in properties"><label>{{prop.label}}:</label></li>
+                    </ul>
+                </div>
+                <div class="detailedView" ng-show="active=='Detailed'">
+                    <div id="big">{{renderBig('big')}}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
