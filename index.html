@@ -46,10 +46,18 @@
                     <li ng-repeat="i in fits.spectra track by i.id" ng-dblclick="$parent.active='Detailed'" ng-click="$parent.setActiveIndex(i.index)" ng-class="{activeSelect:activeIndex==i.index}" class="spectraSmall"><p>{{i.id}}</p><div class="info" id="spectra{{i.id}}">Analysis conclusions here</div></li>
                 </ul>
             </div>
+            <div class="centralheader">
+                <div class="overviewheader" ng-show="active=='Overview'">
+                    <p ng-click="overviewLarge=0">Small</p>
+                    <p ng-click="overviewLarge=1">Large</p>
+                </div>
+                <div class="detailedheader" ng-show="active=='Detailed'">
+                </div>
+            </div>
             <div class="central">
                 <div class="overviewList" ng-show="active=='Overview'">
                     <ul>
-                        <li class="overviewItem lined" ng-dblclick="$parent.active='Detailed'" ng-click="$parent.setActiveIndex(i.index)" ng-class="{activeSelect:activeIndex==i.index}" ng-repeat="i in fits.spectra track by i.id">
+                        <li class="overviewItem lined overviewSmall" ng-dblclick="$parent.active='Detailed'" ng-click="$parent.setActiveIndex(i.index)" ng-class="{activeSelect:activeIndex==i.index}" ng-repeat="i in fits.spectra track by i.id">
                             <div class="topbar"><b>ID: {{i.id}}</b>Template: todo, Redshift: todo</div>
                             <div id="smallGraph{{i.id}}" class="graph"><canvas id="smallGraphCanvas{{i.id}}" style="width:100%; height:100%;"></canvas>{{fits.renderOverview(i.index)}}</div>
                         </li>

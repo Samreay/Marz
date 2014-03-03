@@ -88,7 +88,7 @@ FitsFile.prototype.plot = function(data, canvas) {
     var c = canvas.getContext("2d");
     canvas.width = canvas.clientWidth;
     //TODO: Rewrap canvas, so 30 magic number goes away
-    canvas.height = canvas.clientHeight - 30;
+    canvas.height = canvas.clientHeight;
     var h = canvas.height;
     var w = canvas.width;
     var min = 999999999;

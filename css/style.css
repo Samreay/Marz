@@ -133,25 +133,52 @@ div[dropzone] .info li .label {
     vertical-align: middle;
     overflow: hidden;
 }
+.centralheader {
+    background-color: #222222;
+    color: #E8E8E8;
+    line-height: 50px;
+    font-weight: bold;
+    font-size: 20px;
+    display: block;
+    overflow: hidden;
+    position: absolute;
+    margin: 10px;
+    top: 0px;
+    height: 50px;
+    right: 0px;
+    background: linear-gradient(to bottom,  #444 0%,#222 100%);
+    left: 300px;
+}
+.centralheader p {
+    display: inline-block;
+    margin-left: 30px;
+}
 .central {
     margin: 10px;
     position: absolute;
     left: 300px;
-    top: 0px;
+    top: 60px;
     bottom: 0px;
     right: 0px;
     /*border: 1px solid red;*/
     overflow: auto;
 }
 .overviewList {
-    overflow: auto;
+    overflow: hidden;
 }
 .overviewItem {
-    width: 300px;
-    height: 150px;
     margin-right: 10px;
     margin-bottom: 10px;
     float: left;
+    position: relative;
+}
+.overviewLarge {
+    width: 600px;
+    height: 200px;
+}
+.overviewSmall {
+    width: 300px;
+    height: 150px;
 }
 .activeSelect {
     background-color: #D3DFF5;
@@ -173,6 +200,11 @@ div[dropzone] .info li .label {
 
 .overviewItem .graph {
     display: block;
+    position: absolute;
+    top: 30px;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
 }
 
 #big {

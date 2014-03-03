@@ -14,6 +14,7 @@ app.filter('onlyDisplay', function () {
 
 function MainController($scope, $timeout) {
     $scope.menuOptions = ['Overview','Detailed','Settings'];
+    $scope.overviewLarge = 0;
     $scope.active = 'Overview';
     $scope.activeIndex = 0;
     $scope.properties = {test: {label: "Test property", value: 20}};
