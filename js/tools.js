@@ -61,5 +61,23 @@ function MJDtoYMD(mjd_in) {
     //year = year - 1900;
 
     return (new Array(year, month, day));
+}
 
+function condenseToXPixels(data, numPix) {
+    if (data == null) {
+        return null;
+    }
+    //TODO: Make floating point counting
+    var res=Math.ceil(data.length / numPix);
+    var d = [];
+    var tmp = 0;
+    for (var i=0; i < data.length; i+=1) {
+        if (i % res == 0) {
+            d.push(tmp);
+            tmp = 0;
+        } else {
+            tmp += (data[i] / res)
+        }
+    }
+    return d;
 }

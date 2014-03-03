@@ -19,6 +19,30 @@ function MainController($scope, $timeout) {
     $scope.activeIndex = 0;
     $scope.properties = {test: {label: "Test property", value: 20}};
     $scope.fitsFile = null;
+    $scope.immediateAnalysis = true;
+
+    //TODO: Core estimation
+    var numberOfCores = 4;
+    $scope.workers = [];
+    for (var i = 0; i < numberOfCores; i++) {
+        var worker = new Worker('js/preprocessor.js');
+        worker.addEventListener('message', function(e) {
+            $scope.fits.spectra[e.data.index].processedIntensity = e.data.intensity;
+            $scope.fits.spectra[e.data.index].processedVariance = e.data.variance;
+            $scope.fits.rerender(e.data.index);
+            for (var j = 0; j < $scope.workers.length; j++) {
+                if ($scope.workers[j].index == e.data.index) {
+                    $scope.workers[j].index = -1;
+                }
+            }
+            if ($scope.immediateAnalysis) {
+                $scope.fits.analyse();
+            }
+            console.log("Worker worked on index " + e.data.index);
+        });
+        $scope.workers.push({'index':-1, 'worker': worker});
+    }
+
     $scope.addfile = function (f) {
         $scope.fitsFile = f;
         var rawFits = new astro.FITS(f, function () {
@@ -115,5 +139,7 @@ function MainController($scope, $timeout) {
         });
 
     }
+
+
 
 }

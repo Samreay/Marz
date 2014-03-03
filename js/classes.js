@@ -84,11 +84,11 @@ function FitsFile(filename, fits, scope) {
     this.getFibres(fits);
 
 }
-FitsFile.prototype.plot = function(data, canvas) {
+FitsFile.prototype.plot = function(data, colour, canvas) {
+    if (data == null || data.length == 0) {
+        return;
+    }
     var c = canvas.getContext("2d");
-    canvas.width = canvas.clientWidth;
-    //TODO: Rewrap canvas, so 30 magic number goes away
-    canvas.height = canvas.clientHeight;
     var h = canvas.height;
     var w = canvas.width;
     var min = 999999999;
@@ -98,7 +98,7 @@ FitsFile.prototype.plot = function(data, canvas) {
         if (data[i] > max) { max = data[i] };
     }
     c.beginPath();
-    c.strokeStyle = "#B56310"
+    c.strokeStyle = colour;
     var hh = h - (5 + (data[0]-min)*(h-10)/(max-min));
     var o = (w - data.length) / 2;
     c.moveTo(o,hh);
@@ -107,7 +107,23 @@ FitsFile.prototype.plot = function(data, canvas) {
         c.lineTo(o+i,hh);
     }
     c.stroke();
-    console.log("canvas");
+}
+FitsFile.prototype.rerender = function(index) {
+    console.log("rerendering " + index);
+    this.spectra[index].miniRendered = -1;
+    this.renderOverview(index);
+}
+FitsFile.prototype.clearPlot = function(canvas) {
+    canvas.width = canvas.clientWidth;
+    //TODO: Rewrap canvas, so 30 magic number goes away
+    canvas.height = canvas.clientHeight;
+    var c = canvas.getContext("2d");
+    c.save();
+    // Use the identity matrix while clearing the canvas
+    c.setTransform(1, 0, 0, 1, 0, 0);
+    c.clearRect(0, 0, canvas.width, canvas.height);
+    // Restore the transform
+    c.restore();
 }
 FitsFile.prototype.renderOverview = function(index) {
     var v = this.spectra[index];
@@ -115,19 +131,12 @@ FitsFile.prototype.renderOverview = function(index) {
     var width = canvas.clientWidth;
     if (v.miniRendered != width && v.intensity.length > 0) {
         v.miniRendered = width;
-        var res=Math.ceil(v.intensity.length / width);
-        var d = [];
-        var tmp = 0;
-        for (var i=0; i<v.intensity.length; i+=1) {
-            if (i % res == 0) {
-                d.push(tmp);
-                tmp = 0;
-            } else {
-                tmp += (v.intensity[i] / res)
-            }
-
-        }
-          this.plot(d, canvas)
+        var intensity = condenseToXPixels(v.intensity, width);
+        var preprocessed = condenseToXPixels(v.processedIntensity, width);
+        //TODO: Make min and max global so things actually look legit!
+        this.clearPlot(canvas);
+        this.plot(intensity, "#B56310", canvas)
+        this.plot(preprocessed, "#058518", canvas)
     }
 }
 
@@ -162,7 +171,46 @@ FitsFile.prototype.getVariances = function(fits) {
         opt.digestScope();
     }, this);
 }
+FitsFile.prototype.analysisAvailableIndex = function() {
+    for (var k = 0; k < this.scope.workers.length; k++) {
+        if (this.scope.workers[k].index == -1) {
+            return k;
+        }
+    }
+    return -1;
+}
+FitsFile.prototype.analyse = function() {
+        var ind = this.analysisAvailableIndex();
+        if (ind != -1) {
+            for (var i = 0; i < this.spectra.length; i++) {
+                if (this.spectra[i].processedIntensity == null) {
+                    var working = false;
+                    for (var j = 0; j < this.scope.workers.length; j++) {
+                        if (this.scope.workers[j].index == i) {
+                            working = true;
+                            break;
+                        }
+                    }
+                    if (!working) {
+                        this.scope.workers[ind].index = i;
+                        this.scope.workers[ind].worker.postMessage({
+                            'index': i,
+                            'intensity':this.spectra[i].intensity,
+                            'variance': this.spectra[i].variance});
+                        console.log("analyse "+i);
+                        ind = this.analysisAvailableIndex();
+                        if (ind == -1) {
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+}
 FitsFile.prototype.digestScope = function() {
+    if (this.scope.immediateAnalysis) {
+        this.analyse();
+    }
     this.scope.$apply(function(opt) {
         console.log(opt);
     });
