@@ -84,32 +84,42 @@ function FitsFile(filename, fits, scope) {
     this.getFibres(fits);
 
 }
-FitsFile.prototype.plot = function(data, colour, canvas) {
+FitsFile.prototype.plotZeroLine = function(canvas, colour, bounds) {
+    var c = canvas.getContext("2d");
+    var h = canvas.height;
+    var w = canvas.width;
+    var ymin = bounds[2];
+    var ymax = bounds[3];
+    var hh = h - (5 + (0-ymin)*(h-10)/(ymax-ymin));
+    c.strokeStyle = colour;
+    c.moveTo(0, hh);
+    c.lineTo(w, hh);
+    c.stroke();
+}
+FitsFile.prototype.plot = function(data, colour, canvas, bounds) {
     if (data == null || data.length == 0) {
         return;
     }
     var c = canvas.getContext("2d");
     var h = canvas.height;
     var w = canvas.width;
-    var min = 999999999;
-    var max = -999999999;
-    for (var i = 0; i < data.length; i++) {
-        if (data[i] < min) { min = data[i] };
-        if (data[i] > max) { max = data[i] };
-    }
     c.beginPath();
     c.strokeStyle = colour;
-    var hh = h - (5 + (data[0]-min)*(h-10)/(max-min));
+    var xmin = bounds[0];
+    var xmax = bounds[1];
+    var ymin = bounds[2];
+    var ymax = bounds[3];
+    //TODO: Make xbounds actually do something.
+    var hh = h - (5 + (data[1]-ymin)*(h-10)/(ymax-ymin));
     var o = (w - data.length) / 2;
     c.moveTo(o,hh);
-    for (var i = 1; i < data.length; i++) {
-        hh = h - (5 + (data[i]-min)*(h-10)/(max-min));
+    for (var i = 2; i < data.length; i++) {
+        hh = h - (5 + (data[i]-ymin)*(h-10)/(ymax-ymin));
         c.lineTo(o+i,hh);
     }
     c.stroke();
 }
 FitsFile.prototype.rerender = function(index) {
-    console.log("rerendering " + index);
     this.spectra[index].miniRendered = -1;
     this.renderOverview(index);
 }
@@ -125,6 +135,29 @@ FitsFile.prototype.clearPlot = function(canvas) {
     // Restore the transform
     c.restore();
 }
+FitsFile.prototype.getMaxes = function(array) {
+    var xmin = 0;
+    var xmax = -999999999;
+    var ymin = 999999999;
+    var ymax = -999999999;
+    for (var i = 0; i < array.length; i++) {
+        if (array[i] == null || array[i].length < 1) {
+            continue;
+        }
+        if (array[i].length > xmax) {
+            xmax = array[i].length;
+        }
+        for (var j = 0; j < array[i].length; j++) {
+            if (array[i][j] < ymin) {
+                ymin = array[i][j];
+            }
+            if (array[i][j] > ymax) {
+                ymax = array[i][j];
+            }
+        }
+    }
+    return [xmin, xmax, ymin, ymax];
+}
 FitsFile.prototype.renderOverview = function(index) {
     var v = this.spectra[index];
     var canvas = document.getElementById("smallGraphCanvas"+v.id);
@@ -133,10 +166,15 @@ FitsFile.prototype.renderOverview = function(index) {
         v.miniRendered = width;
         var intensity = condenseToXPixels(v.intensity, width);
         var preprocessed = condenseToXPixels(v.processedIntensity, width);
-        //TODO: Make min and max global so things actually look legit!
         this.clearPlot(canvas);
-        this.plot(intensity, "#B56310", canvas)
-        this.plot(preprocessed, "#058518", canvas)
+        var toBound = [];
+        if (this.scope.dispRaw) { toBound.push(intensity); }
+        if (this.scope.dispPre) { toBound.push(preprocessed); }
+
+        var bounds = this.getMaxes(toBound);
+        this.plotZeroLine(canvas, "#C4C4C4", bounds);
+        if (this.scope.dispRaw) { this.plot(intensity, this.scope.interface.rawColour, canvas, bounds); }
+        if (this.scope.dispPre) { this.plot(preprocessed, this.scope.interface.processedColour, canvas, bounds); }
     }
 }
 
@@ -168,6 +206,14 @@ FitsFile.prototype.getVariances = function(fits) {
         for (var i = 0; i < opt.spectra.length; i++) {
             opt.spectra[i].variance = d.slice(opt.spectra[i].id * opt.numPoints, (opt.spectra[i].id + 1) * opt.numPoints);
         }
+//        for (var i = 0; i < opt.spectra.length; i++) {
+//            for (var j = 0; j < opt.spectra[i].intensity.length; j++) {
+//                if (isNaN(opt.spectra[i].intensity[j])) {
+//                    opt.spectra[i].intensity[j] = 0;
+//                    opt.spectra[i].variance[j] = null;
+//                }
+//            }
+//        }
         opt.digestScope();
     }, this);
 }
@@ -195,9 +241,9 @@ FitsFile.prototype.analyse = function() {
                         this.scope.workers[ind].index = i;
                         this.scope.workers[ind].worker.postMessage({
                             'index': i,
+                            'lambda': this.lambda,
                             'intensity':this.spectra[i].intensity,
                             'variance': this.spectra[i].variance});
-                        console.log("analyse "+i);
                         ind = this.analysisAvailableIndex();
                         if (ind == -1) {
                             return;
@@ -211,7 +257,5 @@ FitsFile.prototype.digestScope = function() {
     if (this.scope.immediateAnalysis) {
         this.analyse();
     }
-    this.scope.$apply(function(opt) {
-        console.log(opt);
-    });
+    this.scope.$apply(function(opt) {});
 }

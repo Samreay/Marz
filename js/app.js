@@ -20,9 +20,13 @@ function MainController($scope, $timeout) {
     $scope.properties = {test: {label: "Test property", value: 20}};
     $scope.fitsFile = null;
     $scope.immediateAnalysis = true;
+    $scope.dispRaw = 1;
+    $scope.dispPre = 1;
+    $scope.dispMatched = 1;
+    $scope.interface = {rawColour: "#E8BA6B", processedColour: "#058518"}
 
     //TODO: Core estimation
-    var numberOfCores = 4;
+    var numberOfCores = 7;
     $scope.workers = [];
     for (var i = 0; i < numberOfCores; i++) {
         var worker = new Worker('js/preprocessor.js');
@@ -38,7 +42,6 @@ function MainController($scope, $timeout) {
             if ($scope.immediateAnalysis) {
                 $scope.fits.analyse();
             }
-            console.log("Worker worked on index " + e.data.index);
         });
         $scope.workers.push({'index':-1, 'worker': worker});
     }
@@ -66,14 +69,58 @@ function MainController($scope, $timeout) {
             }
         }, 0, false);
     };
+    $scope.toggleDisp = function(category) {
+        if (category == 'raw') {
+            $scope.dispRaw = 1 - $scope.dispRaw;
+        } else if (category == 'pre') {
+            $scope.dispPre = 1 - $scope.dispPre;
+        } else if (category == 'matched') {
+            $scope.dispMatched = 1 - $scope.dispMatched;
+        }
+        for (var i = 0; i < $scope.fits.spectra.length; i++) {
+            $scope.fits.rerender(i); //$scope.fits.spectra[i].miniRendered = -1;
+        }
+    }
     $scope.renderBig = function(divid) {
         if ($scope.fits == null || $scope.fits.spectra == null || $scope.fits.spectra[$scope.activeIndex] == null) {
             return;
         }
         var data = [];
-        for (var i=0; i<$scope.fits.spectra[$scope.activeIndex].intensity.length; i++) {
-                data.push({"lambda": $scope.fits.lambda[i].toFixed(2),
-                    "v" : $scope.fits.spectra[$scope.activeIndex].intensity[i]});
+        var preprocessed = $scope.fits.spectra[$scope.activeIndex].processedIntensity != null;
+        for (var i=0; i < $scope.fits.spectra[$scope.activeIndex].intensity.length; i++) {
+            var datum = {"lambda": $scope.fits.lambda[i].toFixed(2),
+                    "raw" : $scope.fits.spectra[$scope.activeIndex].intensity[i]};
+            if (preprocessed) {
+                datum.preprocessed = $scope.fits.spectra[$scope.activeIndex].processedIntensity[i];
+            }
+            data.push(datum);
+        }
+        var graphProps = [];
+        graphProps.push({
+            "id":"raw",
+            //"balloonText": "<span style='font-size:14px;'><b>[[category]]:</b> [[value]]</span>",
+            "bullet": "none",
+            "bulletBorderAlpha": 1,
+            "bulletColor":"#FFFFFF",
+            "hideBulletsCount": 50,
+            "title": "Raw",
+            "lineColor": $scope.interface.rawColour,
+            "valueField": "raw",
+            "useLineColorForBulletBorder":true
+        });
+        if (preprocessed) {
+            graphProps.push({
+                "id":"pre",
+                //"balloonText": "<span style='font-size:14px;'><b>[[category]]:</b> [[value]]</span>",
+                "bullet": "none",
+                "bulletBorderAlpha": 1,
+                "bulletColor":"#FFFFFF",
+                "hideBulletsCount": 50,
+                "title": "Preprocessed",
+                "lineColor": $scope.interface.processedColour,
+                "valueField": "preprocessed",
+                "useLineColorForBulletBorder":true
+            });
         }
         var chart = AmCharts.makeChart("big", {
             "theme": "light",
@@ -88,17 +135,7 @@ function MainController($scope, $timeout) {
 //            valueAxes: [{
 //                title: "Intensity"
 //            }],
-            graphs: [{
-                "id":"g1",
-                "balloonText": "<span style='font-size:14px;'><b>[[category]]:</b> [[value]]</span>",
-                "bullet": "none",
-                "bulletBorderAlpha": 1,
-                "bulletColor":"#FFFFFF",
-                "hideBulletsCount": 50,
-                "title": "red line",
-                "valueField": "v",
-                "useLineColorForBulletBorder":true
-            }],
+            graphs: graphProps,
             "chartCursor": {
                 "cursorPosition": "mouse"
             },

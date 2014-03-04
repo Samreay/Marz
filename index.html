@@ -43,13 +43,22 @@
             </div>
             <div class="boxed lined left spectralList scroll">
                 <ul>
-                    <li ng-repeat="i in fits.spectra track by i.id" ng-dblclick="$parent.active='Detailed'" ng-click="$parent.setActiveIndex(i.index)" ng-class="{activeSelect:activeIndex==i.index}" class="spectraSmall"><p>{{i.id}}</p><div class="info" id="spectra{{i.id}}">Analysis conclusions here</div></li>
+                    <li ng-repeat="i in fits.spectra track by i.id" ng-dblclick="$parent.active='Detailed'" ng-click="$parent.setActiveIndex(i.index)" ng-class="{activeSelect:activeIndex==i.index}" class="spectraSmall">
+                        <p>{{i.id}}</p>
+                        <div class="info" id="spectra{{i.id}}">
+                            <p ng-show="i.template==null">Not analysed</p>
+                            <p ng-show="i.template!=null">Insert template name, Conf: {{i.conf}}</p>
+                        </div>
+                    </li>
                 </ul>
             </div>
             <div class="centralheader">
                 <div class="overviewheader" ng-show="active=='Overview'">
                     <p ng-click="overviewLarge=0">Small</p>
                     <p ng-click="overviewLarge=1">Large</p>
+                    <p ng-click="toggleDisp('raw')">Raw</p>
+                    <p ng-click="toggleDisp('pre')">Preprocessed</p>
+                    <p ng-click="toggleDisp('matched')">Matched</p>
                 </div>
                 <div class="detailedheader" ng-show="active=='Detailed'">
                 </div>

@@ -118,7 +118,6 @@ div[dropzone] .info li .label {
     vertical-align: middle;
 }
 .spectraSmall p {
-    width: 20%;
     height: 100%;
     display: inline-block;
     box-sizing: border-box;
@@ -126,6 +125,10 @@ div[dropzone] .info li .label {
     font-weight: bold;
     vertical-align: middle;
 }
+.spectraSmall p .info {
+    font-weight: normal;
+}
+
 .spectraSmall .info {
     width: 80%;
     height: 100%;
