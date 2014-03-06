@@ -13,6 +13,7 @@
     <script src="js/fits.js"></script>
     <script src="js/tools.js"></script>
     <script src="js/classes.js"></script>
+    <script src="js/templates.js"></script>
     <script src="js/angular.js"></script>
     <script src="js/angular-animate.js"></script>
     <script src="js/angular-drop.js"></script>
@@ -46,8 +47,8 @@
                     <li ng-repeat="i in fits.spectra track by i.id" ng-dblclick="$parent.active='Detailed'" ng-click="$parent.setActiveIndex(i.index)" ng-class="{activeSelect:activeIndex==i.index}" class="spectraSmall">
                         <p>{{i.id}}</p>
                         <div class="info" id="spectra{{i.id}}">
-                            <p ng-show="i.template==null">Not analysed</p>
-                            <p ng-show="i.template!=null">Insert template name, Conf: {{i.conf}}</p>
+                            <p ng-show="i.matchedTID==null">Not analysed</p>
+                            <p ng-show="i.matchedTID!=null">{{i.matchedTID}}, z={{i.matchedZ.toFixed(3)}} Chi2: {{i.matchedChi2.toFixed(2)}}</p>
                         </div>
                     </li>
                 </ul>
@@ -67,8 +68,16 @@
                 <div class="overviewList" ng-show="active=='Overview'">
                     <ul>
                         <li class="overviewItem lined overviewSmall" ng-dblclick="$parent.active='Detailed'" ng-click="$parent.setActiveIndex(i.index)" ng-class="{activeSelect:activeIndex==i.index}" ng-repeat="i in fits.spectra track by i.id">
-                            <div class="topbar"><b>ID: {{i.id}}</b></div>
-                            <div id="smallGraph{{i.id}}" class="graph"><canvas id="smallGraphCanvas{{i.id}}" style="width:100%; height:100%;"></canvas>{{fits.renderOverview(i.index)}}</div>
+                            <div class="topbar"><b>ID: {{i.id}}</b><p ng-show="i.matchedTID!=null">T: {{i.matchedTID}}, z={{i.matchedZ.toFixed(3)}} Chi2: {{i.matchedChi2.toFixed(2)}}</p></div>
+                            <div class="graph"><canvas id="smallGraphCanvas{{i.id}}" style="width:100%; height:100%;"></canvas>{{fits.renderOverview(i.index)}}</div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="templateList" ng-show="active=='Templates'">
+                    <ul>
+                        <li class="overviewItem lined overviewLarge" ng-repeat="t in templates track by t.id">
+                            <div class="topbar"><b>Template ID: {{t.id}}</b><p>Name: {{t.name}}, Lambda_start: {{t.start_lambda.toFixed(2)}} Lambda_end: {{t.end_lambda.toFixed(2)}}</p></div>
+                            <div class="graph"><canvas id="smallTemplateCanvas{{$index}}" style="width:100%; height:100%;"></canvas>{{renderTemplate($index)}}</div>
                         </li>
                     </ul>
                 </div>
@@ -78,7 +87,7 @@
                         <li ng-repeat="(name, prop) in properties"><label>{{prop.label}}:</label></li>
                     </ul>
                 </div>
-                <div class="detailedView" ng-show="active=='Detailed'">
+                <div class="detailedView" ng-if="active=='Detailed'">
                     <div id="big">{{renderBig('big')}}</div>
                 </div>
             </div>

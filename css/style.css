@@ -41,7 +41,7 @@ h1 {
     vertical-align: top;
 }
 .header h1 {
-    margin-right: 30px;
+    margin-right: 40px;
 }
 nav ul li {
     display: inline-block;
@@ -176,8 +176,8 @@ div[dropzone] .info li .label {
     position: relative;
 }
 .overviewLarge {
-    width: 600px;
-    height: 200px;
+    width: 730px;
+    height: 250px;
 }
 .overviewSmall {
     width: 300px;
@@ -189,6 +189,10 @@ div[dropzone] .info li .label {
 }
 .topbar b {
     padding: 0 10px 0 10px;
+    display: inline;
+}
+.topbar p {
+    display: inline;
 }
 .topbar {
     height: 30px;

@@ -9,11 +9,10 @@ app.filter('onlyDisplay', function () {
         });
         return result;
     };
-
 });
 
 function MainController($scope, $timeout) {
-    $scope.menuOptions = ['Overview','Detailed','Settings'];
+    $scope.menuOptions = ['Overview','Detailed','Templates','Settings'];
     $scope.overviewLarge = 0;
     $scope.active = 'Overview';
     $scope.activeIndex = 0;
@@ -23,17 +22,32 @@ function MainController($scope, $timeout) {
     $scope.dispRaw = 1;
     $scope.dispPre = 1;
     $scope.dispMatched = 1;
-    $scope.interface = {rawColour: "#E8BA6B", processedColour: "#058518"}
+    $scope.interface = {rawColour: "#E8BA6B", processedColour: "#058518", matchedColour: "#AA0000", templateColour: '#8C0623'}
+    $scope.templates = templates;
 
     //TODO: Core estimation
-    var numberOfCores = 7;
+    var numberOfCores = 3;
     $scope.workers = [];
     for (var i = 0; i < numberOfCores; i++) {
         var worker = new Worker('js/preprocessor.js');
         worker.addEventListener('message', function(e) {
             $scope.fits.spectra[e.data.index].processedIntensity = e.data.intensity;
             $scope.fits.spectra[e.data.index].processedVariance = e.data.variance;
+            $scope.fits.spectra[e.data.index].matchedTID = templates[e.data.tIndex].id;
+            $scope.fits.spectra[e.data.index].matchedZ = e.data.z;
+            $scope.fits.spectra[e.data.index].matchedChi2 = e.data.chi2;
+            var ind = e.data.tIndex;
+            var arr = [];
+            var start = (1+ e.data.z)*templates[ind].start_lambda;
+            var end = (1+ e.data.z)*templates[ind].end_lambda;
+            for (var i = 0; i < templates[ind].spec.length; i++) {
+                arr.push(start + (i/templates[ind].spec.length)*(end-start));
+            }
+            $scope.fits.spectra[e.data.index].templateLambda = arr;
+            $scope.fits.spectra[e.data.index].templateIntensity = templates[ind].spec;
+
             $scope.fits.rerender(e.data.index);
+            $scope.$digest();
             for (var j = 0; j < $scope.workers.length; j++) {
                 if ($scope.workers[j].index == e.data.index) {
                     $scope.workers[j].index = -1;
@@ -81,8 +95,21 @@ function MainController($scope, $timeout) {
             $scope.fits.rerender(i); //$scope.fits.spectra[i].miniRendered = -1;
         }
     }
+    $scope.renderTemplate = function(i) {
+        var arr = [];
+        var start = templates[i].start_lambda;
+        var end = templates[i].end_lambda;
+        for (var j = 0; j < templates[i].spec.length; j++) {
+            arr.push(start + (j/templates[i].spec.length)*(end-start));
+        }
+        var canvas = document.getElementById('smallTemplateCanvas' + i);
+        var bounds = getMaxes([[arr, templates[i].spec]]);
+        clearPlot(canvas);
+        plot(arr, templates[i].spec, $scope.interface.templateColour, canvas, bounds);
+
+    }
     $scope.renderBig = function(divid) {
-        if ($scope.fits == null || $scope.fits.spectra == null || $scope.fits.spectra[$scope.activeIndex] == null) {
+        if ($scope.fits == null || $scope.fits.spectra == null || $scope.fits.spectra[$scope.activeIndex] == null || $scope.active != "Detailed") {
             return;
         }
         var data = [];
