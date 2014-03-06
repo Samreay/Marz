@@ -176,7 +176,10 @@ function match(lambda, intensity, variance) {
     var zbest = null;
     var z = null;
     var chi2 = 9e19;
+    var templateResults = [];
     for (var i = 0; i < templates.length; i++) {
+        var chi2template = 9e19;
+        var zbestTemplate = null;
         z = templates[i].z_start;
         var running = true;
         while (running) {
@@ -195,20 +198,27 @@ function match(lambda, intensity, variance) {
                 var w_top = v1 - Math.floor(v1);
                 var spec_n = w_bottom*templates[i].spec[Math.floor(v1)] + w_top*templates[i].spec[Math.ceil(v1)];
                 var diff = Math.pow(Math.abs(spec_n - intensity[j]), 2);
-                //console.log(diff);
                 c += diff;
             }
             var dev = c / count;
-            if (dev < chi2) {
-                chi2 = dev;
-                index = i
-                zbest = z + templates[i].redshift;
+            if (dev < chi2template) {
+                chi2template = dev;
+                zbestTemplate = z + templates[i].redshift;
             }
             //TODO: Make z inc actually one pixel
-            z += 0.005;
+            z += 0.001;
             if (z > templates[i].z_end) {
                 running = false;
             }
+        }
+        templateResults.push({index: i, chi2: chi2template, z: zbestTemplate});
+    }
+    for (var i = 0; i < templateResults.length; i++) {
+        //console.log("Template " + templateResults[i].index + " (id " + templates[templateResults[i].index].id + ") best z of " + templateResults[i].z.toFixed(4) + " with chi2 of " + templateResults[i].chi2.toFixed(2));
+        if (templateResults[i].chi2 < chi2) {
+            chi2 = templateResults[i].chi2;
+            zbest = templateResults[i].z;
+            index = templateResults[i].index;
         }
     }
     return {'index': index, 'z': zbest, 'chi2':chi2};
