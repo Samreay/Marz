@@ -1,9 +1,27 @@
+var normalised_height = 100;
+var polyDeg = 6;
+
 function indexgenerate(num) {
     var result = [];
     for (var i = 0; i < num; i++) {
         result.push(i);
     }
     return result;
+}
+function linearScale(start, end, num) {
+    var result = [];
+    for (var i = 0; i < num; i++) {
+        var w0 = 1 - (i/num);
+        var w1 = 1 - w0;
+        result.push(start*w0 + end*w1);
+    }
+    return result;
+}
+function linearScaleFactor(start, end, redshift, num) {
+    return linearScale(start*(1+redshift), end*(1+redshift), num);
+}
+function getTemplateLambda(t) {
+    return linearScale(t.start_lambda, t.end_lambda, t.spec.length);
 }
 
 // SOURCED FROM http://www.csgnetwork.com/julianmodifdateconv.html
@@ -81,6 +99,62 @@ function condenseToXPixels(data, numPix) {
     }
     return d;
 }
+
+function mapArrays(xinterp, xvals, i) {
+    var xil = xinterp.length;
+    var xis = xinterp[0];
+    var xie = xinterp[xil - 1];
+    var xig = (xie - xis) / (xil - 1);
+    var xl = xvals.length;
+    var xs = xvals[0];
+    var xe = xvals[xl - 1];
+    var xg = (xe - xs) / (xl - 1);
+
+    var start = (xinterp[i] - xs)/(xe - xs)*(xl-1) - 0.5*(xig/xg);
+    var end = start + (xig/xg);
+    var startIndex = Math.floor(start);
+    var startWeight = 1 - (start - startIndex);
+    var endIndex = Math.ceil(end);
+    var endWeight = 1 - (endIndex - end);
+
+    return [startIndex, startWeight, endIndex, endWeight];
+
+
+}
+/** Interpolates two linear progression x ranges */
+function interpolate(xinterp, xvals, yvals) {
+    var result = [];
+    for (var i = 0; i < xinterp.length; i++) {
+        var res = mapArrays(xinterp, xvals, i);
+        var c = 0;
+        var v = 0;
+        var weight = res[1];
+        for (var j = res[0]; j <= res[2]; j++) {
+            if (j == res[2]) {
+                weight = res[3];
+            } else if (j > 0) {
+                weight = 1;
+            }
+            if (j < 0) {
+                continue;
+            } else if (j >= xvals.length) {
+                break;
+            }
+            v += weight * yvals[j];
+            c += weight;
+        }
+        if (c != 0) {
+            result[i] = v / c;
+        } else {
+            //TODO: Make variance null
+            result[i] = 0;
+        }
+
+    }
+    return result;
+
+}
+
  function getMaxes(vals) {
     var xmin = 9e9;
     var xmax = -9e9;
@@ -150,4 +224,97 @@ function plot(xs, data, colour, canvas, bounds) {
         }
     }
     c.stroke();
+}
+
+//TODO: Make rolling point num config in settings
+function rollingPointMean(intensity, variance, numPoints, falloff) {
+    var rolling = 0;
+    //var error = 0; //TODO: SCIENCE: Appropriate dealing with error. Max of 5, average, apply uncertainty calcs
+    var d = [];
+    var weights = [];
+    var total = 0;
+    for (var i = 0; i < 2*numPoints + 1; i++) {
+        var w = Math.pow(falloff, Math.abs(numPoints - i));
+        weights.push(w);
+        total += w;
+    }
+    for (var i = 0; i < intensity.length; i++) {
+        var c = 0;
+        var r = 0;
+        for (var j = i - numPoints; j <= i + numPoints; j++) {
+            if (j> 0 && j < intensity.length) {
+                r += intensity[j] * weights[c];
+                c++;
+            }
+        }
+        r = r / total;
+        d.push(r);
+    }
+    for (var i = 0; i < intensity.length; i++) {
+        intensity[i] = d[i];
+    }
+
+}
+
+/** Creates a polydeg'th polynomial fitted to the data.
+ * Used to remove continuum.
+ *
+ * @param lambda
+ * @param intensity
+ * @param polydeg
+ */
+function polyFit(lambda, intensity, polydeg) {
+    var data = [];
+    var r = [];
+    for (var i = 0; i < intensity.length; i++) {
+        data.push([lambda[i], intensity[i]]);
+    }
+    var result = polynomial(data, polydeg).equation;
+    for (var i = 0; i < intensity.length; i++) {
+        var y = 0;
+        for (var j = 0; j < result.length; j++) {
+            y += result[j] * Math.pow(lambda[i], j);
+        }
+        r.push(y);
+    }
+    return r;
+}
+
+function normalise(array, bottom, top, optional) {
+    var min = 9e9;
+    var max = -9e9;
+    for (var j = 0; j < array.length; j++) {
+        if (array[j] > max) {
+            max = array[j];
+        }
+        if (array[j] < min) {
+            min = array[j];
+        }
+    }
+    for (var j = 0; j < array.length; j++) {
+        var newVal = bottom + (top-bottom)*(array[j]-min)/(max-min);
+        if (optional != null) {
+            optional[j] *= newVal/array[j];
+        }
+        array[j] = newVal;
+    }
+}
+
+function getInterpolatedAndShifted(template, z, lambda) {
+    var xvals = linearScaleFactor(template.start_lambda, template.end_lambda, z, template.spec.length);
+    var interp = interpolate(lambda, xvals, template.spec);
+    return [lambda, interp];
+}
+
+function polyFitNormalise(polyDeg, lambda, intensity, bottom, top) {
+    rollingPointMean(intensity, null, 2, 0.8)
+    var r = polyFit(lambda, intensity, polyDeg);
+    normalise(r, bottom, top, intensity);
+
+}
+
+function normalise_templates() {
+    for (var i = 0; i < templates.length; i++) {
+        polyFitNormalise(polyDeg, getTemplateLambda(templates[i]), templates[i].spec, 0, normalised_height);
+    }
 }

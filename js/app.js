@@ -24,9 +24,11 @@ function MainController($scope, $timeout) {
     $scope.dispMatched = 1;
     $scope.interface = {rawColour: "#E8BA6B", processedColour: "#058518", matchedColour: "#AA0000", templateColour: '#8C0623'}
     $scope.templates = templates;
-
+    $scope.testTIndex = 0;
+    $scope.testZ = 0;
     //TODO: Core estimation
     var numberOfCores = 3;
+    normalise_templates();
     $scope.workers = [];
     for (var i = 0; i < numberOfCores; i++) {
         var worker = new Worker('js/preprocessor.js');
@@ -34,12 +36,13 @@ function MainController($scope, $timeout) {
             $scope.fits.spectra[e.data.index].processedIntensity = e.data.intensity;
             $scope.fits.spectra[e.data.index].processedVariance = e.data.variance;
             $scope.fits.spectra[e.data.index].matchedTID = templates[e.data.tIndex].id;
+            $scope.fits.spectra[e.data.index].matchedTIndex = e.data.tIndex;
             $scope.fits.spectra[e.data.index].matchedZ = e.data.z;
             $scope.fits.spectra[e.data.index].matchedChi2 = e.data.chi2;
             var ind = e.data.tIndex;
             var arr = [];
-            var start = (1+ e.data.z)*templates[ind].start_lambda;
-            var end = (1+ e.data.z)*templates[ind].end_lambda;
+            var start = (1+e.data.z)*templates[ind].start_lambda;
+            var end = (1+e.data.z)*templates[ind].end_lambda;
             for (var i = 0; i < templates[ind].spec.length; i++) {
                 arr.push(start + (i/templates[ind].spec.length)*(end-start));
             }
@@ -59,7 +62,11 @@ function MainController($scope, $timeout) {
         });
         $scope.workers.push({'index':-1, 'worker': worker});
     }
-
+    $scope.goToDetailed = function() {
+        $scope.testTIndex = $scope.fits.spectra[$scope.activeIndex].matchedTIndex;
+        $scope.testZ = $scope.fits.spectra[$scope.activeIndex].matchedZ;
+        $scope.active = 'Detailed';
+    }
     $scope.addfile = function (f) {
         $scope.fitsFile = f;
         var rawFits = new astro.FITS(f, function () {
@@ -114,11 +121,19 @@ function MainController($scope, $timeout) {
         }
         var data = [];
         var preprocessed = $scope.fits.spectra[$scope.activeIndex].processedIntensity != null;
+        var matched = [];
+        var templateIndex = $scope.testTIndex;
+        var thingy = linearScaleFactor($scope.templates[templateIndex].start_lambda,$scope.templates[templateIndex].end_lambda, $scope.testZ, $scope.templates[templateIndex].spec.length)
+        matched = interpolate($scope.fits.lambda, thingy, $scope.templates[templateIndex].spec);
+
         for (var i=0; i < $scope.fits.spectra[$scope.activeIndex].intensity.length; i++) {
             var datum = {"lambda": $scope.fits.lambda[i].toFixed(2),
-                    "raw" : $scope.fits.spectra[$scope.activeIndex].intensity[i]};
+                    "raw" : $scope.fits.spectra[$scope.activeIndex].intensity[i]/50};
             if (preprocessed) {
                 datum.preprocessed = $scope.fits.spectra[$scope.activeIndex].processedIntensity[i];
+            }
+            if (preprocessed) {
+                datum.matched = matched[i];
             }
             data.push(datum);
         }
@@ -149,6 +164,19 @@ function MainController($scope, $timeout) {
                 "useLineColorForBulletBorder":true
             });
         }
+            graphProps.push({
+                "id":"mat",
+                //"balloonText": "<span style='font-size:14px;'><b>[[category]]:</b> [[value]]</span>",
+                "bullet": "none",
+                "bulletBorderAlpha": 1,
+                "bulletColor":"#FFFFFF",
+                "hideBulletsCount": 50,
+                "title": "Matched",
+                "lineColor": $scope.interface.matchedColour,
+                "valueField": "matched",
+                "useLineColorForBulletBorder":true
+            });
+
         var chart = AmCharts.makeChart("big", {
             "theme": "light",
             type: "serial",

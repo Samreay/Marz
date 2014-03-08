@@ -2,31 +2,8 @@
  * This file is responsible for data preprocessing. Extra preprocessing functions
  * should be added to this file, and the method calls added to the processData function.
  */
-importScripts('tools.js', 'regression.js', 'templates.js')
-var processed_temp = false;
-var normalised_height = 100;
-
-/** Subtracts a polydeg'th polynomial fitted to the data.
- * Used to remove continuum.
- *
- * @param lambda
- * @param intensity
- * @param polydeg
- */
-function polyFit(lambda, intensity, polydeg) {
-    var data = [];
-    for (var i = 0; i < intensity.length; i++) {
-        data.push([lambda[i], intensity[i]]);
-    }
-    var result = polynomial(data, polydeg).equation;
-    for (var i = 0; i < intensity.length; i++) {
-        var y = 0;
-        for (var j = 0; j < result.length; j++) {
-            y += result[j] * Math.pow(lambda[i], j);
-        }
-        intensity[i] -= y;
-    }
-}
+importScripts('regression.js', 'tools.js', 'templates.js')
+//var processed_temp = false;
 
 /**
  *  Removes cosmic rays from the data by removing any points more than 5 rms dev apart
@@ -94,35 +71,6 @@ function removeBlanks(intensity, variance, numPoints) {
 }
 
 
-//TODO: Make rolling point num config in settings
-function rollingPointMean(intensity, variance, numPoints, falloff) {
-    var rolling = 0;
-    //var error = 0; //TODO: SCIENCE: Appropriate dealing with error. Max of 5, average, apply uncertainty calcs
-    var d = [];
-    var weights = [];
-    var total = 0;
-    for (var i = 0; i < 2*numPoints + 1; i++) {
-        var w = Math.pow(falloff, Math.abs(numPoints - i));
-        weights.push(w);
-        total += w;
-    }
-    for (var i = 0; i < intensity.length; i++) {
-        var c = 0;
-        var r = 0;
-        for (var j = i - numPoints; j <= i + numPoints; j++) {
-            if (j> 0 && j < intensity.length) {
-                r += intensity[j] * weights[c];
-                c++;
-            }
-        }
-        r = r / total;
-        d.push(r);
-    }
-    for (var i = 0; i < intensity.length; i++) {
-        intensity[i] = d[i];
-    }
-
-}
 
 function convertVarianceToPercent(intensity, variance) {
     for (var i = 0; i < intensity.length; i++) {
@@ -134,6 +82,7 @@ function convertVarianceToNumber(intensity, variance) {
         variance[i] = variance[i] * intensity[i];
     }
 }
+
 /**
  * Exploit javascripts passing by array references so return statements are not needed.
  */
@@ -143,35 +92,22 @@ function processData(intensity, variance, lambda) {
     removeCosmicRay(intensity, variance, 20, 2);
     rollingPointMean(intensity, variance, 2, 0.8)
     convertVarianceToPercent(intensity, variance);
-    normalise(intensity, 0, normalised_height);
+    polyFitNormalise(polyDeg, lambda, intensity, 0, normalised_height);
     convertVarianceToNumber(intensity, variance);
-    polyFit(lambda, intensity, 5);
 
 }
-function normalise(array, bottom, top) {
-    var min = 9e9;
-    var max = -9e9;
-    for (var j = 0; j < array.length; j++) {
-        if (array[j] > max) {
-            max = array[j];
-        }
-        if (array[j] < min) {
-            min = array[j];
-        }
+
+function getWeight(lambda, intensity) {
+    var r = polyFit(lambda, intensity, polyDeg);
+    var weights = [];
+    for (var i = 0; i < intensity.length; i++) {
+        weights.push(Math.abs((intensity[i] - r[i])));
     }
-    for (var j = 0; j < array.length; j++) {
-        array[j] = bottom + (top-bottom)*(array[j]-min)/(max-min);
-    }
-}
-function normalise_templates() {
-    for (var i = 0; i < templates.length; i++) {
-        normalise(templates[i].spec, 0, normalised_height);
-    }
-    processed_temp = true;
+    return weights;
 }
 
 //TODO: SCIENCE: ERROR WEIGHTING
-function match(lambda, intensity, variance) {
+function match(lambda, intensity, variance, weights) {
     var index = -1;
     var zbest = null;
     var z = null;
@@ -190,23 +126,28 @@ function match(lambda, intensity, variance) {
             for (var j = 0; j < intensity.length; j++) {
                 var v1 = (lambda[j] - start)/(end - start);
                 if (v1 <= 0 || v1 >= 1) {
+                    c += 50*Math.pow(Math.max(100,100-intensity[j]),2);
                     continue;
                 }
                 count++;
-                v1 = v1 * templates[i].spec.length;
+                v1 = v1 * (templates[i].spec.length - 1);
                 var w_bottom = 1 - (v1 - Math.floor(v1));
                 var w_top = v1 - Math.floor(v1);
                 var spec_n = w_bottom*templates[i].spec[Math.floor(v1)] + w_top*templates[i].spec[Math.ceil(v1)];
-                var diff = Math.pow(Math.abs(spec_n - intensity[j]), 2);
+                var diff = Math.pow(Math.abs(spec_n - intensity[j]), 2) * weights[j];
                 c += diff;
+                if (c > chi2template) {
+                    break;
+                }
             }
-            var dev = c / count;
+//            var dev = c / count;
+            var dev = c;
             if (dev < chi2template) {
                 chi2template = dev;
                 zbestTemplate = z + templates[i].redshift;
             }
             //TODO: Make z inc actually one pixel
-            z += 0.001;
+            z += 0.0002;
             if (z > templates[i].z_end) {
                 running = false;
             }
@@ -214,7 +155,7 @@ function match(lambda, intensity, variance) {
         templateResults.push({index: i, chi2: chi2template, z: zbestTemplate});
     }
     for (var i = 0; i < templateResults.length; i++) {
-        //console.log("Template " + templateResults[i].index + " (id " + templates[templateResults[i].index].id + ") best z of " + templateResults[i].z.toFixed(4) + " with chi2 of " + templateResults[i].chi2.toFixed(2));
+        console.log("Template " + templateResults[i].index + " (id " + templates[templateResults[i].index].id + ") best z of " + templateResults[i].z.toFixed(4) + " with chi2 of " + templateResults[i].chi2.toFixed(2));
         if (templateResults[i].chi2 < chi2) {
             chi2 = templateResults[i].chi2;
             zbest = templateResults[i].z;
@@ -223,14 +164,15 @@ function match(lambda, intensity, variance) {
     }
     return {'index': index, 'z': zbest, 'chi2':chi2};
 }
-
+var processed_temp = false;
 self.addEventListener('message', function(e) {
     var d = e.data;
     if (!processed_temp) {
         normalise_templates();
+        processed_temp = true;
     }
     processData(d.intensity, d.variance, d.lambda)
-    var results = match(d.lambda, d.intensity, d.variance);
+    var results = match(d.lambda, d.intensity, d.variance, getWeight(d.lambda, d.intensity));
     self.postMessage({'index': d.index, 'intensity': d.intensity, 'variance': d.variance, 'tIndex':results.index, 'z':results.z, 'chi2':results.chi2})
 }, false);
 

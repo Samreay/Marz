@@ -14,6 +14,7 @@
     <script src="js/tools.js"></script>
     <script src="js/classes.js"></script>
     <script src="js/templates.js"></script>
+    <script src="js/regression.js"></script>
     <script src="js/angular.js"></script>
     <script src="js/angular-animate.js"></script>
     <script src="js/angular-drop.js"></script>
@@ -44,11 +45,11 @@
             </div>
             <div class="boxed lined left spectralList scroll">
                 <ul>
-                    <li ng-repeat="i in fits.spectra track by i.id" ng-dblclick="$parent.active='Detailed'" ng-click="$parent.setActiveIndex(i.index)" ng-class="{activeSelect:activeIndex==i.index}" class="spectraSmall">
+                    <li ng-repeat="i in fits.spectra track by i.id" ng-dblclick="$parent.goToDetailed()" ng-click="$parent.setActiveIndex(i.index)" ng-class="{activeSelect:activeIndex==i.index}" class="spectraSmall">
                         <p>{{i.id}}</p>
                         <div class="info" id="spectra{{i.id}}">
                             <p ng-show="i.matchedTID==null">Not analysed</p>
-                            <p ng-show="i.matchedTID!=null">{{i.matchedTID}}, z={{i.matchedZ.toFixed(3)}} Chi2: {{i.matchedChi2.toFixed(2)}}</p>
+                            <p ng-show="i.matchedTID!=null">{{i.matchedTID}}, z={{i.matchedZ.toFixed(4)}} Chi2: {{i.matchedChi2.toFixed(0)}}</p>
                         </div>
                     </li>
                 </ul>
@@ -67,8 +68,8 @@
             <div class="central">
                 <div class="overviewList" ng-show="active=='Overview'">
                     <ul>
-                        <li class="overviewItem lined overviewSmall" ng-dblclick="$parent.active='Detailed'" ng-click="$parent.setActiveIndex(i.index)" ng-class="{activeSelect:activeIndex==i.index}" ng-repeat="i in fits.spectra track by i.id">
-                            <div class="topbar"><b>ID: {{i.id}}</b><p ng-show="i.matchedTID!=null">T: {{i.matchedTID}}, z={{i.matchedZ.toFixed(3)}} Chi2: {{i.matchedChi2.toFixed(2)}}</p></div>
+                        <li class="overviewItem lined overviewSmall" ng-dblclick="$parent.goToDetailed()" ng-click="$parent.setActiveIndex(i.index)" ng-class="{activeSelect:activeIndex==i.index}" ng-repeat="i in fits.spectra track by i.id">
+                            <div class="topbar"><b>ID: {{i.id}}</b><p ng-show="i.matchedTID!=null">T: {{i.matchedTID}}, z={{i.matchedZ.toFixed(4)}} Chi2: {{i.matchedChi2.toFixed(0)}}</p></div>
                             <div class="graph"><canvas id="smallGraphCanvas{{i.id}}" style="width:100%; height:100%;"></canvas>{{fits.renderOverview(i.index)}}</div>
                         </li>
                     </ul>
@@ -88,6 +89,8 @@
                     </ul>
                 </div>
                 <div class="detailedView" ng-if="active=='Detailed'">
+                    Template:<input type="text" ng-model="$parent.testTIndex">
+                    z: <input type="number" ng-model="$parent.testZ">
                     <div id="big">{{renderBig('big')}}</div>
                 </div>
             </div>
