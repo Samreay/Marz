@@ -20,9 +20,6 @@ function linearScale(start, end, num) {
 function linearScaleFactor(start, end, redshift, num) {
     return linearScale(start*(1+redshift), end*(1+redshift), num);
 }
-function getTemplateLambda(t) {
-    return linearScale(t.start_lambda, t.end_lambda, t.spec.length);
-}
 
 // SOURCED FROM http://www.csgnetwork.com/julianmodifdateconv.html
 function MJDtoYMD(mjd_in) {
@@ -188,9 +185,9 @@ function interpolate(xinterp, xvals, yvals) {
 }
 
 function clearPlot(canvas) {
-    canvas.width = canvas.clientWidth;
+    canvas.width = Math.max(canvas.clientWidth, canvas.width);
     //TODO: Rewrap canvas, so 30 magic number goes away
-    canvas.height = canvas.clientHeight;
+    canvas.height = Math.max(canvas.clientHeight, canvas.height);
     var c = canvas.getContext("2d");
     c.save();
     // Use the identity matrix while clearing the canvas
@@ -256,20 +253,19 @@ function rollingPointMean(intensity, variance, numPoints, falloff) {
 
 }
 
-/** Creates a polydeg'th polynomial fitted to the data.
+/** Creates a polyDeg'th polynomial fitted to the data.
  * Used to remove continuum.
  *
  * @param lambda
  * @param intensity
- * @param polydeg
  */
-function polyFit(lambda, intensity, polydeg) {
+function polyFit(lambda, intensity) {
     var data = [];
     var r = [];
     for (var i = 0; i < intensity.length; i++) {
         data.push([lambda[i], intensity[i]]);
     }
-    var result = polynomial(data, polydeg).equation;
+    var result = polynomial(data, polyDeg).equation;
     for (var i = 0; i < intensity.length; i++) {
         var y = 0;
         for (var j = 0; j < result.length; j++) {
@@ -306,15 +302,9 @@ function getInterpolatedAndShifted(template, z, lambda) {
     return [lambda, interp];
 }
 
-function polyFitNormalise(polyDeg, lambda, intensity, bottom, top) {
+function polyFitNormalise(lambda, intensity) {
     rollingPointMean(intensity, null, 2, 0.8)
     var r = polyFit(lambda, intensity, polyDeg);
-    normalise(r, bottom, top, intensity);
+    normalise(r, 0, normalised_height, intensity);
 
-}
-
-function normalise_templates() {
-    for (var i = 0; i < templates.length; i++) {
-        polyFitNormalise(polyDeg, getTemplateLambda(templates[i]), templates[i].spec, 0, normalised_height);
-    }
 }

@@ -8,16 +8,19 @@
     <script src="js/jquery-2.1.0.js"></script>
     <script src="js/amcharts.js"></script>
     <script src="js/amexport.js"></script>
-    <script src="js/serial.js"></script>
-    <script src="js/light.js"></script>
-    <script src="js/fits.js"></script>
-    <script src="js/tools.js"></script>
-    <script src="js/classes.js"></script>
-    <script src="js/templates.js"></script>
-    <script src="js/regression.js"></script>
     <script src="js/angular.js"></script>
     <script src="js/angular-animate.js"></script>
     <script src="js/angular-drop.js"></script>
+    <script src="js/serial.js"></script>
+    <script src="js/light.js"></script>
+
+    <script src="js/fits.js"></script>
+    <script src="js/regression.js"></script>
+
+    <script src="js/tools.js"></script>
+    <script src="js/templates.js"></script>
+    <script src="js/views.js"></script>
+    <script src="js/classes.js"></script>
     <script src="js/app.js"></script>
 
 </head>
@@ -27,7 +30,7 @@
             <h1>InterfaceZ</h1>
             <nav class="menu" ng-click="$event.preventDefault()">
                 <ul>
-                    <li ng-repeat="i in menuOptions" ng-click="$parent.active=i" ng-class="{active:i==active}">
+                    <li ng-repeat="i in interfaceManager.menuOptions" ng-click="$parent.interfaceManager.menuActive=i" ng-class="{active:i==interfaceManager.menuActive}">
                         <h2>{{i}}</h2>
                     </li>
                 </ul>
@@ -35,9 +38,9 @@
         </div>
         <div class="content">
             <div class="boxed fitsFileSelector left" dropzone>
-                <h3 ng-show="!fitsFile.name">Drop a FITS File</h3>
-                <div class="info" ng-show="fitsFile.name">
-                    <h3>{{fitsFile.name}}</h3>
+                <h3 ng-show="!fits.properties[0]">Drop a FITS File</h3>
+                <div class="info" ng-show="fits.properties[0]">
+                    <h3>{{fits.properties[0].value}}</h3>
                     <ul>
                         <li ng-repeat="i in fits.properties | onlyDisplay"><b class="label">{{i.label}}:</b> {{i.displayValue}}</li>
                     </ul>
@@ -45,53 +48,53 @@
             </div>
             <div class="boxed lined left spectralList scroll">
                 <ul>
-                    <li ng-repeat="i in fits.spectra track by i.id" ng-dblclick="$parent.goToDetailed()" ng-click="$parent.setActiveIndex(i.index)" ng-class="{activeSelect:activeIndex==i.index}" class="spectraSmall">
+                    <li ng-repeat="i in spectraManager.getAll() track by i.id" ng-dblclick="$parent.goToDetailed()" ng-click="$parent.setSpectraIndex(i.index)" ng-class="{activeSelect:interfaceManager.spectraIndex==i.index}" class="spectraSmall">
                         <p>{{i.id}}</p>
                         <div class="info" id="spectra{{i.id}}">
-                            <p ng-show="i.matchedTID==null">Not analysed</p>
-                            <p ng-show="i.matchedTID!=null">{{i.matchedTID}}, z={{i.matchedZ.toFixed(4)}} Chi2: {{i.matchedChi2.toFixed(0)}}</p>
+                            <p ng-show="i.templateIndex==null">Not analysed</p>
+                            <p ng-show="i.templateIndex!=null">{{i.templateIndex}}, z={{i.templateZ.toFixed(4)}} Chi2: {{i.templateChi2.toFixed(0)}}</p>
                         </div>
                     </li>
                 </ul>
             </div>
             <div class="centralheader">
-                <div class="overviewheader" ng-show="active=='Overview'">
+                <div class="overviewheader" ng-show="interfaceManager.menuActive=='Overview'">
                     <p ng-click="overviewLarge=0">Small</p>
                     <p ng-click="overviewLarge=1">Large</p>
                     <p ng-click="toggleDisp('raw')">Raw</p>
                     <p ng-click="toggleDisp('pre')">Preprocessed</p>
                     <p ng-click="toggleDisp('matched')">Matched</p>
                 </div>
-                <div class="detailedheader" ng-show="active=='Detailed'">
+                <div class="detailedheader" ng-show="interfaceManager.menuActive=='Detailed'">
                 </div>
             </div>
             <div class="central">
-                <div class="overviewList" ng-show="active=='Overview'">
+                <div class="overviewList" ng-show="interfaceManager.menuActive=='Overview'">
                     <ul>
-                        <li class="overviewItem lined overviewSmall" ng-dblclick="$parent.goToDetailed()" ng-click="$parent.setActiveIndex(i.index)" ng-class="{activeSelect:activeIndex==i.index}" ng-repeat="i in fits.spectra track by i.id">
-                            <div class="topbar"><b>ID: {{i.id}}</b><p ng-show="i.matchedTID!=null">T: {{i.matchedTID}}, z={{i.matchedZ.toFixed(4)}} Chi2: {{i.matchedChi2.toFixed(0)}}</p></div>
-                            <div class="graph"><canvas id="smallGraphCanvas{{i.id}}" style="width:100%; height:100%;"></canvas>{{fits.renderOverview(i.index)}}</div>
+                        <li class="overviewItem lined overviewSmall" ng-dblclick="$parent.goToDetailed()" ng-click="$parent.setSpectraIndex(i.index)" ng-class="{activeSelect:interfaceManager.spectraIndex==i.index}" ng-repeat="i in spectraManager.getAll() track by i.id">
+                            <div class="topbar"><b>ID: {{i.id}}</b><p ng-show="i.templateIndex!=null">T: {{i.templateIndex}}, z={{i.templateZ.toFixed(4)}} Chi2: {{i.templateChi2.toFixed(0)}}</p></div>
+                            <div class="graph"><canvas id="smallGraphCanvas{{i.id}}" style="width:100%; height:100%;"></canvas>{{interfaceManager.renderOverview(i.index)}}</div>
                         </li>
                     </ul>
                 </div>
-                <div class="templateList" ng-show="active=='Templates'">
+                <div class="templateList" ng-show="interfaceManager.menuActive=='Templates'">
                     <ul>
-                        <li class="overviewItem lined overviewLarge" ng-repeat="t in templates track by t.id">
+                        <li class="overviewItem lined overviewLarge" ng-repeat="t in templateManager.getAll() track by t.id">
                             <div class="topbar"><b>Template ID: {{t.id}}</b><p>Name: {{t.name}}, Lambda_start: {{t.start_lambda.toFixed(2)}} Lambda_end: {{t.end_lambda.toFixed(2)}}</p></div>
-                            <div class="graph"><canvas id="smallTemplateCanvas{{$index}}" style="width:100%; height:100%;"></canvas>{{renderTemplate($index)}}</div>
+                            <div class="graph"><canvas id="smallTemplateCanvas{{$index}}" style="width:100%; height:100%;"></canvas>{{interfaceManager.renderTemplate($index)}}</div>
                         </li>
                     </ul>
                 </div>
-                <div class="settingsList" ng-show="active=='Settings'">
+                <!--<div class="settingsList" ng-show="active=='Settings'">
                     <h3>Global Properties:</h3>
                     <ul>
                         <li ng-repeat="(name, prop) in properties"><label>{{prop.label}}:</label></li>
                     </ul>
-                </div>
-                <div class="detailedView" ng-if="active=='Detailed'">
-                    Template:<input type="text" ng-model="$parent.testTIndex">
-                    z: <input type="number" ng-model="$parent.testZ">
-                    <div id="big">{{renderBig('big')}}</div>
+                </div>-->
+                <div class="detailedView" ng-if="interfaceManager.menuActive=='Detailed'">
+                    Template:<input type="text" ng-model="$parent.interfaceManager.detailedViewTemplate">
+                    z: <input type="number" ng-model="$parent.interfaceManager.detailedViewZ">
+                    <div id="big">{{interfaceManager.renderDetailed('big')}}</div>
                 </div>
             </div>
         </div>
