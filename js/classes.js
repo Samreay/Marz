@@ -90,7 +90,7 @@ FitsFile.prototype.getFibres = function(fits) {
         var ind = 0;
         for (var i = 0; i < data.length; i++) {
             if (data[i] == "P") {
-                opt.spectra.push({index: ind++, id: i, lambda: opt.lambda.slice(0), intensity: [], variance: [], miniRendered: 0});
+                opt.spectra.push({index: ind++, id: i+1, lambda: opt.lambda.slice(0), intensity: [], variance: [], miniRendered: 0});
             }
         }
         opt.getSpectra(fits);
@@ -101,7 +101,7 @@ FitsFile.prototype.getSpectra = function(fits) {
     fits.getDataUnit(0).getFrame(0, function(data, opt) {
         var d = Array.prototype.slice.call(data);
         for (var i = 0; i < opt.spectra.length; i++) {
-            opt.spectra[i].intensity = d.slice(opt.spectra[i].id * opt.numPoints, (opt.spectra[i].id + 1) * opt.numPoints);
+            opt.spectra[i].intensity = d.slice((opt.spectra[i].id-1) * opt.numPoints, (opt.spectra[i].id ) * opt.numPoints);
         }
         opt.getVariances(fits);
     }, this)
@@ -110,7 +110,7 @@ FitsFile.prototype.getVariances = function(fits) {
     fits.getDataUnit(1).getFrame(0, function(data, opt) {
         var d = Array.prototype.slice.call(data);
         for (var i = 0; i < opt.spectra.length; i++) {
-            opt.spectra[i].variance = d.slice(opt.spectra[i].id * opt.numPoints, (opt.spectra[i].id + 1) * opt.numPoints);
+            opt.spectra[i].variance = d.slice((opt.spectra[i].id-1) * opt.numPoints, (opt.spectra[i].id ) * opt.numPoints);
         }
         var spec = [];
         for (var i = 0; i < opt.spectra.length; i++) {

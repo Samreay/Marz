@@ -73,7 +73,7 @@
                     <ul>
                         <li class="overviewItem lined overviewSmall" ng-dblclick="$parent.goToDetailed()" ng-click="$parent.setSpectraIndex(i.index)" ng-class="{activeSelect:interfaceManager.spectraIndex==i.index}" ng-repeat="i in spectraManager.getAll() track by i.id">
                             <div class="topbar"><b>ID: {{i.id}}</b><p ng-show="i.templateIndex!=null">T: {{i.templateIndex}}, z={{i.templateZ.toFixed(4)}} Chi2: {{i.templateChi2.toFixed(0)}}</p></div>
-                            <div class="graph"><canvas id="smallGraphCanvas{{i.id}}" style="width:100%; height:100%;"></canvas>{{interfaceManager.renderOverview(i.index)}}</div>
+                            <div class="graph"><canvas id="smallGraphCanvas{{$index}}" style="width:100%; height:100%;"></canvas>{{interfaceManager.renderOverview($index)}}</div>
                         </li>
                     </ul>
                 </div>

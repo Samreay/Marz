@@ -1,5 +1,5 @@
 var normalised_height = 100;
-var polyDeg = 6;
+var polyDeg = 10;
 
 function indexgenerate(num) {
     var result = [];
@@ -287,10 +287,11 @@ function normalise(array, bottom, top, optional) {
             min = array[j];
         }
     }
+    var r = (top-bottom)/(max-min);
     for (var j = 0; j < array.length; j++) {
-        var newVal = bottom + (top-bottom)*(array[j]-min)/(max-min);
+        var newVal = bottom + r*(array[j]-min);
         if (optional != null) {
-            optional[j] *= newVal/array[j];
+            optional[j] = bottom + r*(optional[j]- min);
         }
         array[j] = newVal;
     }
@@ -303,8 +304,14 @@ function getInterpolatedAndShifted(template, z, lambda) {
 }
 
 function polyFitNormalise(lambda, intensity) {
-    rollingPointMean(intensity, null, 2, 0.8)
+    //rollingPointMean(intensity, null, 2, 0.8)
     var r = polyFit(lambda, intensity, polyDeg);
+    for (var i = 0; i < intensity.length; i++) {
+        //intensity[i] = r[i];
+    }
     normalise(r, 0, normalised_height, intensity);
-
+    // Comment below for loop out to compare continuum
+    for (var i = 0; i < intensity.length; i++) {
+        intensity[i] = intensity[i] - r[i];
+    }
 }

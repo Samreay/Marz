@@ -26,11 +26,21 @@ function removeCosmicRay(intensity, variance, factor, numPoints) {
     rms = rms / intensity.length;
     rms = Math.pow(rms, 0.5);
     for (var i = 0; i < intensity.length; i++) {
-        if (Math.abs(intensity[i] - mean) > factor * rms) {
+        if (Math.abs(intensity[i] - mean) < factor * rms) {
+            continue;
+        }
+        var maxNeighbour = 0;
+        if (i > 0) {
+            maxNeighbour = Math.abs(intensity[i - 1] - intensity[i]);
+        }
+        if (i < intensity.length - 1) {
+            maxNeighbour = Math.max(maxNeighbour, Math.abs(intensity[i + 1] - intensity[i]));
+        }
+        if (maxNeighbour > factor * rms) {
             var r = 0;
             var c = 0;
             for (var j = i - numPoints; j < (i + 1 + numPoints); j++) {
-                if (j >= 0 && j < intensity.length && !isNaN(intensity[j])) {
+                if (j >= 0 && j < intensity.length && !isNaN(intensity[j]) && Math.abs(intensity[j]-mean) < rms) {
                     c++;
                     r += intensity[j];
                 }
@@ -38,7 +48,7 @@ function removeCosmicRay(intensity, variance, factor, numPoints) {
             if (c != 0) {
                 r = r / c;
             }
-            intensity[i] = 0;
+            intensity[i] = r;
             variance[i] = null;
         }
     }
@@ -90,8 +100,8 @@ function convertVarianceToNumber(intensity, variance) {
 function processData(intensity, variance, lambda) {
     removeBlanks(intensity, variance, 3);
     //TODO: This is a horrible way to remove outliers
-    removeCosmicRay(intensity, variance, 20, 2);
-    rollingPointMean(intensity, variance, 2, 0.8)
+    removeCosmicRay(intensity, variance, 4, 2);
+    rollingPointMean(intensity, variance, 2, 0.8);
     convertVarianceToPercent(intensity, variance);
     polyFitNormalise(lambda, intensity);
     convertVarianceToNumber(intensity, variance);
@@ -149,7 +159,7 @@ function match(lambda, intensity, variance, weights) {
                 zbestTemplate = z + template.redshift;
             }
             //TODO: Make z inc actually one pixel
-            z += 0.0002;
+            z += 0.001;
             if (z > template.z_end) {
                 running = false;
             }
@@ -171,6 +181,6 @@ self.addEventListener('message', function(e) {
     var d = e.data;
     processData(d.intensity, d.variance, d.lambda)
     var results = match(d.lambda, d.intensity, d.variance, getWeight(d.lambda, d.intensity));
-    self.postMessage({'index': d.index, 'processedIntensity': d.intensity, 'processedVariance': d.variance, 'templateIndex':results.index, 'templateZ':results.z, 'templateChi2':results.chi2})
+    self.postMessage({'index': d.index, 'processedIntensity': d.intensity, 'processedVariance': d.variance, 'templateIndex':results.index, 'templateZ':results.z, 'templateChi2':results.chi2/1e5})
 }, false);
 

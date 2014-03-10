@@ -56,7 +56,7 @@ InterfaceManager.prototype.renderOverview = function(index) {
     } else {
         this.renderOverviewDone[''+index] = 1;
     }
-    var canvas = document.getElementById("smallGraphCanvas"+v.id);
+    var canvas = document.getElementById("smallGraphCanvas"+index);
     var width = Math.max(canvas.clientWidth, canvas.width);
     if (v.intensity.length > 0) {
         var lambda = condenseToXPixels(v.lambda, width);
@@ -97,7 +97,7 @@ InterfaceManager.prototype.renderDetailed = function(divid) {
 
     for (var i=0; i < spectra.intensity.length; i++) {
         var datum = {"lambda": spectra.lambda[i].toFixed(2),
-            "raw" : spectra.intensity[i]/30};
+            "raw" : spectra.intensity[i]/5000};
         if (preprocessed) {
             datum.preprocessed = spectra.processedIntensity[i];
         }
