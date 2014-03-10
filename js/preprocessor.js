@@ -167,7 +167,7 @@ function match(lambda, intensity, variance, weights) {
         templateResults.push({index: i, chi2: chi2template, z: zbestTemplate});
     }
     for (var i = 0; i < templateResults.length; i++) {
-        console.log("Template " + templateResults[i].index + " (id " + templateManager.get(templateResults[i].index).id + ") best z of " + templateResults[i].z.toFixed(4) + " with chi2 of " + templateResults[i].chi2.toFixed(2));
+        //console.log("Template " + templateResults[i].index + " (id " + templateManager.get(templateResults[i].index).id + ") best z of " + templateResults[i].z.toFixed(4) + " with chi2 of " + templateResults[i].chi2.toFixed(2));
         if (templateResults[i].chi2 < chi2) {
             chi2 = templateResults[i].chi2;
             zbest = templateResults[i].z;
@@ -179,8 +179,9 @@ function match(lambda, intensity, variance, weights) {
 
 self.addEventListener('message', function(e) {
     var d = e.data;
-    processData(d.intensity, d.variance, d.lambda)
-    var results = match(d.lambda, d.intensity, d.variance, getWeight(d.lambda, d.intensity));
+    var lambda = linearScale(d.start_lambda, d.end_lambda, d.intensity.length);
+    processData(d.intensity, d.variance, lambda)
+    var results = match(lambda, d.intensity, d.variance, getWeight(lambda, d.intensity));
     self.postMessage({'index': d.index, 'processedIntensity': d.intensity, 'processedVariance': d.variance, 'templateIndex':results.index, 'templateZ':results.z, 'templateChi2':results.chi2/1e5})
 }, false);
 

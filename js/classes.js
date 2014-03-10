@@ -23,7 +23,7 @@ function FitsFile(filename, fits, scope) {
         return ((x + 1 - CRPIX1) * CDELT1) + CRVAL1;
     });
 
-    this.properties = [
+    this.properties = /**/[
         {
             name: 'filename',
             label: 'Filename',
@@ -89,7 +89,7 @@ FitsFile.prototype.getFibres = function(fits) {
     fits.getDataUnit(2).getColumn("TYPE", function(data, opt) {
         var ind = 0;
         for (var i = 0; i < data.length; i++) {
-            if (data[i] == "P") {
+            if (data[i] == "P" && i < 50) {
                 opt.spectra.push({index: ind++, id: i+1, lambda: opt.lambda.slice(0), intensity: [], variance: [], miniRendered: 0});
             }
         }
@@ -156,7 +156,13 @@ Spectra.prototype.setProcessedValues = function(pi, pv, ti, tz, tc) {
 
 }
 Spectra.prototype.getAsJson = function() {
-    return {'index':this.index, 'lambda':this.lambda, 'intensity':this.intensity, 'variance':this.variance};
+    return {'index':this.index, 'start_lambda':this.lambda[0], 'end_lambda':this.lambda[this.lambda.length - 1], 'intensity':this.intensity, 'variance':this.variance};
+}
+Spectra.prototype.isProcessed = function() {
+    return this.processedIntensity != null;
+}
+Spectra.prototype.isMatched = function() {
+    return this.templateIndex != null;
 }
 
 
@@ -256,7 +262,7 @@ function Processor(manager) {
 Processor.prototype.isIdle = function() {
     return this.workingSpectra == null;
 }
-Processor.prototype.processSpectra = function(spectra, callback) {
+Processor.prototype.processSpectra = function(spectra) {
     this.workingSpectra = spectra;
     var message = spectra.getAsJson();
     this.worker.postMessage(message);

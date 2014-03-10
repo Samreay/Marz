@@ -17,17 +17,21 @@ function MainController($scope, $timeout) {
 
     // Model managers
     $scope.templateManager = new TemplateManager();
-    $scope.processorManager = new ProcessorManager(3, $scope); //TODO: Core estimation
+    $scope.processorManager = new ProcessorManager(1, $scope); //TODO: Core estimation
     $scope.spectraManager = new SpectraManager($scope.processorManager, $scope.templateManager);
     $scope.interfaceManager = new InterfaceManager($scope, $scope.spectraManager, $scope.templateManager);
     $scope.fits = null; // Initialise new FitsFile on drop.
 
     $scope.goToDetailed = function() {
+
         var tid = $scope.spectraManager.getSpectra($scope.interfaceManager.spectraIndex).templateIndex;
         var tz = $scope.spectraManager.getSpectra($scope.interfaceManager.spectraIndex).templateZ;
         $scope.interfaceManager.detailedViewTemplate = tid == null ? 0 : tid;
         $scope.interfaceManager.detailedViewZ = tz == null? 0 : tz;
+        $scope.interfaceManager.detailedUpdateRequired = true;
         $scope.interfaceManager.menuActive = 'Detailed';
+        this.interfaceManager.updateDetailedData();
+
     }
     $scope.addfile = function (f) {
         var rawFits = new astro.FITS(f, function () {
@@ -38,10 +42,18 @@ function MainController($scope, $timeout) {
     };
     $scope.updatedSpectra = function(i) {
         $scope.interfaceManager.rerenderOverview(i);
+        if ($scope.interfaceManager.spectraIndex == i && $scope.interfaceManager.menuActive == 'Detailed') {
+            this.goToDetailed();
+        }
         $scope.$digest();
     }
     $scope.setSpectraIndex = function(i) {
         $scope.interfaceManager.spectraIndex = i;
+        //TODO: Remove duplicate code
+        var tid = $scope.spectraManager.getSpectra($scope.interfaceManager.spectraIndex).templateIndex;
+        var tz = $scope.spectraManager.getSpectra($scope.interfaceManager.spectraIndex).templateZ;
+        $scope.interfaceManager.detailedViewTemplate = tid == null ? 0 : tid;
+        $scope.interfaceManager.detailedViewZ = tz == null? 0 : tz;
         $timeout(function() {
             var leftrel = $('.spectralList ul li.activeSelect').position().top;
             var leftheight = $('.spectralList').height();
@@ -65,6 +77,9 @@ function MainController($scope, $timeout) {
         }
         for (var i = 0; i < $scope.spectraManager.getAll().length; i++) {
             $scope.interfaceManager.rerenderOverview(i);
+        }
+        if (this.interfaceManager.menuActive == 'Detailed') {
+            this.interfaceManager.updateDetailedData();
         }
     }
 

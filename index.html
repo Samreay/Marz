@@ -58,9 +58,7 @@
                 </ul>
             </div>
             <div class="centralheader">
-                <div class="overviewheader" ng-show="interfaceManager.menuActive=='Overview'">
-                    <p ng-click="overviewLarge=0">Small</p>
-                    <p ng-click="overviewLarge=1">Large</p>
+                <div class="overviewheader" ng-show="interfaceManager.menuActive=='Overview' || interfaceManager.menuActive=='Detailed'">
                     <p ng-click="toggleDisp('raw')">Raw</p>
                     <p ng-click="toggleDisp('pre')">Preprocessed</p>
                     <p ng-click="toggleDisp('matched')">Matched</p>
@@ -92,9 +90,9 @@
                     </ul>
                 </div>-->
                 <div class="detailedView" ng-if="interfaceManager.menuActive=='Detailed'">
-                    Template:<input type="text" ng-model="$parent.interfaceManager.detailedViewTemplate">
-                    z: <input type="number" ng-model="$parent.interfaceManager.detailedViewZ">
-                    <div id="big">{{interfaceManager.renderDetailed('big')}}</div>
+                    Template:<input type="text" ng-change="$parent.interfaceManager.detailedUpdateRequired=true" ng-model="$parent.interfaceManager.detailedViewTemplate">
+                    z: <input type="number" ng-change="$parent.interfaceManager.detailedUpdateRequired=true" ng-model="$parent.interfaceManager.detailedViewZ">
+                    <div id="big">{{interfaceManager.renderDetailed()}}</div>
                 </div>
             </div>
         </div>
