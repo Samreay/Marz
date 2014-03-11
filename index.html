@@ -90,9 +90,15 @@
                     </ul>
                 </div>-->
                 <div class="detailedView" ng-if="interfaceManager.menuActive=='Detailed'">
-                    Template:<input type="text" ng-change="$parent.interfaceManager.detailedUpdateRequired=true" ng-model="$parent.interfaceManager.detailedViewTemplate">
-                    z: <input type="number" ng-change="$parent.interfaceManager.detailedUpdateRequired=true" ng-model="$parent.interfaceManager.detailedViewZ">
                     <div id="big">{{interfaceManager.renderDetailed()}}</div>
+                    <label class="floatleft">Template:</label>
+                    <select class="floatleft" ng-change="$parent.interfaceManager.detailedUpdateRequired=true" ng-model="$parent.interfaceManager.detailedViewTemplate" data-ng-options="t.index as t.id + ' - ' + t.name for t in $parent.templateManager.getTemplatesAsJson()"></select>
+                    <label class="floatleft">z: </label>
+                    <input class="floatleft numberInput" type="text" ng-change="$parent.interfaceManager.detailedUpdateRequired=true" ng-model="$parent.interfaceManager.detailedViewZ">
+                    <input class="floatright numberInput" type="text" ng-model="$parent.interfaceManager.detailedViewZMax"/>
+                    <div class="fill">
+                        <input type="range" min=0 max="{{$parent.interfaceManager.detailedViewZMax}}" step="0.0001" ng-change="$parent.interfaceManager.detailedUpdateRequired=true" ng-model="$parent.interfaceManager.detailedViewZ">
+                    </div>
                 </div>
             </div>
         </div>

@@ -22,6 +22,7 @@ function InterfaceManager(scope, spectraManager, templateManager) {
     this.detailedViewTemplate = 0;
     this.detailedViewZ = 0;
     this.detailedUpdateRequired = false;
+    this.detailedViewZMax = 2;
 
     this.detailedChart = null;
     this.detailedRawGraph = null;
@@ -32,6 +33,9 @@ function InterfaceManager(scope, spectraManager, templateManager) {
 
     this.renderOverviewDone = new Array();
 
+}
+InterfaceManager.prototype.getDetailedZ = function() {
+    return parseFloat(this.detailedViewZ);
 }
 InterfaceManager.prototype.renderTemplate = function(i) {
     var canvas = document.getElementById('smallTemplateCanvas' + i);
@@ -120,7 +124,7 @@ InterfaceManager.prototype.getDetailedData = function() {
     var isMatched = spectra.isMatched();
 
     var ti = this.detailedViewTemplate;
-    var tz = this.detailedViewZ;
+    var tz = this.getDetailedZ();
 
 
     var templateYs = null;
@@ -159,6 +163,7 @@ InterfaceManager.prototype.renderDetailed = function() {
         d = [{'lambda':1,'raw':2,'preprocessed':3,'matched':4}];
         this.detailedChart = new AmCharts.AmSerialChart();
         var c = this.detailedChart;
+        c.zoomOutOnDataUpdate = false;
         c.dataProvider = this.getDetailedData();
         c.theme = "light";
         c.pathToImages = "images/";

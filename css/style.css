@@ -217,3 +217,38 @@ div[dropzone] .info li .label {
 #big {
     height: 500px;
 }
+
+input[type='range'] {
+    -webkit-appearance: none !important;
+    background: #888;
+    height: 2px;
+    width: 100%;
+}
+input[type='range']::-webkit-slider-thumb {
+    -webkit-appearance: none !important;
+    background:#5E99FF;
+    height:10px;
+    width:10px;
+    border-radius: 5px;
+}
+
+label {
+    display: inline-block;
+}
+input,select{
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+.floatleft {
+    float: left;
+}
+.floatright {
+    float: right;
+}
+.fill {
+    overflow: hidden;
+}
+.numberInput {
+    width: 50px;
+}

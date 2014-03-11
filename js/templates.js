@@ -558,3 +558,10 @@ TemplateManager.prototype.get = function(i) {
 TemplateManager.prototype.getAll = function() {
     return this.templates;
 }
+TemplateManager.prototype.getTemplatesAsJson = function() {
+    var data = [];
+    for (var i = 0; i < this.templates.length; i++) {
+        data.push({index: i, id: this.templates[i].id, name: this.templates[i].name});
+    }
+    return data;
+}
