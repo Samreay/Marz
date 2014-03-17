@@ -8,6 +8,13 @@ function indexgenerate(num) {
     }
     return result;
 }
+function indexgenerateWithOffset(num, offset) {
+    var result = [];
+    for (var i = 0; i < num; i++) {
+        result.push(i + offset);
+    }
+    return result;
+}
 function linearScale(start, end, num) {
     var result = [];
     for (var i = 0; i < num; i++) {

@@ -73,6 +73,7 @@ InterfaceManager.prototype.renderOverview = function(index) {
     if (v.intensity.length > 0) {
         var lambda = condenseToXPixels(v.lambda, width);
         var intensity = condenseToXPixels(v.intensity, width);
+        var preprocessedLambda = condenseToXPixels(v.processedLambda, width);
         var preprocessed = condenseToXPixels(v.processedIntensity, width);
         var tempLambda = condenseToXPixels(v.templateLambda, width);
         var tempIntensity = condenseToXPixels(v.templateIntensity, width);
@@ -80,13 +81,13 @@ InterfaceManager.prototype.renderOverview = function(index) {
         clearPlot(canvas);
         var toBound = [];
         if (this.dispRaw) { toBound.push([lambda, intensity]); }
-        if (this.dispPre) { toBound.push([lambda, preprocessed]); }
+        if (this.dispPre) { toBound.push([preprocessedLambda, preprocessed]); }
         if (this.dispMatched) { toBound.push([tempLambda, tempIntensity]); }
 
         var bounds = getMaxes(toBound);
         this.plotZeroLine(canvas, "#C4C4C4", bounds);
         if (this.dispRaw) { plot(lambda, intensity, this.interface.rawColour, canvas, bounds); }
-        if (this.dispPre) { plot(lambda, preprocessed, this.interface.processedColour, canvas, bounds); }
+        if (this.dispPre) { plot(preprocessedLambda, preprocessed, this.interface.processedColour, canvas, bounds); }
         if (this.dispMatched) { plot(tempLambda, tempIntensity, this.interface.matchedColour, canvas, bounds); }
     }
 }
@@ -117,6 +118,9 @@ InterfaceManager.prototype.updateDetailedData = function() {
     }
     this.detailedUpdateRequired = true;
 }
+
+//TODO: Bloody recode this entire bloody section and mangle the x axis so that I dont need to interpolate a thousand
+//TODO: bloody times. God I'm close to just writing the graphing functions myself.
 InterfaceManager.prototype.getDetailedData = function() {
     var spectra = this.spectraManager.getSpectra(this.spectraIndex);
 
@@ -130,11 +134,13 @@ InterfaceManager.prototype.getDetailedData = function() {
     var templateYs = null;
     if (isMatched || this.dispMatched) {
         //TODO: Move interpolate to templateManager
-        templateYs = interpolate(spectra.lambda, this.templateManager.getShiftedLambda(ti, tz), this.templateManager.get(ti).spec);
+        templateYs = interpolate(spectra.lambda, this.templateManager.getShiftedLinearLambda(ti, tz), this.templateManager.get(ti).spec);
     }
     var data = [];
     for (var i=0; i < spectra.intensity.length; i++) {
-        var datum = {"lambda": spectra.lambda[i].toFixed(2)}
+        if (isPreprocessed) {
+            var datum = {"lambda": spectra.lambda[i].toFixed(2)}
+        }
         if (this.dispRaw) {
             datum.raw = spectra.intensity[i].toFixed(2);
         }
