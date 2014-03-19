@@ -122,35 +122,32 @@ InterfaceManager.prototype.updateDetailedData = function() {
 //TODO: Bloody recode this entire bloody section and mangle the x axis so that I dont need to interpolate a thousand
 //TODO: bloody times. God I'm close to just writing the graphing functions myself.
 InterfaceManager.prototype.getDetailedData = function() {
-    var spectra = this.spectraManager.getSpectra(this.spectraIndex);
 
+    var spectra = this.spectraManager.getSpectra(this.spectraIndex);
     var isPreprocessed = spectra.isProcessed();
     var isMatched = spectra.isMatched();
 
     var ti = this.detailedViewTemplate;
     var tz = this.getDetailedZ();
 
-
-    var templateYs = null;
-    if (isMatched || this.dispMatched) {
-        //TODO: Move interpolate to templateManager
-        templateYs = interpolate(spectra.lambda, this.templateManager.getShiftedLinearLambda(ti, tz), this.templateManager.get(ti).spec);
-    }
     var data = [];
-    for (var i=0; i < spectra.intensity.length; i++) {
-        if (isPreprocessed) {
-            var datum = {"lambda": spectra.lambda[i].toFixed(2)}
+    if (this.dispRaw) {
+        for (var i = 0; i < spectra.intensity.length; i++) {
+            data.push({lambda: spectra.lambda[i], raw: spectra.intensity[i]});
         }
-        if (this.dispRaw) {
-            datum.raw = spectra.intensity[i].toFixed(2);
+    }
+    if (this.dispPre && isPreprocessed) {
+        for (var i = 0; i < spectra.processedLambda.length; i++) {
+            data.push({lambda: spectra.processedLambda[i], pre: spectra.processedIntensity[i]});
         }
-        if (isPreprocessed && this.dispPre) {
-            datum.preprocessed = spectra.processedIntensity[i].toFixed(2);
+    }
+    if (this.dispMatched) {
+        var res = this.templateManager.getShiftedLinearLambda(ti, tz);
+        var lam = res[0];
+        var int = res[1];
+        for (var i = 0; i < lam.length; i++) {
+            data.push({lambda: lam[i], matched: int[i]});
         }
-        if (this.dispMatched) {
-            datum.matched = templateYs[i].toFixed(2);
-        }
-        data.push(datum);
     }
 
     return data;
@@ -167,6 +164,7 @@ InterfaceManager.prototype.renderDetailed = function() {
 
     if (this.detailedChart == null) {
         d = [{'lambda':1,'raw':2,'preprocessed':3,'matched':4}];
+        //this.detailedChart = new AmCharts.AmXYChart();
         this.detailedChart = new AmCharts.AmSerialChart();
         var c = this.detailedChart;
         c.zoomOutOnDataUpdate = false;
@@ -175,14 +173,23 @@ InterfaceManager.prototype.renderDetailed = function() {
         c.pathToImages = "images/";
         c.categoryField = "lambda";
 
-
         var categoryAxis = c.categoryAxis;
         categoryAxis.title = "Wavelength";
         categoryAxis.gridPosition = "start";
 
-        var chartCursor = new AmCharts.ChartCursor();
-        chartCursor.cursorPosition = "mouse";
-        c.addChartCursor(chartCursor);
+        /*var xAxis = new AmCharts.ValueAxis();
+        //xAxis.title = "Wavelength";
+        xAxis.position = "bottom";
+        xAxis.autoGridCount = true;
+        xAxis.gridAlpha = 0.1;
+        //xAxis.gridPosition = "start";
+        c.addValueAxis(xAxis);*/
+
+        var yAxis = new AmCharts.ValueAxis();
+        yAxis.position = "left";
+        yAxis.gridAlpha = 0.1;
+        yAxis.autoGridCount = true;
+        c.addValueAxis(yAxis);
 
         c.exportConfig = {
             menuBottom: "80px",
@@ -206,28 +213,39 @@ InterfaceManager.prototype.renderDetailed = function() {
 
         this.detailedRawGraph = new AmCharts.AmGraph();
         this.detailedRawGraph.title = "raw";
+//        this.detailedRawGraph.xField = "x";
         this.detailedRawGraph.valueField = "raw";
         this.detailedRawGraph.bullet = "none";
         this.detailedRawGraph.lineThickness = 1;
         this.detailedRawGraph.lineColor = this.interface.rawColour;
+        this.detailedRawGraph.balloonText = "Lambda: [[x]], I: [[raw]]";
         c.addGraph(this.detailedRawGraph);
 
         this.detailedProcessedGraph = new AmCharts.AmGraph();
         this.detailedProcessedGraph.title = "preprocessed";
-        this.detailedProcessedGraph.valueField = "preprocessed";
+//        this.detailedProcessedGraph.xField = "x";
+        this.detailedProcessedGraph.valueField = "pre";
         this.detailedProcessedGraph.bullet = "none";
         this.detailedProcessedGraph.lineThickness = 1;
         this.detailedProcessedGraph.lineColor = this.interface.processedColour;
+        this.detailedProcessedGraph.balloonText = "Lambda: [[x]], I: [[pre]]";
         c.addGraph(this.detailedProcessedGraph);
 
         this.detailedMatchedGraph = new AmCharts.AmGraph();
         this.detailedMatchedGraph.title = "matched";
+//        this.detailedMatchedGraph.xField = "x";
+//        this.detailedMatchedGraph.yField = "matched";
         this.detailedMatchedGraph.valueField = "matched";
         this.detailedMatchedGraph.bullet = "none";
         this.detailedMatchedGraph.lineThickness = 1;
         this.detailedMatchedGraph.lineColor = this.interface.matchedColour;
+        this.detailedMatchedGraph.balloonText = "Lambda: [[x]], I: [[matched]]";
         c.addGraph(this.detailedMatchedGraph);
 
+        var chartCursor = new AmCharts.ChartCursor();
+        //chartCursor.cursorPosition = "mouse";
+        //chartCursor.bulletsEnabled = true;
+        c.addChartCursor(chartCursor);
 
         this.chartScrollbar = new AmCharts.ChartScrollbar();
         if (spectra.isProcessed()) {

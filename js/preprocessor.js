@@ -141,7 +141,7 @@ function convertVacuumFromAir(lambda) {
  */
 function processData(lambda, intensity, variance) {
     removeBlanks(intensity, variance, 3);
-    //convertVacuumFromAir(lambda);
+    convertVacuumFromAir(lambda);
     removeCosmicRay(intensity, variance, 4, 2);
     rollingPointMean(intensity, variance, 2, 0.8);
     convertVarianceToPercent(intensity, variance);
@@ -246,7 +246,7 @@ function match(lambda, intensity, variance) {
                 zbestTemplate = z + template.redshift;
             }
             //TODO: Make z inc actually one pixel
-            indexOffset++;
+            indexOffset+=2;
             z = indexOffset * (Math.exp((template.end_lambda-template.start_lambda)/(template.spec.length-1))-1);
             if (z > template.z_end) {
                 running = false;
