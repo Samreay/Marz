@@ -48,7 +48,7 @@ function addValuesToDataDictionary(original, lambda, val, key, gap) {
             var o = {lambda: lambda[i]};
             o[key] = val[i];
             beginning.push(o);
-        } else if (index > original.length) {
+        } else if (index >= original.length) {
             var o = {lambda: lambda[i]};
             o[key] = val[i];
             original.push(o);
@@ -137,60 +137,6 @@ function condenseToXPixels(data, numPix) {
     return d;
 }
 
-//function mapArrays(xinterp, xvals, i) {
-//    var xil = xinterp.length;
-//    var xis = xinterp[0];
-//    var xie = xinterp[xil - 1];
-//    var xig = (xie - xis) / (xil - 1);
-//    var xl = xvals.length;
-//    var xs = xvals[0];
-//    var xe = xvals[xl - 1];
-//    var xg = (xe - xs) / (xl - 1);
-//
-//    var start = (xinterp[i] - xs)/(xe - xs)*(xl-1) - 0.5*(xig/xg);
-//    var end = start + (xig/xg);
-//    var startIndex = Math.floor(start);
-//    var startWeight = 1 - (start - startIndex);
-//    var endIndex = Math.ceil(end);
-//    var endWeight = 1 - (endIndex - end);
-//
-//    return [startIndex, startWeight, endIndex, endWeight];
-//
-//
-//}
-/** Interpolates two linear progression x ranges */
-//function interpolate(xinterp, xvals, yvals) {
-//    var result = [];
-//    for (var i = 0; i < xinterp.length; i++) {
-//        var res = mapArrays(xinterp, xvals, i);
-//        var c = 0;
-//        var v = 0;
-//        var weight = res[1];
-//        for (var j = res[0]; j <= res[2]; j++) {
-//            if (j == res[2]) {
-//                weight = res[3];
-//            } else if (j > 0) {
-//                weight = 1;
-//            }
-//            if (j < 0) {
-//                continue;
-//            } else if (j >= xvals.length) {
-//                break;
-//            }
-//            v += weight * yvals[j];
-//            c += weight;
-//        }
-//        if (c != 0) {
-//            result[i] = v / c;
-//        } else {
-//            //TODO: Make variance null
-//            result[i] = 0;
-//        }
-//
-//    }
-//    return result;
-//
-//}
 
 function findCorrespondingFloatIndex(xs, x, optionalStartIndex) {
     var s = optionalStartIndex;

@@ -137,7 +137,7 @@ function convertLambdaToLogLambda(lambda, intensity, variance) {
  */
 function convertVacuumFromAir(lambda) {
     for (var i = 0; i < lambda.length; i++) {
-        lambda[i] = lambda[i] / (1 + 2.735192e-4 + (131.4182/Math.pow(lambda[i], 2)) + (2.76249E8 /Math.pow(lambda[i], 4)));
+        lambda[i] = lambda[i] * (1 + 2.735192e-4 + (131.4182/Math.pow(lambda[i], 2)) + (2.76249E8 /Math.pow(lambda[i], 4)));
     }
 }
 
