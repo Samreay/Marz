@@ -4,7 +4,8 @@
  */
 importScripts('regression.js', 'tools.js', 'templates.js')
 var templateManager = new TemplateManager();
-//var processed_temp = false;
+var shifted_temp = false;
+var max_error = 1e6;
 
 /**
  *  Removes cosmic rays from the data by removing any points more than 5 rms dev apart
@@ -40,7 +41,7 @@ function removeCosmicRay(intensity, variance, factor, numPoints) {
             var r = 0;
             var c = 0;
             for (var j = i - numPoints; j < (i + 1 + numPoints); j++) {
-                if (j >= 0 && j < intensity.length && !isNaN(intensity[j]) && Math.abs(intensity[j]-mean) < rms) {
+                if (j >= 0 && j < intensity.length && !isNaN2(intensity[j]) && Math.abs(intensity[j]-mean) < rms) {
                     c++;
                     r += intensity[j];
                 }
@@ -49,11 +50,14 @@ function removeCosmicRay(intensity, variance, factor, numPoints) {
                 r = r / c;
             }
             intensity[i] = r;
-            variance[i] = null;
+            variance[i] = max_error;
         }
     }
 }
 
+function isNaN2(a) {
+    return a !== a;
+}
 /**
  * Replaces NaNs with an average over numPoints to either side.
  * Sets the variance to null so the point isnt counted.
@@ -76,7 +80,10 @@ function removeBlanks(intensity, variance, numPoints) {
                 r = r / c;
             }
             intensity[i] = r;
-            variance[i] = null;
+            variance[i] = max_error;
+        }
+        if (isNaN(variance[i]) || Math.abs(variance[i]) > max_error || variance[i] <= 0) {
+            variance[i] = max_error;
         }
     }
 }
@@ -90,98 +97,142 @@ function convertVarianceToPercent(intensity, variance) {
 }
 function convertVarianceToNumber(intensity, variance) {
     for (var i = 0; i < intensity.length; i++) {
-        variance[i] = variance[i] * intensity[i];
+        if (intensity[i] == 0) {
+            variance[i] = max_error;
+        } else {
+            variance[i] = variance[i] * intensity[i];
+        }
+    }
+}
+
+/**
+ * Converts the equispaced linear scale of the given lambda into an equispaced log scale.
+ * Interpolates intensity and variance to this new scale.
+ *
+ * @param lambda
+ * @param intensity
+ * @param variance
+ */
+function convertLambdaToLogLambda(lambda, intensity, variance) {
+    var logLambda = linearScale(Math.log(lambda[0])/Math.LN10, Math.log(lambda[lambda.length - 1])/Math.LN10, lambda.length);
+    var rescale = logLambda.map(function(x) { return Math.pow(10, x);});
+    var newIntensity = interpolate(rescale, lambda, intensity);
+    var newVariance = interpolate(rescale, lambda, variance);
+
+    for (var i = 0; i < intensity.length; i++) {
+        lambda[i] = logLambda[i];
+        intensity[i] = newIntensity[i];
+        variance[i] = newVariance[i];
+        if (variance[i] == 0) {
+            variance[i] = max_error;
+        }
+    }
+}
+
+/**
+ * Function transposed from AutoZ code written by Ivan Baldry.
+ * Equation from SDSS web page: http://www.sdss.org/dr7/products/spectra/vacwavelength.html
+ * Reference to Morton (1991, ApJS, 77, 119).
+ * @param lambda
+ */
+function convertVacuumFromAir(lambda) {
+    for (var i = 0; i < lambda.length; i++) {
+        lambda[i] = lambda[i] * (1 + 2.735192e-4 + (131.4182/Math.pow(lambda[i], 2)) + (2.76249E8 /Math.pow(lambda[i], 4)));
     }
 }
 
 /**
  * Exploit javascripts passing by array references so return statements are not needed.
+ *
+ * Note that the linear lambda will be converted to a log scale.
  */
-function processData(intensity, variance, lambda) {
+function processData(lambda, intensity, variance) {
     removeBlanks(intensity, variance, 3);
-    //TODO: This is a horrible way to remove outliers
+    convertVacuumFromAir(lambda);
     removeCosmicRay(intensity, variance, 4, 2);
     rollingPointMean(intensity, variance, 2, 0.8);
-    convertVarianceToPercent(intensity, variance);
-    polyFitNormalise(lambda, intensity);
-    convertVarianceToNumber(intensity, variance);
-
+    polyFitNormalise(lambda, intensity, variance);
+    convertLambdaToLogLambda(lambda, intensity, variance);
 }
-
-function getWeight(lambda, intensity) {
-    var r = polyFit(lambda, intensity, polyDeg);
-    var weights = [];
-    for (var i = 0; i < intensity.length; i++) {
-        weights.push(Math.abs((intensity[i] - r[i])));
-    }
-    return weights;
-}
-
-//TODO: SCIENCE: ERROR WEIGHTING
-function match(lambda, intensity, variance, weights) {
-    var index = -1;
-    var zbest = null;
-    var z = null;
-    var chi2 = 9e19;
+function matchTemplates(lambda, intensity, variance) {
+    var spacing = lambda[1] - lambda[0];
     var templateResults = [];
-    for (var i = 0; i < templateManager.getAll().length; i++) {
-        var chi2template = 9e19;
-        var zbestTemplate = null;
-        var template = templateManager.get(i);
-        z = template.z_start;
+
+
+    for (var j = 0; j < templateManager.getAll().length; j++) {
+        var t = templateManager.get(j);
+
+        templateResults.push({'index':j, 'id': t.id, 'gof': 9e9, 'chi2': 9e9, 'z':0});
+        var tr = templateResults[j];
+
+        var initialTemplateOffset = (lambda[0] - t.interpolatedStart) / spacing;
+        var z = t.z_start;
+        var offsetFromZ = Math.floor((Math.log(1 + z)/Math.LN10) / spacing);
         var running = true;
-        while (running) {
-            var start = (1+z)*template.start_lambda;
-            var end = (1+z)*template.end_lambda;
-            var c = 0;
-            var count = 0;
-            for (var j = 0; j < intensity.length; j++) {
-                var v1 = (lambda[j] - start)/(end - start);
-                if (v1 <= 0 || v1 >= 1) {
-                    c += 50*Math.pow(Math.max(100,100-intensity[j]),2);
-                    continue;
+        var totalWeight = 0;
+        for (var i = 0; i < intensity.length; i++) {
+            totalWeight += Math.abs(intensity[i]);
+        }
+        while(running) {
+            var localChi2 = 0;
+            var int = 0;
+            var templateIndex = 0;
+            var noMatchError = 200 * t.totalWeight/ t.interpolatedSpec.length;
+            for (var i = 0; i < lambda.length; i++) {
+                int = Math.abs(intensity[i]);
+                templateIndex = i + initialTemplateOffset - offsetFromZ;
+                if (templateIndex < 0 || templateIndex >= t.interpolatedSpec.length) {
+                    localChi2 += 150 + Math.pow(intensity[i]/variance[i], 2);
+                } else {
+                    localChi2 += Math.pow((intensity[i] - t.interpolatedSpec[templateIndex])/variance[i], 2)
                 }
-                count++;
-                v1 = v1 * (template.spec.length - 1);
-                var w_bottom = 1 - (v1 - Math.floor(v1));
-                var w_top = v1 - Math.floor(v1);
-                var spec_n = w_bottom*template.spec[Math.floor(v1)] + w_top*template.spec[Math.ceil(v1)];
-                var diff = Math.pow(Math.abs(spec_n - intensity[j]), 2) * weights[j];
-                c += diff;
-                if (c > chi2template) {
+                if (localChi2 > tr.chi2) {
                     break;
                 }
             }
-//            var dev = c / count;
-            var dev = c;
-            if (dev < chi2template) {
-                chi2template = dev;
-                zbestTemplate = z + template.redshift;
+//            if (t.id == '44' && z < 1.2) {
+//                console.log("z: " + z.toFixed(4) + " chi2: " + localChi2.toFixed(1))
+//            }
+            // Add in weighting for the amount matched
+            var gof = localChi2;
+            if (gof < tr.gof) {
+                tr.chi2 = localChi2;
+                tr.gof = gof;
+                tr.z = z;
+                //tr.weightRatio = (weight / totalWeight);
             }
-            //TODO: Make z inc actually one pixel
-            z += 0.001;
-            if (z > template.z_end) {
+            offsetFromZ++;
+            z = Math.pow(10, (offsetFromZ * spacing)) - 1;
+            if (z > t.z_end || offsetFromZ > lambda.length) {
                 running = false;
             }
         }
-        templateResults.push({index: i, chi2: chi2template, z: zbestTemplate});
     }
-    for (var i = 0; i < templateResults.length; i++) {
-        //console.log("Template " + templateResults[i].index + " (id " + templateManager.get(templateResults[i].index).id + ") best z of " + templateResults[i].z.toFixed(4) + " with chi2 of " + templateResults[i].chi2.toFixed(2));
-        if (templateResults[i].chi2 < chi2) {
-            chi2 = templateResults[i].chi2;
-            zbest = templateResults[i].z;
-            index = templateResults[i].index;
+    var bestIndex = 0;
+    for (var i = 1; i < templateResults.length; i++) {
+        if (templateResults[i].chi2 < templateResults[bestIndex].chi2) {
+            bestIndex = i;
         }
     }
-    return {'index': index, 'z': zbest, 'chi2':chi2};
+    return [bestIndex, templateResults];
 }
 
 self.addEventListener('message', function(e) {
     var d = e.data;
     var lambda = linearScale(d.start_lambda, d.end_lambda, d.intensity.length);
-    processData(d.intensity, d.variance, lambda)
-    var results = match(lambda, d.intensity, d.variance, getWeight(lambda, d.intensity));
-    self.postMessage({'index': d.index, 'processedIntensity': d.intensity, 'processedVariance': d.variance, 'templateIndex':results.index, 'templateZ':results.z, 'templateChi2':results.chi2/1e5})
+    processData(lambda, d.intensity, d.variance);
+    if (!shifted_temp) {
+        templateManager.shiftToMatchSpectra(lambda);
+        shifted_temp = true;
+    }
+
+    var results = matchTemplates(lambda, d.intensity, d.variance);
+
+    self.postMessage({'index': d.index,
+        'processedLambda': lambda,
+        'processedIntensity': d.intensity,
+        'processedVariance': d.variance,
+        'bestIndex':results[0],
+        'templateResults':results[1]})
 }, false);
 
