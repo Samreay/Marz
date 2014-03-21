@@ -89,13 +89,13 @@ FitsFile.prototype.getFibres = function(fits) {
     fits.getDataUnit(2).getColumn("TYPE", function(data, opt) {
         var ind = 0;
         for (var i = 0; i < data.length; i++) {
-            if (data[i] == "P" && i < 50) {
+            if (data[i] == "P" && i < 100) {
                 opt.spectra.push({index: ind++, id: i+1, lambda: opt.lambda.slice(0), intensity: [], variance: [], miniRendered: 0});
             }
         }
         opt.getSpectra(fits);
     }, this);
-}
+};
 FitsFile.prototype.getSpectra = function(fits) {
 
     fits.getDataUnit(0).getFrame(0, function(data, opt) {
@@ -105,7 +105,7 @@ FitsFile.prototype.getSpectra = function(fits) {
         }
         opt.getVariances(fits);
     }, this)
-}
+};
 FitsFile.prototype.getVariances = function(fits) {
     fits.getDataUnit(1).getFrame(0, function(data, opt) {
         var d = Array.prototype.slice.call(data);
@@ -119,7 +119,7 @@ FitsFile.prototype.getVariances = function(fits) {
         opt.scope.spectraManager.setSpectra(spec);
         opt.scope.$digest();
     }, this);
-}
+};
 
 
 
@@ -127,43 +127,78 @@ function Spectra(index, id, lambda, intensity, variance) {
     //TODO: Remove index, use $index instead
     this.index = index;
     this.id = id;
+
     this.lambda = lambda;
     this.intensity = intensity;
     this.variance = variance;
 
+    // All these plotting variables are used to make interpolation faster
+    // when generating the data for the detailed view
+    this.gap = 1;
+    this.plotData = [];
+    this.plotLambda = linearSep(Math.floor(lambda[0]), Math.ceil(lambda[lambda.length - 1]), this.gap);
+    this.plotIntensity = interpolate(this.plotLambda, lambda, intensity);
+    this.plotVariance = interpolate(this.plotLambda, lambda, variance);
+    for (var i = 0; i < this.plotLambda.length; i++) {
+        this.plotData.push({lambda: this.plotLambda[i], raw: this.plotIntensity[i]});
+    }
+
+
+    this.processedLambda = null;
     this.processedIntensity = null;
     this.processedVariance = null;
+    this.plotProcessedLambda = null;
+    this.plotProcessedIntensity = null
+    this.plotProcessedVariance = null;
+
 
     this.templateIndex = null;
     this.templateZ = null;
     this.templateChi2 = null;
-    this.templateLambda = null
-    this.templateIntensity = null;
+    this.plotTemplateLambda = null
+    this.plotTemplateIntensity = null;
 }
 Spectra.prototype.setTemplateManager = function(templateManager) {
     this.templateManager = templateManager;
+};
+Spectra.prototype.getTemplateId = function() {
+    if (this.templateIndex == null || this.templateManager == null) return null;
+    return this.templateManager.get(this.templateIndex).id;
 }
-Spectra.prototype.setProcessedValues = function(pi, pv, ti, tz, tc) {
+Spectra.prototype.setProcessedValues = function(pl, pi, pv, ti, tr) {
+    this.processedLambda = pl.map(function(x) {return Math.pow(10, x);});
     this.processedIntensity = pi;
     this.processedVariance = pv;
+
+    this.plotProcessedLambda = linearSep(Math.floor(this.processedLambda[0]), Math.ceil(this.processedLambda[this.processedLambda.length - 1]), this.gap);
+    this.plotProcessedIntensity = interpolate(this.plotProcessedLambda, this.processedLambda, pi);
+    this.plotProcessedVariance = interpolate(this.plotProcessedLambda, this.processedLambda, pv);
+
+    addValuesToDataDictionary(this.plotData, this.plotProcessedLambda, this.plotProcessedIntensity, 'pre', this.gap);
+
+
     this.templateIndex = ti;
-    this.templateZ = tz;
-    this.templateChi2 = tc;
+    this.templateZ = tr[ti].z;
+    this.templateChi2 = tr[ti].chi2;
 
-    var result = this.templateManager.getShiftedTemplate(ti, tz);
-    this.templateLambda = result[0];
-    this.templateIntensity = result[1];
+    this.templateResults = tr;
+//    var result = this.templateManager.getShiftedLinearTemplate(ti, tz);
+//    this.templateLambda = result[0];
+//    this.templateIntensity = result[1];
+//    this.plotTemplateIntensity = this.templateManager.getPlottingShiftedLinearLambda(ti, tz, this.plotProcessedLambda);
+    this.templateLambda = this.plotProcessedLambda;
+    this.templateIntensity = this.templateManager.getPlottingShiftedLinearLambda(ti, this.templateZ, this.plotProcessedLambda);
 
-}
+};
 Spectra.prototype.getAsJson = function() {
     return {'index':this.index, 'start_lambda':this.lambda[0], 'end_lambda':this.lambda[this.lambda.length - 1], 'intensity':this.intensity, 'variance':this.variance};
-}
+};
 Spectra.prototype.isProcessed = function() {
     return this.processedIntensity != null;
-}
+};
 Spectra.prototype.isMatched = function() {
     return this.templateIndex != null;
-}
+};
 
 
 
@@ -171,27 +206,20 @@ function SpectraManager(processorManager, templateManager) {
     this.spectraList = [];
     this.processorManager = processorManager;
     this.templateManager = templateManager;
-}
+};
 SpectraManager.prototype.setSpectra = function(spectraList) {
     this.spectraList = spectraList;
     for (var i = 0; i < spectraList.length; i++) {
         this.spectraList[i].setTemplateManager(this.templateManager);
     }
     this.processorManager.setSpectra(this);
-}
+};
 SpectraManager.prototype.getAll = function() {
     return this.spectraList;
-}
+};
 SpectraManager.prototype.getSpectra = function(i) {
     return this.spectraList[i];
-}
-//SpectraManager.prototype.getUnprocessed = function() {
-//    for (var i = 0; i < this.spectraList.length; i++) {
-//        if (this.spectraList[i].processedIntensity == null) {
-//            return this.spectraList[i].getAsJson(i);
-//        }
-//    }
-//}
+};
 
 
 function ProcessorManager(numProcessors, scope) {
@@ -213,7 +241,7 @@ ProcessorManager.prototype.setSpectra = function(spectraManager) {
         }
         this.processSpectra();
     }
-}
+};
 ProcessorManager.prototype.processSpectra = function() {
     if (this.processQueue.length > 0) {
         var processor = this.getFreeProcessor();
@@ -222,25 +250,15 @@ ProcessorManager.prototype.processSpectra = function() {
             processor = this.getFreeProcessor();
         }
     }
-}
-ProcessorManager.prototype.getFreeProcessor = function() {
-    for(var i = 0; i < this.processors.length; i++) {
+};
+ProcessorManager.prototype.getFreeProcessor = function () {
+    for (var i = 0; i < this.processors.length; i++) {
         if (this.processors[i].isIdle()) {
             return this.processors[i];
         }
     }
     return null;
-}
-//ProcessorManager.prototype.setAutomaticProcessing = function(automatic) {
-//    this.automatic = automatic;
-//}
-//ProcessorManager.prototype.getAutomaticProcessing = function() {
-//    return this.automatic;
-//}
-//ProcessorManager.prototype.hasFreeProcessor = function() {
-//    return this.getFreeProcessor() != null;
-//}
-
+};
 
 /**
  * The processor is responsible for hosting the worker and communicating with it.
@@ -251,9 +269,8 @@ function Processor(manager) {
     this.workingSpectra = null;
     this.worker = new Worker('js/preprocessor.js');
     this.worker.addEventListener('message', function(e) {
-        this.workingSpectra.setProcessedValues(e.data.processedIntensity,
-            e.data.processedVariance, e.data.templateIndex, e.data.templateZ,
-            e.data.templateChi2);
+        this.workingSpectra.setProcessedValues(e.data.processedLambda, e.data.processedIntensity,
+            e.data.processedVariance, e.data.bestIndex, e.data.templateResults);
         this.manager.scope.updatedSpectra(this.workingSpectra.index);
         this.workingSpectra = null;
         this.manager.processSpectra();
@@ -261,9 +278,8 @@ function Processor(manager) {
 }
 Processor.prototype.isIdle = function() {
     return this.workingSpectra == null;
-}
+};
 Processor.prototype.processSpectra = function(spectra) {
     this.workingSpectra = spectra;
-    var message = spectra.getAsJson();
-    this.worker.postMessage(message);
-}
+    this.worker.postMessage(spectra.getAsJson());
+};

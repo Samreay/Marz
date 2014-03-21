@@ -7,12 +7,14 @@
     <link href="css/style.css" rel="stylesheet"/>
     <script src="js/jquery-2.1.0.js"></script>
     <script src="js/amcharts.js"></script>
+    <script src="js/serial.js"></script>
+    <script src="js/xy.js"></script>
+    <script src="js/light.js"></script>
     <script src="js/amexport.js"></script>
+
     <script src="js/angular.js"></script>
     <script src="js/angular-animate.js"></script>
     <script src="js/angular-drop.js"></script>
-    <script src="js/serial.js"></script>
-    <script src="js/light.js"></script>
 
     <script src="js/fits.js"></script>
     <script src="js/regression.js"></script>
@@ -30,7 +32,7 @@
             <h1>InterfaceZ</h1>
             <nav class="menu" ng-click="$event.preventDefault()">
                 <ul>
-                    <li ng-repeat="i in interfaceManager.menuOptions" ng-click="$parent.interfaceManager.menuActive=i" ng-class="{active:i==interfaceManager.menuActive}">
+                    <li ng-repeat="i in interfaceManager.menuOptions" ng-click="$parent.goToMenu(i)" ng-class="{active:i==interfaceManager.menuActive}">
                         <h2>{{i}}</h2>
                     </li>
                 </ul>
@@ -52,7 +54,7 @@
                         <p>{{i.id}}</p>
                         <div class="info" id="spectra{{i.id}}">
                             <p ng-show="i.templateIndex==null">Not analysed</p>
-                            <p ng-show="i.templateIndex!=null">{{i.templateIndex}}, z={{i.templateZ.toFixed(4)}} Chi2: {{i.templateChi2.toFixed(0)}}</p>
+                            <p ng-show="i.templateIndex!=null">{{i.getTemplateId()}}, z={{i.templateZ.toFixed(4)}} Chi2: {{i.templateChi2.toFixed(0)}}</p>
                         </div>
                     </li>
                 </ul>
@@ -70,7 +72,7 @@
                 <div class="overviewList" ng-show="interfaceManager.menuActive=='Overview'">
                     <ul>
                         <li class="overviewItem lined overviewSmall" ng-dblclick="$parent.goToDetailed()" ng-click="$parent.setSpectraIndex(i.index)" ng-class="{activeSelect:interfaceManager.spectraIndex==i.index}" ng-repeat="i in spectraManager.getAll() track by i.id">
-                            <div class="topbar"><b>ID: {{i.id}}</b><p ng-show="i.templateIndex!=null">T: {{i.templateIndex}}, z={{i.templateZ.toFixed(4)}} Chi2: {{i.templateChi2.toFixed(0)}}</p></div>
+                            <div class="topbar"><b>ID: {{i.id}}</b><p ng-show="i.templateIndex!=null">T: {{i.getTemplateId()}}, z={{i.templateZ.toFixed(4)}} Chi2: {{i.templateChi2.toFixed(0)}}</p></div>
                             <div class="graph"><canvas id="smallGraphCanvas{{$index}}" style="width:100%; height:100%;"></canvas>{{interfaceManager.renderOverview($index)}}</div>
                         </li>
                     </ul>
@@ -78,7 +80,7 @@
                 <div class="templateList" ng-show="interfaceManager.menuActive=='Templates'">
                     <ul>
                         <li class="overviewItem lined overviewLarge" ng-repeat="t in templateManager.getAll() track by t.id">
-                            <div class="topbar"><b>Template ID: {{t.id}}</b><p>Name: {{t.name}}, Lambda_start: {{t.start_lambda.toFixed(2)}} Lambda_end: {{t.end_lambda.toFixed(2)}}</p></div>
+                            <div class="topbar"><b>Template ID: {{t.id}}</b><p>Name: {{t.name}}, Lambda Start: {{t.start_lambda_linear.toFixed(2)}} Lambda End: {{t.end_lambda_linear.toFixed(2)}}</p></div>
                             <div class="graph"><canvas id="smallTemplateCanvas{{$index}}" style="width:100%; height:100%;"></canvas>{{interfaceManager.renderTemplate($index)}}</div>
                         </li>
                     </ul>
