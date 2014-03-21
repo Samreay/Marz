@@ -134,8 +134,6 @@ function convertLambdaToLogLambda(lambda, intensity, variance) {
  * Equation from SDSS web page: http://www.sdss.org/dr7/products/spectra/vacwavelength.html
  * Reference to Morton (1991, ApJS, 77, 119).
  * @param lambda
- * @param intensity
- * @param variance
  */
 function convertVacuumFromAir(lambda) {
     for (var i = 0; i < lambda.length; i++) {
@@ -184,19 +182,23 @@ function matchTemplates(lambda, intensity, variance) {
                 int = Math.abs(intensity[i]);
                 templateIndex = i + initialTemplateOffset - offsetFromZ;
                 if (templateIndex < 0 || templateIndex >= t.interpolatedSpec.length) {
-                    localChi2 += int * (Math.pow(intensity[i]/variance[i], 2) + 10);
+                    localChi2 += (Math.pow(100 + intensity[i]/variance[i], 2));
                 } else {
-                    localChi2 += int * Math.pow((intensity[i] - t.interpolatedSpec[templateIndex])/variance[i], 2)
+                    localChi2 += Math.pow((intensity[i] - t.interpolatedSpec[templateIndex])/variance[i], 2)
                     weight += int;
                 }
             }
+            if (t.id == '44' && z < 1.2) {
+                console.log("z: " + z.toFixed(4) + " chi2: " + localChi2.toFixed(1))
+            }
             // Add in weighting for the amount matched
             var gof = localChi2 / Math.pow(weight / totalWeight, 2);
-            localChi2 = 1000 * localChi2 / weight;
+            localChi2 = 100000 * localChi2 / weight;
             if (gof < tr.gof) {
                 tr.chi2 = localChi2;
                 tr.gof = gof;
                 tr.z = z;
+                tr.weightRatio = (weight / totalWeight);
             }
             offsetFromZ++;
             z = Math.pow(10, (offsetFromZ * spacing)) - 1;
@@ -211,7 +213,7 @@ function matchTemplates(lambda, intensity, variance) {
             bestIndex = i;
         }
     }
-    return templateResults[bestIndex];
+    return [bestIndex, templateResults];
 }
 
 self.addEventListener('message', function(e) {
@@ -224,6 +226,12 @@ self.addEventListener('message', function(e) {
     }
 
     var results = matchTemplates(lambda, d.intensity, d.variance);
-    self.postMessage({'index': d.index, 'processedLambda': lambda, 'processedIntensity': d.intensity, 'processedVariance': d.variance, 'templateIndex':results.index, 'templateZ':results.z, 'templateChi2':results.chi2})
+
+    self.postMessage({'index': d.index,
+        'processedLambda': lambda,
+        'processedIntensity': d.intensity,
+        'processedVariance': d.variance,
+        'bestIndex':results[0],
+        'templateResults':results[1]})
 }, false);
 

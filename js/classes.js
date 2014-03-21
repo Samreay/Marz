@@ -89,7 +89,7 @@ FitsFile.prototype.getFibres = function(fits) {
     fits.getDataUnit(2).getColumn("TYPE", function(data, opt) {
         var ind = 0;
         for (var i = 0; i < data.length; i++) {
-            if (data[i] == "P" && i < 6) {
+            if (data[i] == "P" && i < 20) {
                 opt.spectra.push({index: ind++, id: i+1, lambda: opt.lambda.slice(0), intensity: [], variance: [], miniRendered: 0});
             }
         }
@@ -165,7 +165,7 @@ Spectra.prototype.getTemplateId = function() {
     if (this.templateIndex == null || this.templateManager == null) return null;
     return this.templateManager.get(this.templateIndex).id;
 }
-Spectra.prototype.setProcessedValues = function(pl, pi, pv, ti, tz, tc) {
+Spectra.prototype.setProcessedValues = function(pl, pi, pv, ti, tr) {
     this.processedLambda = pl.map(function(x) {return Math.pow(10, x);});
     this.processedIntensity = pi;
     this.processedVariance = pv;
@@ -178,15 +178,16 @@ Spectra.prototype.setProcessedValues = function(pl, pi, pv, ti, tz, tc) {
 
 
     this.templateIndex = ti;
-    this.templateZ = tz;
-    this.templateChi2 = tc;
+    this.templateZ = tr[ti].z;
+    this.templateChi2 = tr[ti].chi2;
 
+    this.templateResults = tr;
 //    var result = this.templateManager.getShiftedLinearTemplate(ti, tz);
 //    this.templateLambda = result[0];
 //    this.templateIntensity = result[1];
 //    this.plotTemplateIntensity = this.templateManager.getPlottingShiftedLinearLambda(ti, tz, this.plotProcessedLambda);
     this.templateLambda = this.plotProcessedLambda;
-    this.templateIntensity = this.templateManager.getPlottingShiftedLinearLambda(ti, tz, this.plotProcessedLambda);
+    this.templateIntensity = this.templateManager.getPlottingShiftedLinearLambda(ti, this.templateZ, this.plotProcessedLambda);
 
 };
 Spectra.prototype.getAsJson = function() {
@@ -269,8 +270,7 @@ function Processor(manager) {
     this.worker = new Worker('js/preprocessor.js');
     this.worker.addEventListener('message', function(e) {
         this.workingSpectra.setProcessedValues(e.data.processedLambda, e.data.processedIntensity,
-            e.data.processedVariance, e.data.templateIndex, e.data.templateZ,
-            e.data.templateChi2);
+            e.data.processedVariance, e.data.bestIndex, e.data.templateResults);
         this.manager.scope.updatedSpectra(this.workingSpectra.index);
         this.workingSpectra = null;
         this.manager.processSpectra();
