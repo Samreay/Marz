@@ -424,8 +424,10 @@ function getInterpolatedAndShifted(template, z, lambda) {
 function polyFitNormalise(lambda, intensity, variance) {
     var r = polyFit(lambda, intensity);
     // Comment below for loop out to compare continuum
+    normaliseViaShift(r, 0, normalised_height, intensity);
+
     for (var i = 0; i < intensity.length; i++) {
         intensity[i] = intensity[i] - r[i];
     }
-    normaliseViaAbsoluteDeviation(intensity, normalised_height, variance);
+    //normaliseViaAbsoluteDeviation(intensity, normalised_height, variance);
 }
