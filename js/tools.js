@@ -1,4 +1,4 @@
-var normalised_height = 100;
+var normalised_height = 1000;
 var polyDeg = 10;
 
 function indexgenerate(num) {
@@ -374,8 +374,7 @@ function polyFit(lambda, intensity) {
     }
     return r;
 }
-
-function normalise(array, bottom, top, optional) {
+function normaliseViaShift(array, bottom, top, optional) {
     var min = 9e9;
     var max = -9e9;
     for (var j = 0; j < array.length; j++) {
@@ -395,6 +394,23 @@ function normalise(array, bottom, top, optional) {
         array[j] = newVal;
     }
 }
+function normaliseViaAbsoluteDeviation(array, top, optional) {
+    var max = -9e9;
+    for (var j = 0; j < array.length; j++) {
+        var v = Math.abs(array[j]);
+        if (v > max) {
+            max = v;
+        }
+    }
+    for (var j = 0; j < array.length; j++) {
+        var r = array[j] / max;
+        array[j] = top * r;
+        if (optional != null) {
+            optional[j] = optional[j] * r;
+        }
+
+    }
+}
 
 function getInterpolatedAndShifted(template, z, lambda) {
     var xvals = linearScaleFactor(template.start_lambda, template.end_lambda, z, template.spec.length);
@@ -402,15 +418,11 @@ function getInterpolatedAndShifted(template, z, lambda) {
     return [lambda, interp];
 }
 
-function polyFitNormalise(lambda, intensity) {
-    //rollingPointMean(intensity, null, 2, 0.8)
-    var r = polyFit(lambda, intensity, polyDeg);
-    for (var i = 0; i < intensity.length; i++) {
-        //intensity[i] = r[i];
-    }
-    normalise(r, 0, normalised_height, intensity);
+function polyFitNormalise(lambda, intensity, variance) {
+    var r = polyFit(lambda, intensity);
     // Comment below for loop out to compare continuum
     for (var i = 0; i < intensity.length; i++) {
         intensity[i] = intensity[i] - r[i];
     }
+    normaliseViaAbsoluteDeviation(intensity, normalised_height, variance);
 }

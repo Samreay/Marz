@@ -131,9 +131,6 @@ function Spectra(index, id, lambda, intensity, variance) {
     this.lambda = lambda;
     this.intensity = intensity;
     this.variance = variance;
-    for (var i = 0; i < variance.length; i++) {
-        variance[i] = Math.sqrt(variance[i]);
-    }
 
     // All these plotting variables are used to make interpolation faster
     // when generating the data for the detailed view
@@ -164,6 +161,10 @@ function Spectra(index, id, lambda, intensity, variance) {
 Spectra.prototype.setTemplateManager = function(templateManager) {
     this.templateManager = templateManager;
 };
+Spectra.prototype.getTemplateId = function() {
+    if (this.templateIndex == null || this.templateManager == null) return null;
+    return this.templateManager.get(this.templateIndex).id;
+}
 Spectra.prototype.setProcessedValues = function(pl, pi, pv, ti, tz, tc) {
     this.processedLambda = pl.map(function(x) {return Math.pow(10, x);});
     this.processedIntensity = pi;

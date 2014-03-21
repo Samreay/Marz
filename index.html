@@ -54,7 +54,7 @@
                         <p>{{i.id}}</p>
                         <div class="info" id="spectra{{i.id}}">
                             <p ng-show="i.templateIndex==null">Not analysed</p>
-                            <p ng-show="i.templateIndex!=null">{{i.templateIndex}}, z={{i.templateZ.toFixed(4)}} Chi2: {{i.templateChi2.toFixed(0)}}</p>
+                            <p ng-show="i.templateIndex!=null">{{i.getTemplateId()}}, z={{i.templateZ.toFixed(4)}} Chi2: {{i.templateChi2.toFixed(0)}}</p>
                         </div>
                     </li>
                 </ul>

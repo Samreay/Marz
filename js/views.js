@@ -137,9 +137,6 @@ InterfaceManager.prototype.getDetailedData = function() {
     return data;
 }
 InterfaceManager.prototype.renderDetailed = function() {
-    if (this.detailedChart != null && !this.detailedUpdateRequired) {
-        return;
-    }
     var spectra = this.spectraManager.getSpectra(this.spectraIndex);
     if (spectra == null || spectra.intensity == null || this.menuActive != "Detailed") {
         return;
@@ -253,9 +250,6 @@ InterfaceManager.prototype.renderDetailed = function() {
         this.detailedChart.write('big');
     }
 
-    if (this.detailedUpdateRequired) {
-        this.detailedChart.dataProvider = this.getDetailedData();
-        this.detailedChart.validateData();
-        this.detailedUpdateRequired = false;
-    }
+    this.detailedChart.dataProvider = this.getDetailedData();
+    this.detailedChart.validateData();
 }

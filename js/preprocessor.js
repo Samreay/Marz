@@ -41,7 +41,7 @@ function removeCosmicRay(intensity, variance, factor, numPoints) {
             var r = 0;
             var c = 0;
             for (var j = i - numPoints; j < (i + 1 + numPoints); j++) {
-                if (j >= 0 && j < intensity.length && !isNaN(intensity[j]) && Math.abs(intensity[j]-mean) < rms) {
+                if (j >= 0 && j < intensity.length && !isNaN2(intensity[j]) && Math.abs(intensity[j]-mean) < rms) {
                     c++;
                     r += intensity[j];
                 }
@@ -55,6 +55,9 @@ function removeCosmicRay(intensity, variance, factor, numPoints) {
     }
 }
 
+function isNaN2(a) {
+    return a !== a;
+}
 /**
  * Replaces NaNs with an average over numPoints to either side.
  * Sets the variance to null so the point isnt counted.
@@ -79,14 +82,7 @@ function removeBlanks(intensity, variance, numPoints) {
             intensity[i] = r;
             variance[i] = max_error;
         }
-        if (Math.abs(variance[i]) > max_error) {
-            variance[i] = max_error;
-        }
-        variance[i] = Math.abs(variance[i]);
-        if (isNaN(variance[i])) {
-            variance[i] = max_error;
-        }
-        if (variance[i] == 0) {
+        if (isNaN(variance[i]) || Math.abs(variance[i]) > max_error || variance[i] <= 0) {
             variance[i] = max_error;
         }
     }
@@ -147,6 +143,9 @@ function convertVacuumFromAir(lambda) {
     }
 }
 
+function printProfile(start, functionname) {
+    console.log("Operation " + functionname + " took " + (new Date() - start) + " milliseoncds");
+}
 /**
  * Exploit javascripts passing by array references so return statements are not needed.
  *
@@ -157,12 +156,9 @@ function processData(lambda, intensity, variance) {
     convertVacuumFromAir(lambda);
     removeCosmicRay(intensity, variance, 4, 2);
     rollingPointMean(intensity, variance, 2, 0.8);
-    //convertVarianceToPercent(intensity, variance);
-    polyFitNormalise(lambda, intensity);
-    //convertVarianceToNumber(intensity, variance);
+    polyFitNormalise(lambda, intensity, variance);
     convertLambdaToLogLambda(lambda, intensity, variance);
 }
-
 function matchTemplates(lambda, intensity, variance) {
     var spacing = lambda[1] - lambda[0];
     var templateResults = [];
@@ -171,25 +167,38 @@ function matchTemplates(lambda, intensity, variance) {
     for (var j = 0; j < templateManager.getAll().length; j++) {
         var t = templateManager.get(j);
 
-        templateResults.push({'index':j, 'id': t.id, 'chi2': 9e9, 'z':0});
+        templateResults.push({'index':j, 'id': t.id, 'gof': 9e9, 'chi2': 9e9, 'z':0});
         var tr = templateResults[j];
 
         var initialTemplateOffset = (lambda[0] - t.interpolatedStart) / spacing;
         var z = t.z_start;
         var offsetFromZ = Math.floor((Math.log(1 + z)/Math.LN10) / spacing);
         var running = true;
+        var totalWeight = 0;
+        for (var i = 0; i < intensity.length; i++) {
+            totalWeight += Math.abs(intensity[i]);
+        }
         while(running) {
             var localChi2 = 0;
+            var weight = 0;
+            var int = 0;
+            var templateIndex = 0;
             for (var i = 0; i < lambda.length; i++) {
-                var templateIndex = i + initialTemplateOffset - offsetFromZ;
+                int = Math.abs(intensity[i]);
+                templateIndex = i + initialTemplateOffset - offsetFromZ;
                 if (templateIndex < 0 || templateIndex >= t.interpolatedSpec.length) {
-                    localChi2 += 1e19 + 1e6*Math.pow(intensity[i]/variance[i], 2);
+                    localChi2 += int * (Math.pow(intensity[i]/variance[i], 2) + 10);
                 } else {
-                    localChi2 += Math.pow((intensity[i] - t.interpolatedSpec[templateIndex])/variance[i], 2)//
+                    localChi2 += int * Math.pow((intensity[i] - t.interpolatedSpec[templateIndex])/variance[i], 2)
+                    weight += int;
                 }
             }
-            if (localChi2 < tr.chi2) {
+            // Add in weighting for the amount matched
+            var gof = localChi2 / Math.pow(weight / totalWeight, 2);
+            localChi2 = 1000 * localChi2 / weight;
+            if (gof < tr.gof) {
                 tr.chi2 = localChi2;
+                tr.gof = gof;
                 tr.z = z;
             }
             offsetFromZ++;
@@ -206,69 +215,6 @@ function matchTemplates(lambda, intensity, variance) {
         }
     }
     return templateResults[bestIndex];
-}
-
-
-function match(lambda, intensity, variance) {
-    var index = -1;
-    var zbest = null;
-    var z = null;
-    var chi2 = 9e19;
-    var templateResults = [];
-    for (var i = 0; i < templateManager.getAll().length; i++) {
-        var chi2template = 9e19;
-        var zbestTemplate = null;
-        var template = templateManager.get(i);
-        var indexOffset = Math.floor(Math.log(1+template.z_start));
-        var running = true;
-        var weight = 0;
-        while (running) {
-            var c = 0;
-            var count = 0;
-            for (var j = 0; j < intensity.length; j++) {
-                if (variance[j] == null) {
-                    continue;
-                }
-                var v1 = (template.spec.length - 1)*(lambda[j] - template.start_lambda)/(template.end_lambda - template.start_lambda) + indexOffset;
-                if (v1 < 0 || v1 >= intensity.length) {
-                    c += 50*Math.pow(Math.max(100,100-intensity[j]),2);
-                    continue;
-                }
-                count++;
-                var w_bottom = 1 - (v1 - Math.floor(v1));
-                var w_top = v1 - Math.floor(v1);
-                var spec_n = w_bottom*template.spec[Math.floor(v1)] + w_top*template.spec[Math.ceil(v1)];
-                var diff = Math.pow((Math.abs(spec_n - intensity[j]))/variance[j], 2) * spec_n;
-                weight += spec_n;
-                c += diff;
-                if (c > chi2template) {
-                    break;
-                }
-            }
-//            var dev = c / count;
-            var dev = c;
-            if (dev < chi2template) {
-                chi2template = dev;
-                zbestTemplate = z + template.redshift;
-            }
-            //TODO: Make z inc actually one pixel
-            indexOffset+=2;
-            z = indexOffset * (Math.exp((template.end_lambda-template.start_lambda)/(template.spec.length-1))-1);
-            if (z > template.z_end) {
-                running = false;
-            }
-        }
-        templateResults.push({index: i, chi2: chi2template, z: zbestTemplate});
-    }
-    for (var i = 0; i < templateResults.length; i++) {
-        //console.log("Template " + templateResults[i].index + " (id " + templateManager.get(templateResults[i].index).id + ") best z of " + templateResults[i].z.toFixed(4) + " with chi2 of " + templateResults[i].chi2.toFixed(2));
-        if (templateResults[i].chi2 < chi2) {
-            chi2 = templateResults[i].chi2;
-            zbest = templateResults[i].z;
-            index = templateResults[i].index;
-        }
-    }
-    return {'index': index, 'z': zbest, 'chi2':chi2};
 }
 
 self.addEventListener('message', function(e) {
