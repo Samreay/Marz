@@ -29,6 +29,7 @@ function InterfaceManager(scope, spectraManager, templateManager) {
     this.detailedProcessedGraph = null;
     this.detailedMatchedGraph = null;
     this.chartScrollbar = null;
+    this.factor = 1000000;
 
 
     this.renderOverviewDone = new Array();
@@ -124,32 +125,15 @@ InterfaceManager.prototype.updateDetailedData = function() {
 InterfaceManager.prototype.getDetailedData = function() {
 
     var spectra = this.spectraManager.getSpectra(this.spectraIndex);
-    var isPreprocessed = spectra.isProcessed();
-    var isMatched = spectra.isMatched();
-
+    var data = JSON.parse(JSON.stringify(spectra.plotData));
     var ti = this.detailedViewTemplate;
     var tz = this.getDetailedZ();
-
-    var data = [];
-    if (this.dispRaw) {
-        for (var i = 0; i < spectra.intensity.length; i++) {
-            data.push({lambda: spectra.lambda[i], raw: spectra.intensity[i]});
-        }
-    }
-    if (this.dispPre && isPreprocessed) {
-        for (var i = 0; i < spectra.processedLambda.length; i++) {
-            data.push({lambda: spectra.processedLambda[i], pre: spectra.processedIntensity[i]});
-        }
-    }
+    var isProcessed = spectra.isProcessed();
     if (this.dispMatched) {
-        var res = this.templateManager.getShiftedLinearLambda(ti, tz);
-        var lam = res[0];
-        var int = res[1];
-        for (var i = 0; i < lam.length; i++) {
-            data.push({lambda: lam[i], matched: int[i]});
-        }
+        var l = isProcessed ? spectra.plotProcessedLambda : spectra.plotLambda;
+        var matched = this.templateManager.getPlottingShiftedLinearLambda(ti, tz, l);
+        addValuesToDataDictionary(data, l, matched, 'matched', spectra.gap);
     }
-
     return data;
 }
 InterfaceManager.prototype.renderDetailed = function() {
@@ -163,7 +147,6 @@ InterfaceManager.prototype.renderDetailed = function() {
 
 
     if (this.detailedChart == null) {
-        d = [{'lambda':1,'raw':2,'preprocessed':3,'matched':4}];
         //this.detailedChart = new AmCharts.AmXYChart();
         this.detailedChart = new AmCharts.AmSerialChart();
         var c = this.detailedChart;
@@ -176,7 +159,8 @@ InterfaceManager.prototype.renderDetailed = function() {
         var categoryAxis = c.categoryAxis;
         categoryAxis.title = "Wavelength";
         categoryAxis.gridPosition = "start";
-
+        //categoryAxis.parseDates = true;
+        //categoryAxis.minPeriod = "mm";
         /*var xAxis = new AmCharts.ValueAxis();
         //xAxis.title = "Wavelength";
         xAxis.position = "bottom";
@@ -185,11 +169,11 @@ InterfaceManager.prototype.renderDetailed = function() {
         //xAxis.gridPosition = "start";
         c.addValueAxis(xAxis);*/
 
-        var yAxis = new AmCharts.ValueAxis();
-        yAxis.position = "left";
-        yAxis.gridAlpha = 0.1;
-        yAxis.autoGridCount = true;
-        c.addValueAxis(yAxis);
+//        var yAxis = new AmCharts.ValueAxis();
+//        yAxis.position = "left";
+//        yAxis.gridAlpha = 0.1;
+//        yAxis.autoGridCount = true;
+//        c.addValueAxis(yAxis);
 
         c.exportConfig = {
             menuBottom: "80px",
@@ -215,20 +199,22 @@ InterfaceManager.prototype.renderDetailed = function() {
         this.detailedRawGraph.title = "raw";
 //        this.detailedRawGraph.xField = "x";
         this.detailedRawGraph.valueField = "raw";
-        this.detailedRawGraph.bullet = "none";
+        //this.detailedRawGraph.bullet = "none";
         this.detailedRawGraph.lineThickness = 1;
+        //this.detailedRawGraph.connect = true;
         this.detailedRawGraph.lineColor = this.interface.rawColour;
-        this.detailedRawGraph.balloonText = "Lambda: [[x]], I: [[raw]]";
+        //this.detailedRawGraph.balloonText = "Lambda: [[x]], I: [[raw]]";
         c.addGraph(this.detailedRawGraph);
 
         this.detailedProcessedGraph = new AmCharts.AmGraph();
         this.detailedProcessedGraph.title = "preprocessed";
 //        this.detailedProcessedGraph.xField = "x";
         this.detailedProcessedGraph.valueField = "pre";
-        this.detailedProcessedGraph.bullet = "none";
+        //this.detailedProcessedGraph.bullet = "none";
         this.detailedProcessedGraph.lineThickness = 1;
+        //this.detailedProcessedGraph.connect = true;
         this.detailedProcessedGraph.lineColor = this.interface.processedColour;
-        this.detailedProcessedGraph.balloonText = "Lambda: [[x]], I: [[pre]]";
+        //this.detailedProcessedGraph.balloonText = "Lambda: [[x]], I: [[pre]]";
         c.addGraph(this.detailedProcessedGraph);
 
         this.detailedMatchedGraph = new AmCharts.AmGraph();
@@ -238,13 +224,14 @@ InterfaceManager.prototype.renderDetailed = function() {
         this.detailedMatchedGraph.valueField = "matched";
         this.detailedMatchedGraph.bullet = "none";
         this.detailedMatchedGraph.lineThickness = 1;
+        this.detailedMatchedGraph.connect = true;
         this.detailedMatchedGraph.lineColor = this.interface.matchedColour;
-        this.detailedMatchedGraph.balloonText = "Lambda: [[x]], I: [[matched]]";
+        //this.detailedMatchedGraph.balloonText = "Lambda: [[x]], I: [[matched]]";
         c.addGraph(this.detailedMatchedGraph);
 
         var chartCursor = new AmCharts.ChartCursor();
-        //chartCursor.cursorPosition = "mouse";
-        //chartCursor.bulletsEnabled = true;
+        chartCursor.cursorPosition = "mouse";
+        chartCursor.bulletsEnabled = true;
         c.addChartCursor(chartCursor);
 
         this.chartScrollbar = new AmCharts.ChartScrollbar();

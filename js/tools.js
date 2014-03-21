@@ -15,10 +15,17 @@ function indexgenerateWithOffset(num, offset) {
     }
     return result;
 }
+function linearSep(start, end, gap) {
+    var result = [];
+    for (var i = start; i <= end; i+= gap) {
+        result.push(i);
+    }
+    return result;
+}
 function linearScale(start, end, num) {
     var result = [];
     for (var i = 0; i < num; i++) {
-        var w0 = 1 - (i/num);
+        var w0 = 1 - (i/(num-1));
         var w1 = 1 - w0;
         result.push(start*w0 + end*w1);
     }
@@ -26,6 +33,29 @@ function linearScale(start, end, num) {
 }
 function linearScaleFactor(start, end, redshift, num) {
     return linearScale(start*(1+redshift), end*(1+redshift), num);
+}
+function addValuesToDataDictionary(original, lambda, val, key, gap) {
+    var startData = original[0].lambda;
+    var startProcessed = lambda[0];
+    var offset = (startProcessed - startData) / gap;
+    var beginning = [];
+    for (var i = 0; i < lambda.length; i++) {
+        var index =  offset + i;
+        if (index < 0) {
+            var o = {lambda: lambda[i]};
+            o[key] = val[i];
+            beginning.push(o);
+        } else if (index > original.length) {
+            var o = {lambda: lambda[i]};
+            o[key] = val[i];
+            original.push(o);
+        } else {
+            original[index][key] = val[i];
+        }
+    }
+    for (var i = beginning.length - 1; i >= 0; i--) {
+        original.unshift(beginning[i]);
+    }
 }
 
 // SOURCED FROM http://www.csgnetwork.com/julianmodifdateconv.html
@@ -104,59 +134,121 @@ function condenseToXPixels(data, numPix) {
     return d;
 }
 
-function mapArrays(xinterp, xvals, i) {
-    var xil = xinterp.length;
-    var xis = xinterp[0];
-    var xie = xinterp[xil - 1];
-    var xig = (xie - xis) / (xil - 1);
-    var xl = xvals.length;
-    var xs = xvals[0];
-    var xe = xvals[xl - 1];
-    var xg = (xe - xs) / (xl - 1);
-
-    var start = (xinterp[i] - xs)/(xe - xs)*(xl-1) - 0.5*(xig/xg);
-    var end = start + (xig/xg);
-    var startIndex = Math.floor(start);
-    var startWeight = 1 - (start - startIndex);
-    var endIndex = Math.ceil(end);
-    var endWeight = 1 - (endIndex - end);
-
-    return [startIndex, startWeight, endIndex, endWeight];
-
-
-}
+//function mapArrays(xinterp, xvals, i) {
+//    var xil = xinterp.length;
+//    var xis = xinterp[0];
+//    var xie = xinterp[xil - 1];
+//    var xig = (xie - xis) / (xil - 1);
+//    var xl = xvals.length;
+//    var xs = xvals[0];
+//    var xe = xvals[xl - 1];
+//    var xg = (xe - xs) / (xl - 1);
+//
+//    var start = (xinterp[i] - xs)/(xe - xs)*(xl-1) - 0.5*(xig/xg);
+//    var end = start + (xig/xg);
+//    var startIndex = Math.floor(start);
+//    var startWeight = 1 - (start - startIndex);
+//    var endIndex = Math.ceil(end);
+//    var endWeight = 1 - (endIndex - end);
+//
+//    return [startIndex, startWeight, endIndex, endWeight];
+//
+//
+//}
 /** Interpolates two linear progression x ranges */
+//function interpolate(xinterp, xvals, yvals) {
+//    var result = [];
+//    for (var i = 0; i < xinterp.length; i++) {
+//        var res = mapArrays(xinterp, xvals, i);
+//        var c = 0;
+//        var v = 0;
+//        var weight = res[1];
+//        for (var j = res[0]; j <= res[2]; j++) {
+//            if (j == res[2]) {
+//                weight = res[3];
+//            } else if (j > 0) {
+//                weight = 1;
+//            }
+//            if (j < 0) {
+//                continue;
+//            } else if (j >= xvals.length) {
+//                break;
+//            }
+//            v += weight * yvals[j];
+//            c += weight;
+//        }
+//        if (c != 0) {
+//            result[i] = v / c;
+//        } else {
+//            //TODO: Make variance null
+//            result[i] = 0;
+//        }
+//
+//    }
+//    return result;
+//
+//}
+
+function findCorrespondingFloatIndex(xs, x, optionalStartIndex) {
+    var s = optionalStartIndex;
+    if (s == null) s = 0;
+    for (var i = s; i < xs.length; i++) {
+        if (xs[i] < x) {
+            continue;
+        } else {
+            if (i == 0) return i;
+            return (i - 1) + (x - xs[i - 1])/(xs[i] - xs[i - 1]);
+        }
+    }
+}
+function getAvgBetween(xvals, start, end) {
+    var c = 0;
+    var r = 0;
+    for (var i = Math.floor(start); i <= Math.ceil(end); i++) {
+        var weight = 1;
+        if (i == Math.floor(start)) {
+            weight = 1 - (start - Math.floor(i));
+        } else if (i == Math.ceil(end)) {
+            weight = 1 - (Math.ceil(end) - end)
+        }
+        r += weight * xvals[i];
+        c += weight;
+    }
+    if (c == 0) {
+        return 0;
+    } else {
+        return r / c;
+    }
+}
 function interpolate(xinterp, xvals, yvals) {
+    if (xinterp == null || xinterp.length < 2) {
+        console.log("Don't use interpolate on a null, empty or single element array");
+        return null;
+    }
+    var start_x = null;
+    var end_x = null;
+    var xval_start_index = null;
+    var xval_end_index = null;
     var result = [];
     for (var i = 0; i < xinterp.length; i++) {
-        var res = mapArrays(xinterp, xvals, i);
-        var c = 0;
-        var v = 0;
-        var weight = res[1];
-        for (var j = res[0]; j <= res[2]; j++) {
-            if (j == res[2]) {
-                weight = res[3];
-            } else if (j > 0) {
-                weight = 1;
-            }
-            if (j < 0) {
-                continue;
-            } else if (j >= xvals.length) {
-                break;
-            }
-            v += weight * yvals[j];
-            c += weight;
+        start_x = i == 0 ? null : (xinterp[i] + xinterp[i - 1]) / 2;
+        end_x = i == xinterp.length - 1 ? null : (xinterp[i + 1] + xinterp[i]) / 2;
+        if (start_x == null) {
+            start_x = 2 * xinterp[i] - end_x;
         }
-        if (c != 0) {
-            result[i] = v / c;
+        if (end_x == null) {
+            end_x = 2 * xinterp[i] - start_x;
+        }
+        // If we have done the previous step, just move to next (touching) block to avg
+        if (xval_end_index != null) {
+            xval_start_index = xval_end_index;
         } else {
-            //TODO: Make variance null
-            result[i] = 0;
+            xval_start_index = findCorrespondingFloatIndex(xvals, start_x);
         }
-
+        xval_end_index = findCorrespondingFloatIndex(xvals, end_x, Math.floor(xval_start_index));
+        result.push(getAvgBetween(yvals, xval_start_index, xval_end_index));
     }
     return result;
-
 }
 
  function getMaxes(vals) {
