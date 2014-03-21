@@ -23,9 +23,7 @@ function MainController($scope, $timeout) {
     $scope.fits = null; // Initialise new FitsFile on drop.
     $scope.goToMenu = function(menuOption) {
         if (menuOption == 'Detailed') {
-            var start = new Date();
             $scope.goToDetailed();
-            printProfile(start, "going to detailed");
         }
         $scope.interfaceManager.menuActive = menuOption;
     }
@@ -38,9 +36,7 @@ function MainController($scope, $timeout) {
         $scope.interfaceManager.detailedViewTemplate = tid == null ? 0 : tid;
         $scope.interfaceManager.detailedViewZ = tz == null? 0 : tz;
         $scope.interfaceManager.menuActive = 'Detailed';
-        var start = new Date();
         this.interfaceManager.updateDetailedData();
-        printProfile(start, 'updating detailed data');
 
     }
     $scope.addfile = function (f) {
@@ -60,10 +56,7 @@ function MainController($scope, $timeout) {
     $scope.setSpectraIndex = function(i) {
         $scope.interfaceManager.spectraIndex = i;
         //TODO: Remove duplicate code
-        var tid = $scope.spectraManager.getSpectra($scope.interfaceManager.spectraIndex).templateIndex;
-        var tz = $scope.spectraManager.getSpectra($scope.interfaceManager.spectraIndex).templateZ;
-        $scope.interfaceManager.detailedViewTemplate = tid == null ? 0 : tid;
-        $scope.interfaceManager.detailedViewZ = tz == null? 0 : tz;
+        $scope.goToDetailed();
         $timeout(function() {
             var leftrel = $('.spectralList ul li.activeSelect').position().top;
             var leftheight = $('.spectralList').height();

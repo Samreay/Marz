@@ -24,14 +24,12 @@ function InterfaceManager(scope, spectraManager, templateManager) {
     this.detailedViewTemplate = 0;
     this.detailedViewZ = 0;
     this.detailedUpdateRequired = false;
-    this.detailedViewZMax = 2;
 
     this.detailedChart = null;
     this.detailedRawGraph = null;
     this.detailedProcessedGraph = null;
     this.detailedMatchedGraph = null;
     this.chartScrollbar = null;
-    this.factor = 1000000;
 
 
     this.renderOverviewDone = new Array();
@@ -98,7 +96,6 @@ InterfaceManager.prototype.updateDetailedData = function() {
     var spectra = this.spectraManager.getSpectra(this.spectraIndex);
     var isPreprocessed = spectra == null ? false : spectra.isProcessed();
     if (this.detailedChart != null) {
-        var start = new Date();
         if (this.dispRaw) {
             if (!this.dispRawPrev) {
                 this.detailedChart.showGraph(this.detailedRawGraph);
@@ -110,8 +107,6 @@ InterfaceManager.prototype.updateDetailedData = function() {
                 this.dispRawPrev = false;
             }
         }
-        printProfile(start, 'updating raw data');
-        start = new Date();
         if (this.dispPre && isPreprocessed) {
             if (!this.dispPrePrev) {
                 this.detailedChart.showGraph(this.detailedProcessedGraph);
@@ -123,8 +118,6 @@ InterfaceManager.prototype.updateDetailedData = function() {
                 this.dispPrePrev = false;
             }
         }
-        printProfile(start, 'updating pre data');
-        start = new Date();
         if (this.dispMatched) {
             if (!this.dispMatchedPrev) {
                 this.detailedChart.showGraph(this.detailedMatchedGraph);
@@ -136,15 +129,11 @@ InterfaceManager.prototype.updateDetailedData = function() {
                 this.dispMatchedPrev = false;
             }
         }
-        printProfile(start, 'updating matched data');
-        start = new Date();
         if (isPreprocessed) {
             this.chartScrollbar.graph = this.detailedProcessedGraph;
         } else {
             this.chartScrollbar.graph = this.detailedRawGraph;
         }
-        printProfile(start, 'updating scroll data');
-
     }
     this.detailedUpdateRequired = true;
 }
@@ -152,7 +141,6 @@ InterfaceManager.prototype.updateDetailedData = function() {
 //TODO: Bloody recode this entire bloody section and mangle the x axis so that I dont need to interpolate a thousand
 //TODO: bloody times. God I'm close to just writing the graphing functions myself.
 InterfaceManager.prototype.getDetailedData = function() {
-    var start = new Date();
     var spectra = this.spectraManager.getSpectra(this.spectraIndex);
     var data = JSON.parse(JSON.stringify(spectra.plotData));
     var ti = this.detailedViewTemplate;
@@ -163,7 +151,6 @@ InterfaceManager.prototype.getDetailedData = function() {
         var matched = this.templateManager.getPlottingShiftedLinearLambda(ti, tz, l);
         addValuesToDataDictionary(data, l, matched, 'matched', spectra.gap);
     }
-    printProfile(start, 'generating data');
     return data;
 }
 InterfaceManager.prototype.renderDetailed = function() {
@@ -284,10 +271,8 @@ InterfaceManager.prototype.renderDetailed = function() {
         this.detailedChart.write('big');
     }
     if (this.detailedUpdateRequired) {
-        var start = new Date();
         this.detailedChart.dataProvider = this.getDetailedData();
         this.detailedChart.validateData();
         this.detailedUpdateRequired = false;
-        printProfile(start, 'generating and validating data');
     }
 }
