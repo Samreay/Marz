@@ -17,7 +17,7 @@ function MainController($scope, $timeout) {
 
     // Model managers
     $scope.templateManager = new TemplateManager();
-    $scope.processorManager = new ProcessorManager(1, $scope); //TODO: Core estimation
+    $scope.processorManager = new ProcessorManager(3, $scope); //TODO: Core estimation
     $scope.spectraManager = new SpectraManager($scope.processorManager, $scope.templateManager);
     $scope.interfaceManager = new InterfaceManager($scope, $scope.spectraManager, $scope.templateManager);
     $scope.fits = null; // Initialise new FitsFile on drop.
@@ -56,7 +56,7 @@ function MainController($scope, $timeout) {
     $scope.setSpectraIndex = function(i) {
         $scope.interfaceManager.spectraIndex = i;
         //TODO: Remove duplicate code
-        $scope.goToDetailed();
+        if ($scope.interfaceManager.menuActive == 'Detailed') $scope.goToDetailed();
         $timeout(function() {
             var leftrel = $('.spectralList ul li.activeSelect').position().top;
             var leftheight = $('.spectralList').height();

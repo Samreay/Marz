@@ -175,30 +175,31 @@ function matchTemplates(lambda, intensity, variance) {
         }
         while(running) {
             var localChi2 = 0;
-            var weight = 0;
             var int = 0;
             var templateIndex = 0;
+            var noMatchError = 200 * t.totalWeight/ t.interpolatedSpec.length;
             for (var i = 0; i < lambda.length; i++) {
                 int = Math.abs(intensity[i]);
                 templateIndex = i + initialTemplateOffset - offsetFromZ;
                 if (templateIndex < 0 || templateIndex >= t.interpolatedSpec.length) {
-                    localChi2 += (Math.pow(100 + intensity[i]/variance[i], 2));
+                    localChi2 += 150 + Math.pow(intensity[i]/variance[i], 2);
                 } else {
                     localChi2 += Math.pow((intensity[i] - t.interpolatedSpec[templateIndex])/variance[i], 2)
-                    weight += int;
+                }
+                if (localChi2 > tr.chi2) {
+                    break;
                 }
             }
-            if (t.id == '44' && z < 1.2) {
-                console.log("z: " + z.toFixed(4) + " chi2: " + localChi2.toFixed(1))
-            }
+//            if (t.id == '44' && z < 1.2) {
+//                console.log("z: " + z.toFixed(4) + " chi2: " + localChi2.toFixed(1))
+//            }
             // Add in weighting for the amount matched
-            var gof = localChi2 / Math.pow(weight / totalWeight, 2);
-            localChi2 = 100000 * localChi2 / weight;
+            var gof = localChi2;
             if (gof < tr.gof) {
                 tr.chi2 = localChi2;
                 tr.gof = gof;
                 tr.z = z;
-                tr.weightRatio = (weight / totalWeight);
+                //tr.weightRatio = (weight / totalWeight);
             }
             offsetFromZ++;
             z = Math.pow(10, (offsetFromZ * spacing)) - 1;
