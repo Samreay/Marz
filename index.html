@@ -32,7 +32,7 @@
             <h1>InterfaceZ</h1>
             <nav class="menu" ng-click="$event.preventDefault()">
                 <ul>
-                    <li ng-repeat="i in interfaceManager.menuOptions" ng-click="$parent.interfaceManager.menuActive=i" ng-class="{active:i==interfaceManager.menuActive}">
+                    <li ng-repeat="i in interfaceManager.menuOptions" ng-click="$parent.goToMenu(i)" ng-class="{active:i==interfaceManager.menuActive}">
                         <h2>{{i}}</h2>
                     </li>
                 </ul>

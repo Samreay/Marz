@@ -21,16 +21,26 @@ function MainController($scope, $timeout) {
     $scope.spectraManager = new SpectraManager($scope.processorManager, $scope.templateManager);
     $scope.interfaceManager = new InterfaceManager($scope, $scope.spectraManager, $scope.templateManager);
     $scope.fits = null; // Initialise new FitsFile on drop.
-
+    $scope.goToMenu = function(menuOption) {
+        if (menuOption == 'Detailed') {
+            var start = new Date();
+            $scope.goToDetailed();
+            printProfile(start, "going to detailed");
+        }
+        $scope.interfaceManager.menuActive = menuOption;
+    }
     $scope.goToDetailed = function() {
-
-        var tid = $scope.spectraManager.getSpectra($scope.interfaceManager.spectraIndex).templateIndex;
-        var tz = $scope.spectraManager.getSpectra($scope.interfaceManager.spectraIndex).templateZ;
+        var spectra =  $scope.spectraManager.getSpectra($scope.interfaceManager.spectraIndex);
+        if (spectra != null) {
+            var tid = spectra.templateIndex;
+            var tz = spectra.templateZ;
+        }
         $scope.interfaceManager.detailedViewTemplate = tid == null ? 0 : tid;
         $scope.interfaceManager.detailedViewZ = tz == null? 0 : tz;
-        $scope.interfaceManager.detailedUpdateRequired = true;
         $scope.interfaceManager.menuActive = 'Detailed';
+        var start = new Date();
         this.interfaceManager.updateDetailedData();
+        printProfile(start, 'updating detailed data');
 
     }
     $scope.addfile = function (f) {

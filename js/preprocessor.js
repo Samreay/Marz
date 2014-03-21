@@ -143,9 +143,6 @@ function convertVacuumFromAir(lambda) {
     }
 }
 
-function printProfile(start, functionname) {
-    console.log("Operation " + functionname + " took " + (new Date() - start) + " milliseoncds");
-}
 /**
  * Exploit javascripts passing by array references so return statements are not needed.
  *

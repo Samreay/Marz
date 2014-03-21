@@ -31,6 +31,9 @@ function linearScale(start, end, num) {
     }
     return result;
 }
+function printProfile(start, functionname) {
+    console.log("Operation " + functionname + " took " + (new Date() - start) + " milliseoncds");
+}
 function linearScaleFactor(start, end, redshift, num) {
     return linearScale(start*(1+redshift), end*(1+redshift), num);
 }

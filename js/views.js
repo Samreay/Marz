@@ -11,7 +11,9 @@ function InterfaceManager(scope, spectraManager, templateManager) {
     this.dispRaw = 1;
     this.dispPre = 1;
     this.dispMatched = 1;
-
+    this.dispRawPrev = 1;
+    this.dispPrePrev = 1;
+    this.dispMatchedPrev = 1;
 
     this.interface = {
         rawColour: "#E8BA6B",
@@ -94,28 +96,55 @@ InterfaceManager.prototype.renderOverview = function(index) {
 }
 InterfaceManager.prototype.updateDetailedData = function() {
     var spectra = this.spectraManager.getSpectra(this.spectraIndex);
-    var isPreprocessed = spectra.isProcessed();
+    var isPreprocessed = spectra == null ? false : spectra.isProcessed();
     if (this.detailedChart != null) {
+        var start = new Date();
         if (this.dispRaw) {
-            this.detailedChart.showGraph(this.detailedRawGraph);
+            if (!this.dispRawPrev) {
+                this.detailedChart.showGraph(this.detailedRawGraph);
+                this.dispRawPrev = true;
+            }
         } else {
-            this.detailedChart.hideGraph(this.detailedRawGraph);
+            if (this.dispRawPrev) {
+                this.detailedChart.hideGraph(this.detailedRawGraph);
+                this.dispRawPrev = false;
+            }
         }
+        printProfile(start, 'updating raw data');
+        start = new Date();
         if (this.dispPre && isPreprocessed) {
-            this.detailedChart.showGraph(this.detailedProcessedGraph);
+            if (!this.dispPrePrev) {
+                this.detailedChart.showGraph(this.detailedProcessedGraph);
+                this.dispPrePrev = true;
+            }
         } else {
-            this.detailedChart.hideGraph(this.detailedProcessedGraph);
+            if (this.dispPrePrev) {
+                this.detailedChart.hideGraph(this.detailedProcessedGraph);
+                this.dispPrePrev = false;
+            }
         }
+        printProfile(start, 'updating pre data');
+        start = new Date();
         if (this.dispMatched) {
-            this.detailedChart.showGraph(this.detailedMatchedGraph);
+            if (!this.dispMatchedPrev) {
+                this.detailedChart.showGraph(this.detailedMatchedGraph);
+                this.dispMatchedPrev = true;
+            }
         } else {
-            this.detailedChart.hideGraph(this.detailedMatchedGraph);
+            if (this.dispMatchedPrev) {
+                this.detailedChart.hideGraph(this.detailedMatchedGraph);
+                this.dispMatchedPrev = false;
+            }
         }
+        printProfile(start, 'updating matched data');
+        start = new Date();
         if (isPreprocessed) {
             this.chartScrollbar.graph = this.detailedProcessedGraph;
         } else {
             this.chartScrollbar.graph = this.detailedRawGraph;
         }
+        printProfile(start, 'updating scroll data');
+
     }
     this.detailedUpdateRequired = true;
 }
@@ -123,7 +152,7 @@ InterfaceManager.prototype.updateDetailedData = function() {
 //TODO: Bloody recode this entire bloody section and mangle the x axis so that I dont need to interpolate a thousand
 //TODO: bloody times. God I'm close to just writing the graphing functions myself.
 InterfaceManager.prototype.getDetailedData = function() {
-
+    var start = new Date();
     var spectra = this.spectraManager.getSpectra(this.spectraIndex);
     var data = JSON.parse(JSON.stringify(spectra.plotData));
     var ti = this.detailedViewTemplate;
@@ -134,11 +163,15 @@ InterfaceManager.prototype.getDetailedData = function() {
         var matched = this.templateManager.getPlottingShiftedLinearLambda(ti, tz, l);
         addValuesToDataDictionary(data, l, matched, 'matched', spectra.gap);
     }
+    printProfile(start, 'generating data');
     return data;
 }
 InterfaceManager.prototype.renderDetailed = function() {
     var spectra = this.spectraManager.getSpectra(this.spectraIndex);
     if (spectra == null || spectra.intensity == null || this.menuActive != "Detailed") {
+        return;
+    }
+    if (!(this.detailedChart == null || this.detailedUpdateRequired == true)) {
         return;
     }
 
@@ -245,11 +278,16 @@ InterfaceManager.prototype.renderDetailed = function() {
         c.addChartScrollbar(this.chartScrollbar);
 
         c.write('big');
+        this.detailedUpdateRequired = false;
 
     } else if (document.getElementById('big').innerHTML.length < 100) { //TODO: Better check
         this.detailedChart.write('big');
     }
-
-    this.detailedChart.dataProvider = this.getDetailedData();
-    this.detailedChart.validateData();
+    if (this.detailedUpdateRequired) {
+        var start = new Date();
+        this.detailedChart.dataProvider = this.getDetailedData();
+        this.detailedChart.validateData();
+        this.detailedUpdateRequired = false;
+        printProfile(start, 'generating and validating data');
+    }
 }
