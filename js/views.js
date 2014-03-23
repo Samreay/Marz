@@ -1,11 +1,11 @@
-function InterfaceManager(scope, spectraManager, templateManager) {
+function InterfaceManager(scope, spectraManager, templateManager, processorManager) {
     this.scope = scope;
     this.spectraManager = spectraManager;
     this.templateManager = templateManager;
+    this.processorManager = processorManager;
 
-    this.menuOptions = ['Overview','Detailed','Templates','Settings'];
+    this.menuOptions = ['Overview','Detailed','Templates','Settings', 'Usage'];
     this.menuActive = 'Overview';
-
     this.spectraIndex = 0;
 
     this.dispRaw = 1;
@@ -34,6 +34,32 @@ function InterfaceManager(scope, spectraManager, templateManager) {
 
     this.renderOverviewDone = new Array();
 
+}
+InterfaceManager.prototype.getNumSpectra = function() {
+    return this.spectraManager.getAll().length;
+}
+InterfaceManager.prototype.getNumAnalysed = function() {
+    return this.spectraManager.getAnalysed().length;
+}
+InterfaceManager.prototype.isMenuActive = function(array) {
+    for (var i = 0; i < array.length; i++) {
+        if (this.menuActive == array[i]) {
+            return true;
+        }
+    }
+    return false;
+}
+InterfaceManager.prototype.getProgessPercent = function() {
+    if (this.getNumSpectra() == 0) {
+        return 0;
+    }
+    return Math.ceil(-0.01 + (100 * this.getNumAnalysed() / this.getNumSpectra()));
+}
+InterfaceManager.prototype.finishedAnalysis = function() {
+    return (this.getNumSpectra() == this.getNumAnalysed());
+}
+InterfaceManager.prototype.showFooter = function() {
+    return (this.processorManager.isProcessing() || this.getNumAnalysed());
 }
 InterfaceManager.prototype.getDetailedZ = function() {
     return parseFloat(this.detailedViewZ);

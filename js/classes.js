@@ -89,7 +89,7 @@ FitsFile.prototype.getFibres = function(fits) {
     fits.getDataUnit(2).getColumn("TYPE", function(data, opt) {
         var ind = 0;
         for (var i = 0; i < data.length; i++) {
-            if (data[i] == "P" && i < 100) {
+            if (data[i] == "P" && i < 200) {
                 opt.spectra.push({index: ind++, id: i+1, lambda: opt.lambda.slice(0), intensity: [], variance: [], miniRendered: 0});
             }
         }
@@ -204,6 +204,7 @@ Spectra.prototype.isMatched = function() {
 
 function SpectraManager(processorManager, templateManager) {
     this.spectraList = [];
+    this.analysed = [];
     this.processorManager = processorManager;
     this.templateManager = templateManager;
 };
@@ -220,6 +221,12 @@ SpectraManager.prototype.getAll = function() {
 SpectraManager.prototype.getSpectra = function(i) {
     return this.spectraList[i];
 };
+SpectraManager.prototype.addToUpdated = function(i) {
+    this.analysed.push(i);
+}
+SpectraManager.prototype.getAnalysed = function() {
+    return this.analysed;
+}
 
 
 function ProcessorManager(numProcessors, scope) {
@@ -242,6 +249,17 @@ ProcessorManager.prototype.setSpectra = function(spectraManager) {
         this.processSpectra();
     }
 };
+ProcessorManager.prototype.isProcessing = function() {
+    if (this.processQueue.length > 0) {
+        return true;
+    }
+    for (var i = 0; i < this.processors.length; i++) {
+        if (!this.processors[i].isIdle()) {
+            return true;
+        }
+    }
+    return false;
+}
 ProcessorManager.prototype.processSpectra = function() {
     if (this.processQueue.length > 0) {
         var processor = this.getFreeProcessor();
@@ -250,6 +268,7 @@ ProcessorManager.prototype.processSpectra = function() {
             processor = this.getFreeProcessor();
         }
     }
+    this.scope.$apply();
 };
 ProcessorManager.prototype.getFreeProcessor = function () {
     for (var i = 0; i < this.processors.length; i++) {
@@ -272,6 +291,7 @@ function Processor(manager) {
         this.workingSpectra.setProcessedValues(e.data.processedLambda, e.data.processedIntensity,
             e.data.processedVariance, e.data.bestIndex, e.data.templateResults);
         this.manager.scope.updatedSpectra(this.workingSpectra.index);
+        this.manager.spectraManager.addToUpdated(this.workingSpectra);
         this.workingSpectra = null;
         this.manager.processSpectra();
     }.bind(this), false);
