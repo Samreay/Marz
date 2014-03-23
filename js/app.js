@@ -19,7 +19,7 @@ function MainController($scope, $timeout) {
     $scope.templateManager = new TemplateManager();
     $scope.processorManager = new ProcessorManager(3, $scope); //TODO: Core estimation
     $scope.spectraManager = new SpectraManager($scope.processorManager, $scope.templateManager);
-    $scope.interfaceManager = new InterfaceManager($scope, $scope.spectraManager, $scope.templateManager);
+    $scope.interfaceManager = new InterfaceManager($scope, $scope.spectraManager, $scope.templateManager, $scope.processorManager);
     $scope.fits = null; // Initialise new FitsFile on drop.
     $scope.goToMenu = function(menuOption) {
         if (menuOption == 'Detailed') {
