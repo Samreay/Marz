@@ -17,9 +17,11 @@ function MainController($scope, $timeout) {
 
     // Model managers
     $scope.templateManager = new TemplateManager();
-    $scope.processorManager = new ProcessorManager(1, $scope); //TODO: Core estimation
-    $scope.spectraManager = new SpectraManager($scope.processorManager, $scope.templateManager);
+    $scope.processorManager = new ProcessorManager(2, $scope); //TODO: Core estimation
+    $scope.spectraManager = new SpectraManager($scope, $scope.processorManager, $scope.templateManager);
     $scope.interfaceManager = new InterfaceManager($scope, $scope.spectraManager, $scope.templateManager, $scope.processorManager);
+    $scope.fileManager = new FileManager();
+
     $scope.fits = null; // Initialise new FitsFile on drop.
     $scope.goToMenu = function(menuOption) {
         if (menuOption == 'Detailed') {
@@ -42,6 +44,7 @@ function MainController($scope, $timeout) {
     $scope.addfile = function (f) {
         var rawFits = new astro.FITS(f, function () {
             $scope.$apply(function () {
+                $scope.fileManager.setFitsFileName(f.name);
                 $scope.fits = new FitsFile(f.name, rawFits, $scope);
             });
         });
@@ -84,6 +87,11 @@ function MainController($scope, $timeout) {
         if (this.interfaceManager.menuActive == 'Detailed') {
             this.interfaceManager.updateDetailedData();
         }
+    }
+
+    $scope.finishedProcessing = function() {
+        var results = this.spectraManager.getOutputResults();
+        this.fileManager.saveResults(results);
     }
 
 }

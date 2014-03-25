@@ -89,7 +89,7 @@ FitsFile.prototype.getFibres = function(fits) {
     fits.getDataUnit(2).getColumn("TYPE", function(data, opt) {
         var ind = 0;
         for (var i = 0; i < data.length; i++) {
-            if (data[i] == "P" && i < 200) {
+            if (data[i] == "P" && i < 50) {
                 opt.spectra.push({index: ind++, id: i+1, lambda: opt.lambda.slice(0), intensity: [], variance: [], miniRendered: 0});
             }
         }
@@ -202,8 +202,9 @@ Spectra.prototype.isMatched = function() {
 
 
 
-function SpectraManager(processorManager, templateManager) {
+function SpectraManager(scope, processorManager, templateManager) {
     this.spectraList = [];
+    this.scope = scope;
     this.analysed = [];
     this.processorManager = processorManager;
     this.templateManager = templateManager;
@@ -223,11 +224,34 @@ SpectraManager.prototype.getSpectra = function(i) {
 };
 SpectraManager.prototype.addToUpdated = function(i) {
     this.analysed.push(i);
+    if (this.analysed.length == this.spectraList.length) {
+        this.scope.finishedProcessing();
+    }
 }
 SpectraManager.prototype.getAnalysed = function() {
     return this.analysed;
 }
-
+SpectraManager.prototype.getOutputResults = function() {
+    var results = "ID,TemplateIndex,Redshift,Chi2\n"; //TODO: Replace with actual template information.
+    var tmp = [];
+    for (var i = 0; i < this.analysed.length; i++) {
+        var s = this.analysed[i];
+        tmp.push({i: s.id, txt: s.id + "," + s.templateIndex + "," + s.templateZ.toFixed(5) + "," + s.templateChi2.toFixed(0) + "\n"});
+    }
+    tmp.sort(function(a, b) {
+        if (a.i < b.i) {
+            return -1;
+        } else if (a.i > b.i) {
+            return 1;
+        } else {
+            return 0;
+        }
+    });
+    for (var i = 0; i < tmp.length; i++) {
+        results += tmp[i].txt;
+    }
+    return results;
+}
 
 function ProcessorManager(numProcessors, scope) {
     this.scope = scope;
@@ -303,3 +327,15 @@ Processor.prototype.processSpectra = function(spectra) {
     this.workingSpectra = spectra;
     this.worker.postMessage(spectra.getAsJson());
 };
+
+
+function FileManager() {
+    this.filename = "results.txt";
+}
+FileManager.prototype.setFitsFileName = function(filename) {
+    this.filename = filename.substr(0, filename.lastIndexOf('.')) + "_Results.txt";
+}
+FileManager.prototype.saveResults = function(results) {
+    var blob = new Blob([results], {type: 'text/html'});
+    saveAs(blob, this.filename);
+}
