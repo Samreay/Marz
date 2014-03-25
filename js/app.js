@@ -17,7 +17,7 @@ function MainController($scope, $timeout) {
 
     // Model managers
     $scope.templateManager = new TemplateManager();
-    $scope.processorManager = new ProcessorManager(3, $scope); //TODO: Core estimation
+    $scope.processorManager = new ProcessorManager(1, $scope); //TODO: Core estimation
     $scope.spectraManager = new SpectraManager($scope.processorManager, $scope.templateManager);
     $scope.interfaceManager = new InterfaceManager($scope, $scope.spectraManager, $scope.templateManager);
     $scope.fits = null; // Initialise new FitsFile on drop.
