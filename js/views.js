@@ -286,9 +286,13 @@ InterfaceManager.prototype.renderInitialDetailedChart = function() {
     ];
     chart.periodSelector = periodSelector;
 
-    chart.write("big");
+    this.renderChart();
 
-    chart.panels[0].chartCursor.categoryBalloonFunction = function (category) {
+
+}
+InterfaceManager.prototype.renderChart = function() {
+    this.detailedChart.write('big');
+    this.detailedChart.panels[0].chartCursor.categoryBalloonFunction = function (category) {
         return 'Yes';
     };
 }
@@ -299,6 +303,8 @@ InterfaceManager.prototype.renderDetailed = function () {
      } else {
          if (this.detailedChart == null) {
              this.renderInitialDetailedChart();
-         }
+         } else if (document.getElementById('big').innerHTML.length < 100) { //TODO: Better check
+            this.renderChart();
+        }
      }
 }

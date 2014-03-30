@@ -94,7 +94,7 @@
                             <li ng-repeat="(name, prop) in properties"><label>{{prop.label}}:</label></li>
                         </ul>
                     </div>-->
-                    <div class="detailedView" ng-show="interfaceManager.menuActive=='Detailed'">
+                    <div class="detailedView" ng-if="interfaceManager.menuActive=='Detailed'">
                         <div id="big">{{interfaceManager.renderDetailed()}}</div>
                        <!-- <label class="floatleft">Template:</label>
                         <select class="floatleft" ng-change="$parent.interfaceManager.detailedUpdateRequired=true" ng-model="$parent.interfaceManager.detailedViewTemplate" data-ng-options="t.index as t.id + ' - ' + t.name for t in $parent.templateManager.getTemplatesAsJson()"></select>
