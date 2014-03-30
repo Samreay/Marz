@@ -204,16 +204,16 @@ InterfaceManager.prototype.getDetailedData = function () {
 
 InterfaceManager.prototype.renderInitialDetailedChart = function() {
     var chartData = [
-        {date: new Date(2011, 5, 1, 0, 0, 0, 0), val: 10},
-        {date: new Date(2011, 5, 2, 0, 0, 0, 0), val: 11},
-        {date: new Date(2011, 5, 3, 0, 0, 0, 0), val: 12},
-        {date: new Date(2011, 5, 4, 0, 0, 0, 0), val: 11},
-        {date: new Date(2011, 5, 5, 0, 0, 0, 0), val: 10},
-        {date: new Date(2011, 5, 6, 0, 0, 0, 0), val: 11},
-        {date: new Date(2011, 5, 7, 0, 0, 0, 0), val: 13},
-        {date: new Date(2011, 5, 8, 0, 0, 0, 0), val: 14},
-        {date: new Date(2011, 5, 9, 0, 0, 0, 0), val: 17},
-        {date: new Date(2011, 5, 10, 0, 0, 0, 0), val: 13}
+        {lambda: new Date(2011, 5, 1, 0, 0, 0, 0),  raw: 10},
+        {lambda: new Date(2011, 5, 2, 0, 0, 0, 0),  raw: 11},
+        {lambda: new Date(2011, 5, 3, 0, 0, 0, 0),  raw: 12},
+        {lambda: new Date(2011, 5, 4, 0, 0, 0, 0),  raw: 11},
+        {lambda: new Date(2011, 5, 5, 0, 0, 0, 0),  raw: 10},
+        {lambda: new Date(2011, 5, 6, 0, 0, 0, 0),  raw: 11},
+        {lambda: new Date(2011, 5, 7, 0, 0, 0, 0),  raw: 13},
+        {lambda: new Date(2011, 5, 8, 0, 0, 0, 0),  raw: 14},
+        {lambda: new Date(2011, 5, 9, 0, 0, 0, 0),  raw: 17},
+        {lambda: new Date(2011, 5, 10, 0, 0, 0, 0), raw: 13}
     ];
     var chart = new AmCharts.AmStockChart();
     this.detailedChart = chart;
@@ -222,9 +222,9 @@ InterfaceManager.prototype.renderInitialDetailedChart = function() {
     var dataSet = new AmCharts.DataSet();
     dataSet.dataProvider = chartData;
     dataSet.fieldMappings = [
-        {fromField: "val", toField: "value"}
+        {fromField: "raw", toField: "raw"}
     ];
-    dataSet.categoryField = "date";
+    dataSet.categoryField = "lambda";
     chart.dataSets = [dataSet];
 
     var stockPanel = new AmCharts.StockPanel();
@@ -238,7 +238,7 @@ InterfaceManager.prototype.renderInitialDetailedChart = function() {
     chart.panelsSettings = panelsSettings;
 
     var graph = new AmCharts.StockGraph();
-    graph.valueField = "value";
+    graph.valueField = "raw";
     graph.type = "line";
     graph.title = "MyGraph";
     stockPanel.addStockGraph(graph);
