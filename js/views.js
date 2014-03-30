@@ -4,7 +4,7 @@ function InterfaceManager(scope, spectraManager, templateManager, processorManag
     this.templateManager = templateManager;
     this.processorManager = processorManager;
 
-    this.menuOptions = ['Overview','Detailed','Templates','Settings', 'Usage'];
+    this.menuOptions = ['Overview', 'Detailed', 'Templates', 'Settings', 'Usage'];
     this.menuActive = 'Overview';
     this.spectraIndex = 0;
 
@@ -36,13 +36,13 @@ function InterfaceManager(scope, spectraManager, templateManager, processorManag
     this.renderOverviewDone = new Array();
 
 }
-InterfaceManager.prototype.getNumSpectra = function() {
+InterfaceManager.prototype.getNumSpectra = function () {
     return this.spectraManager.getAll().length;
 }
-InterfaceManager.prototype.getNumAnalysed = function() {
+InterfaceManager.prototype.getNumAnalysed = function () {
     return this.spectraManager.getAnalysed().length;
 }
-InterfaceManager.prototype.isMenuActive = function(array) {
+InterfaceManager.prototype.isMenuActive = function (array) {
     for (var i = 0; i < array.length; i++) {
         if (this.menuActive == array[i]) {
             return true;
@@ -50,57 +50,59 @@ InterfaceManager.prototype.isMenuActive = function(array) {
     }
     return false;
 }
-InterfaceManager.prototype.getProgessPercent = function() {
+InterfaceManager.prototype.getProgessPercent = function () {
     if (this.getNumSpectra() == 0) {
         return 0;
     }
     return Math.ceil(-0.01 + (100 * this.getNumAnalysed() / this.getNumSpectra()));
 }
-InterfaceManager.prototype.saveManual = function() {
+InterfaceManager.prototype.saveManual = function () {
     var spectra = this.spectraManager.getSpectra(this.spectraIndex);
     spectra.setManual(parseFloat(this.detailedViewZ), this.detailedViewTemplate);
 }
-InterfaceManager.prototype.finishedAnalysis = function() {
+InterfaceManager.prototype.finishedAnalysis = function () {
     return (this.getNumSpectra() == this.getNumAnalysed());
 }
-InterfaceManager.prototype.showFooter = function() {
+InterfaceManager.prototype.showFooter = function () {
     return (this.processorManager.isProcessing() || this.getNumAnalysed());
 }
-InterfaceManager.prototype.getDetailedZ = function() {
+InterfaceManager.prototype.getDetailedZ = function () {
     return parseFloat(this.detailedViewZ);
 }
-InterfaceManager.prototype.renderTemplate = function(i) {
+InterfaceManager.prototype.renderTemplate = function (i) {
     var canvas = document.getElementById('smallTemplateCanvas' + i);
     var arr = this.templateManager.getTemplateLambda(i);
-    var bounds = getMaxes([[arr, this.templateManager.get(i).spec]]);
+    var bounds = getMaxes([
+        [arr, this.templateManager.get(i).spec]
+    ]);
     clearPlot(canvas);
     plot(arr, this.templateManager.get(i).spec, this.interface.templateColour, canvas, bounds);
 
 }
-InterfaceManager.prototype.plotZeroLine = function(canvas, colour, bounds) {
+InterfaceManager.prototype.plotZeroLine = function (canvas, colour, bounds) {
     var c = canvas.getContext("2d");
     var h = canvas.height;
     var w = canvas.width;
     var ymin = bounds[2];
     var ymax = bounds[3];
-    var hh = h - (5 + (0-ymin)*(h-10)/(ymax-ymin));
+    var hh = h - (5 + (0 - ymin) * (h - 10) / (ymax - ymin));
     c.strokeStyle = colour;
     c.moveTo(0, hh);
     c.lineTo(w, hh);
     c.stroke();
 }
-InterfaceManager.prototype.rerenderOverview = function(index) {
-    this.renderOverviewDone[''+index] = 0;
+InterfaceManager.prototype.rerenderOverview = function (index) {
+    this.renderOverviewDone['' + index] = 0;
     this.renderOverview(index);
 }
-InterfaceManager.prototype.renderOverview = function(index) {
+InterfaceManager.prototype.renderOverview = function (index) {
     var v = this.spectraManager.getSpectra(index);
-    if (this.renderOverviewDone[''+index] == 1) {
+    if (this.renderOverviewDone['' + index] == 1) {
         return;
     } else {
-        this.renderOverviewDone[''+index] = 1;
+        this.renderOverviewDone['' + index] = 1;
     }
-    var canvas = document.getElementById("smallGraphCanvas"+index);
+    var canvas = document.getElementById("smallGraphCanvas" + index);
     var width = Math.max(canvas.clientWidth, canvas.width);
     if (v.intensity.length > 0) {
         var lambda = condenseToXPixels(v.lambda, width);
@@ -112,19 +114,31 @@ InterfaceManager.prototype.renderOverview = function(index) {
 
         clearPlot(canvas);
         var toBound = [];
-        if (this.dispRaw) { toBound.push([lambda, intensity]); }
-        if (this.dispPre) { toBound.push([preprocessedLambda, preprocessed]); }
-        if (this.dispMatched) { toBound.push([tempLambda, tempIntensity]); }
+        if (this.dispRaw) {
+            toBound.push([lambda, intensity]);
+        }
+        if (this.dispPre) {
+            toBound.push([preprocessedLambda, preprocessed]);
+        }
+        if (this.dispMatched) {
+            toBound.push([tempLambda, tempIntensity]);
+        }
 
         var bounds = getMaxes(toBound);
         this.plotZeroLine(canvas, "#C4C4C4", bounds);
-        if (this.dispRaw) { plot(lambda, intensity, this.interface.rawColour, canvas, bounds); }
-        if (this.dispPre) { plot(preprocessedLambda, preprocessed, this.interface.processedColour, canvas, bounds); }
-        if (this.dispMatched) { plot(tempLambda, tempIntensity, this.interface.matchedColour, canvas, bounds); }
+        if (this.dispRaw) {
+            plot(lambda, intensity, this.interface.rawColour, canvas, bounds);
+        }
+        if (this.dispPre) {
+            plot(preprocessedLambda, preprocessed, this.interface.processedColour, canvas, bounds);
+        }
+        if (this.dispMatched) {
+            plot(tempLambda, tempIntensity, this.interface.matchedColour, canvas, bounds);
+        }
     }
 }
-InterfaceManager.prototype.updateDetailedData = function() {
-    var spectra = this.spectraManager.getSpectra(this.spectraIndex);
+InterfaceManager.prototype.updateDetailedData = function () {
+    /*var spectra = this.spectraManager.getSpectra(this.spectraIndex);
     var isPreprocessed = spectra == null ? false : spectra.isProcessed();
     if (this.detailedChart != null) {
         if (this.dispRaw) {
@@ -166,12 +180,12 @@ InterfaceManager.prototype.updateDetailedData = function() {
             this.chartScrollbar.graph = this.detailedRawGraph;
         }
     }
-    this.detailedUpdateRequired = true;
+    this.detailedUpdateRequired = true;*/
 }
 
 //TODO: Bloody recode this entire bloody section and mangle the x axis so that I dont need to interpolate a thousand
 //TODO: bloody times. God I'm close to just writing the graphing functions myself.
-InterfaceManager.prototype.getDetailedData = function() {
+InterfaceManager.prototype.getDetailedData = function () {
     var spectra = this.spectraManager.getSpectra(this.spectraIndex);
     var data = JSON.parse(JSON.stringify(spectra.plotData));
     var ti = this.detailedViewTemplate;
@@ -182,128 +196,109 @@ InterfaceManager.prototype.getDetailedData = function() {
         var matched = this.templateManager.getPlottingShiftedLinearLambda(ti, tz, l);
         addValuesToDataDictionary(data, l, matched, 'matched', spectra.gap);
     }
+    for (var i = 0; i < data.length; i++) {
+        data[i].lambda = new Date(data[i].lambda * 1e6);
+    }
     return data;
 }
-InterfaceManager.prototype.renderDetailed = function() {
-    var spectra = this.spectraManager.getSpectra(this.spectraIndex);
-    if (spectra == null || spectra.intensity == null || this.menuActive != "Detailed") {
-        return;
+
+InterfaceManager.prototype.renderInitialDetailedChart = function() {
+    var chartData = [
+        {date: new Date(2011, 5, 1, 0, 0, 0, 0), val: 10},
+        {date: new Date(2011, 5, 2, 0, 0, 0, 0), val: 11},
+        {date: new Date(2011, 5, 3, 0, 0, 0, 0), val: 12},
+        {date: new Date(2011, 5, 4, 0, 0, 0, 0), val: 11},
+        {date: new Date(2011, 5, 5, 0, 0, 0, 0), val: 10},
+        {date: new Date(2011, 5, 6, 0, 0, 0, 0), val: 11},
+        {date: new Date(2011, 5, 7, 0, 0, 0, 0), val: 13},
+        {date: new Date(2011, 5, 8, 0, 0, 0, 0), val: 14},
+        {date: new Date(2011, 5, 9, 0, 0, 0, 0), val: 17},
+        {date: new Date(2011, 5, 10, 0, 0, 0, 0), val: 13}
+    ];
+    var chart = new AmCharts.AmStockChart();
+    this.detailedChart = chart;
+    chart.pathToImages = "images/";
+
+    var dataSet = new AmCharts.DataSet();
+    dataSet.dataProvider = chartData;
+    dataSet.fieldMappings = [
+        {fromField: "val", toField: "value"}
+    ];
+    dataSet.categoryField = "date";
+    chart.dataSets = [dataSet];
+
+    var stockPanel = new AmCharts.StockPanel();
+    chart.panels = [stockPanel];
+
+    var legend = new AmCharts.StockLegend();
+    stockPanel.stockLegend = legend;
+
+    var panelsSettings = new AmCharts.PanelsSettings();
+    panelsSettings.startDuration = 1;
+    chart.panelsSettings = panelsSettings;
+
+    var graph = new AmCharts.StockGraph();
+    graph.valueField = "value";
+    graph.type = "line";
+    graph.title = "MyGraph";
+    stockPanel.addStockGraph(graph);
+
+    var categoryAxis = stockPanel.categoryAxis;
+    categoryAxis.labelFunction = function (a, b) {
+        return 'no';
     }
-    if (!(this.detailedChart == null || this.detailedUpdateRequired == true)) {
-        return;
-    }
+
+    var categoryAxesSettings = new AmCharts.CategoryAxesSettings();
+    categoryAxesSettings.dashLength = 5;
+    chart.categoryAxesSettings = categoryAxesSettings;
+
+    var valueAxesSettings = new AmCharts.ValueAxesSettings();
+    valueAxesSettings.dashLength = 5;
+    chart.valueAxesSettings = valueAxesSettings;
+
+    var chartScrollbarSettings = new AmCharts.ChartScrollbarSettings();
+    chartScrollbarSettings.graph = graph;
+    chartScrollbarSettings.graphType = "line";
+    chart.chartScrollbarSettings = chartScrollbarSettings;
 
 
-    if (this.detailedChart == null) {
-        //this.detailedChart = new AmCharts.AmXYChart();
-        this.detailedChart = new AmCharts.AmSerialChart();
-        var c = this.detailedChart;
-        c.zoomOutOnDataUpdate = false;
-        c.dataProvider = this.getDetailedData();
-        c.theme = "light";
-        c.pathToImages = "images/";
-        c.categoryField = "lambda";
+//            var chartCursorSettings = new AmCharts.ChartCursorSettings();
+//            chartCursorSettings.valueBalloonsEnabled = true;
+//            chartCursorSettings.categoryBalloonDateFormat = function(a) { }
+//            chart.chartCursorSettings = chartCursorSettings;
 
-        var categoryAxis = c.categoryAxis;
-        categoryAxis.title = "Wavelength";
-        categoryAxis.gridPosition = "start";
-        //categoryAxis.parseDates = true;
-        //categoryAxis.minPeriod = "mm";
-        /*var xAxis = new AmCharts.ValueAxis();
-        //xAxis.title = "Wavelength";
-        xAxis.position = "bottom";
-        xAxis.autoGridCount = true;
-        xAxis.gridAlpha = 0.1;
-        //xAxis.gridPosition = "start";
-        c.addValueAxis(xAxis);*/
+    var chartCursor = new AmCharts.ChartCursor();
+//            chartCursor.valueBalloonsEnabled = true;
+    chartCursor.cursorAlpha = 0.2;
+    chartCursor.categoryBalloonColor = '#00FF00';
+//            chartCursor.bulletsEnabled = true;
+//            chartCursor.bullletSize = 3;
+//            chartCursor.categoryBalloonEnabled = true;
+    chartCursor.categoryBalloonFunction = function (a, b, c) {
+        return 'yes'
+    };
+    chart.chartCursors = [chartCursor];
+    stockPanel.addChartCursor(chartCursor);
 
-//        var yAxis = new AmCharts.ValueAxis();
-//        yAxis.position = "left";
-//        yAxis.gridAlpha = 0.1;
-//        yAxis.autoGridCount = true;
-//        c.addValueAxis(yAxis);
+    var periodSelector = new AmCharts.PeriodSelector();
+    periodSelector.periods = [
+        {period: "MAX", label: "Zoom Out"}
+    ];
+    chart.periodSelector = periodSelector;
 
-        c.exportConfig = {
-            menuBottom: "80px",
-            menuRight: "20px",
-            backgroundColor: "#efefef",
-            menuItemStyle: {backgroundColor: '#DDD', rollOverBackgroundColor: '#EEE'},
-            menuItems: [{
-                textAlign: 'center',
-                icon: 'images/export.png',
-//                    icon: 'http://www.amcharts.com/lib/3/images/export.png',
-                onclick:function(){},
-                items: [{
-                    title: 'PNG',
-                    format: 'png'
-                }, {
-                    title: 'SVG',
-                    format: 'svg'
-                }]
-            }]
-        };
+    chart.write("big");
 
-        this.detailedRawGraph = new AmCharts.AmGraph();
-        this.detailedRawGraph.title = "raw";
-//        this.detailedRawGraph.xField = "x";
-        this.detailedRawGraph.valueField = "raw";
-        //this.detailedRawGraph.bullet = "none";
-        this.detailedRawGraph.lineThickness = 1;
-        //this.detailedRawGraph.connect = true;
-        this.detailedRawGraph.lineColor = this.interface.rawColour;
-        //this.detailedRawGraph.balloonText = "Lambda: [[x]], I: [[raw]]";
-        c.addGraph(this.detailedRawGraph);
-
-        this.detailedProcessedGraph = new AmCharts.AmGraph();
-        this.detailedProcessedGraph.title = "preprocessed";
-//        this.detailedProcessedGraph.xField = "x";
-        this.detailedProcessedGraph.valueField = "pre";
-        //this.detailedProcessedGraph.bullet = "none";
-        this.detailedProcessedGraph.lineThickness = 1;
-        //this.detailedProcessedGraph.connect = true;
-        this.detailedProcessedGraph.lineColor = this.interface.processedColour;
-        //this.detailedProcessedGraph.balloonText = "Lambda: [[x]], I: [[pre]]";
-        c.addGraph(this.detailedProcessedGraph);
-
-        this.detailedMatchedGraph = new AmCharts.AmGraph();
-        this.detailedMatchedGraph.title = "matched";
-//        this.detailedMatchedGraph.xField = "x";
-//        this.detailedMatchedGraph.yField = "matched";
-        this.detailedMatchedGraph.valueField = "matched";
-        this.detailedMatchedGraph.bullet = "none";
-        this.detailedMatchedGraph.lineThickness = 1;
-        this.detailedMatchedGraph.connect = true;
-        this.detailedMatchedGraph.lineColor = this.interface.matchedColour;
-        //this.detailedMatchedGraph.balloonText = "Lambda: [[x]], I: [[matched]]";
-        c.addGraph(this.detailedMatchedGraph);
-
-        var chartCursor = new AmCharts.ChartCursor();
-        chartCursor.cursorPosition = "mouse";
-        chartCursor.bulletsEnabled = true;
-        c.addChartCursor(chartCursor);
-
-        this.chartScrollbar = new AmCharts.ChartScrollbar();
-        if (spectra.isProcessed()) {
-            this.chartScrollbar.graph = this.detailedProcessedGraph;
-        } else {
-            this.chartScrollbar.graph = this.detailedRawGraph;
-        }
-        this.chartScrollbar.scrollbarHeight = 50;
-        this.chartScrollbar.color = "#FFFFFF";
-        this.chartScrollbar.autoGridCount = false;
-        this.chartScrollbar.graphLineAlpha = 1;
-        this.chartScrollbar.selectedGraphLineAlpha = 1;
-        c.addChartScrollbar(this.chartScrollbar);
-
-        c.write('big');
-        this.detailedUpdateRequired = false;
-
-    } else if (document.getElementById('big').innerHTML.length < 100) { //TODO: Better check
-        this.detailedChart.write('big');
-    }
-    if (this.detailedUpdateRequired) {
-        this.detailedChart.dataProvider = this.getDetailedData();
-        this.detailedChart.validateData();
-        this.detailedUpdateRequired = false;
-    }
+    chart.panels[0].chartCursor.categoryBalloonFunction = function (category) {
+        return 'Yes';
+    };
+}
+InterfaceManager.prototype.renderDetailed = function () {
+     var spectra = this.spectraManager.getSpectra(this.spectraIndex);
+     if (spectra == null || spectra.intensity == null) {
+        console.log("Not rendering detailed");
+     } else {
+         if (this.detailedChart == null) {
+             this.renderInitialDetailedChart();
+         }
+     }
 }

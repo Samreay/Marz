@@ -11,6 +11,7 @@
     <script src="js/xy.js"></script>
     <script src="js/light.js"></script>
     <script src="js/amexport.js"></script>
+    <script src="js/amstock.js"></script>
 
     <script src="js/angular.js"></script>
     <script src="js/angular-animate.js"></script>
@@ -93,16 +94,16 @@
                             <li ng-repeat="(name, prop) in properties"><label>{{prop.label}}:</label></li>
                         </ul>
                     </div>-->
-                    <div class="detailedView" ng-if="interfaceManager.menuActive=='Detailed'">
+                    <div class="detailedView" ng-show="interfaceManager.menuActive=='Detailed'">
                         <div id="big">{{interfaceManager.renderDetailed()}}</div>
-                        <label class="floatleft">Template:</label>
+                       <!-- <label class="floatleft">Template:</label>
                         <select class="floatleft" ng-change="$parent.interfaceManager.detailedUpdateRequired=true" ng-model="$parent.interfaceManager.detailedViewTemplate" data-ng-options="t.index as t.id + ' - ' + t.name for t in $parent.templateManager.getTemplatesAsJson()"></select>
                         <label class="floatleft">z: </label>
                         <input class="floatleft numberInput" type="text" ng-change="$parent.interfaceManager.detailedUpdateRequired=true" ng-model="$parent.interfaceManager.detailedViewZ">
                         <button class="floatright" ng-click="$parent.interfaceManager.saveManual()">Save Manual Redshift</button>
                         <div class="fill">
                             <input type="range" min=0 max="{{$parent.interfaceManager.detailedViewZMax}}" step="0.0001" ng-change="$parent.interfaceManager.detailedUpdateRequired=true" ng-model="$parent.interfaceManager.detailedViewZ">
-                        </div>
+                        </div>-->
                     </div>
                     <div class="usage" ng-if="interfaceManager.menuActive=='Usage'">
                         <div class="h1group lined">

@@ -39,6 +39,7 @@ function MainController($scope, $timeout) {
         $scope.interfaceManager.detailedViewZ = tz == null? 0 : tz;
         $scope.interfaceManager.menuActive = 'Detailed';
         this.interfaceManager.updateDetailedData();
+        this.interfaceManager.renderDetailed();
 
     }
     $scope.addfile = function (f) {
