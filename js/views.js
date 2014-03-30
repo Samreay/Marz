@@ -179,8 +179,8 @@ InterfaceManager.prototype.updateDetailedData = function () {
         } else {
             this.chartScrollbar.graph = this.detailedRawGraph;
         }
-    }
-    this.detailedUpdateRequired = true;*/
+    }*/
+    this.detailedUpdateRequired = true;
 }
 
 //TODO: Bloody recode this entire bloody section and mangle the x axis so that I dont need to interpolate a thousand
@@ -197,59 +197,95 @@ InterfaceManager.prototype.getDetailedData = function () {
         addValuesToDataDictionary(data, l, matched, 'matched', spectra.gap);
     }
     for (var i = 0; i < data.length; i++) {
-        data[i].lambda = new Date(data[i].lambda * 1e6);
+        data[i].lambda = new Date(data[i].lambda * 1e7);
+        if (!isFinite(data[i].raw) || isNaN(data[i].raw) || data[i].raw == null) {
+            data[i].raw = 0;
+        } else {
+            data[i].raw = data[i].raw;
+        }
+        if (data[i].pre != null) {
+            data[i].pre = data[i].pre.toFixed(2);
+        } else {
+            data[i].pre = 0;
+        }
+        if (data[i].matched != null) {
+            data[i].matched = data[i].matched.toFixed(2);
+        } else {
+            data[i].matched = 0;
+        }
+        //data[i].lambda = new Date(1e9*i);
+        //data[i].raw = (Math.random() * 100).toFixed(2);
+        //data[i].pre = (Math.random() * 200).toFixed(2);
+        //data[i].matched = (Math.random() * 100-100).toFixed(2);
     }
+    data[0].raw = 0.1;
+    data[0].pre = 0.1;
+    data[0].matched = 0.1;
     return data;
 }
-
 InterfaceManager.prototype.renderInitialDetailedChart = function() {
-    var chartData = [
-        {lambda: new Date(2011, 5, 1, 0, 0, 0, 0),  raw: 10},
-        {lambda: new Date(2011, 5, 2, 0, 0, 0, 0),  raw: 11},
-        {lambda: new Date(2011, 5, 3, 0, 0, 0, 0),  raw: 12},
-        {lambda: new Date(2011, 5, 4, 0, 0, 0, 0),  raw: 11},
-        {lambda: new Date(2011, 5, 5, 0, 0, 0, 0),  raw: 10},
-        {lambda: new Date(2011, 5, 6, 0, 0, 0, 0),  raw: 11},
-        {lambda: new Date(2011, 5, 7, 0, 0, 0, 0),  raw: 13},
-        {lambda: new Date(2011, 5, 8, 0, 0, 0, 0),  raw: 14},
-        {lambda: new Date(2011, 5, 9, 0, 0, 0, 0),  raw: 17},
-        {lambda: new Date(2011, 5, 10, 0, 0, 0, 0), raw: 13}
-    ];
     var chart = new AmCharts.AmStockChart();
     this.detailedChart = chart;
     chart.pathToImages = "images/";
 
     var dataSet = new AmCharts.DataSet();
-    dataSet.dataProvider = chartData;
-    dataSet.fieldMappings = [
-        {fromField: "raw", toField: "raw"}
-    ];
+    dataSet.dataProvider = this.getDetailedData();
+    dataSet.fieldMappings = [{fromField: "raw", toField: "value"}];
     dataSet.categoryField = "lambda";
-    chart.dataSets = [dataSet];
+    dataSet.title = "Raw Data"
+    dataSet.color = this.interface.rawColour;
+
+    var dataSet2 = new AmCharts.DataSet();
+    dataSet2.dataProvider = this.getDetailedData();
+    dataSet2.fieldMappings = [{fromField: "pre", toField: "value"}];
+    dataSet2.categoryField = "lambda";
+    dataSet2.title = "Processed Data"
+    dataSet2.compared = true;
+    dataSet2.color = this.interface.processedColour;
+
+    var dataSet3 = new AmCharts.DataSet();
+    dataSet3.dataProvider = this.getDetailedData();
+    dataSet3.fieldMappings = [{fromField: "matched", toField: "value"}];
+    dataSet3.categoryField = "lambda";
+    dataSet3.title = "Template Prediction"
+    dataSet3.compared = true;
+    dataSet3.color = this.interface.matchedColour;
+
+    chart.dataSets = [dataSet, dataSet2, dataSet3];
+
 
     var stockPanel = new AmCharts.StockPanel();
     chart.panels = [stockPanel];
 
     var legend = new AmCharts.StockLegend();
+    legend.valueTextComparing = "[[value]]";
     stockPanel.stockLegend = legend;
+    stockPanel.sequencedAnimation = false;
+
 
     var panelsSettings = new AmCharts.PanelsSettings();
     panelsSettings.startDuration = 1;
     chart.panelsSettings = panelsSettings;
 
     var graph = new AmCharts.StockGraph();
-    graph.valueField = "raw";
+    graph.valueField = "value";
+    graph.comparable = true;
     graph.type = "line";
-    graph.title = "MyGraph";
+    graph.balloonText = "[[title]]: [[value]]"
+    graph.compareGraphBalloonText = "[[title]]: [[value]]"
+    graph.periodValue = "Average";
     stockPanel.addStockGraph(graph);
 
     var categoryAxis = stockPanel.categoryAxis;
     categoryAxis.labelFunction = function (a, b) {
-        return 'no';
+        return b.valueOf()/1e7;
     }
 
     var categoryAxesSettings = new AmCharts.CategoryAxesSettings();
     categoryAxesSettings.dashLength = 5;
+    categoryAxesSettings.maxSeries = 100;
+    categoryAxesSettings.groupToPeriods = ["ss"];
+    categoryAxesSettings.minPeriod = "ss";
     chart.categoryAxesSettings = categoryAxesSettings;
 
     var valueAxesSettings = new AmCharts.ValueAxesSettings();
@@ -261,24 +297,6 @@ InterfaceManager.prototype.renderInitialDetailedChart = function() {
     chartScrollbarSettings.graphType = "line";
     chart.chartScrollbarSettings = chartScrollbarSettings;
 
-
-//            var chartCursorSettings = new AmCharts.ChartCursorSettings();
-//            chartCursorSettings.valueBalloonsEnabled = true;
-//            chartCursorSettings.categoryBalloonDateFormat = function(a) { }
-//            chart.chartCursorSettings = chartCursorSettings;
-
-    var chartCursor = new AmCharts.ChartCursor();
-//            chartCursor.valueBalloonsEnabled = true;
-    chartCursor.cursorAlpha = 0.2;
-    chartCursor.categoryBalloonColor = '#00FF00';
-//            chartCursor.bulletsEnabled = true;
-//            chartCursor.bullletSize = 3;
-//            chartCursor.categoryBalloonEnabled = true;
-    chartCursor.categoryBalloonFunction = function (a, b, c) {
-        return 'yes'
-    };
-    chart.chartCursors = [chartCursor];
-    stockPanel.addChartCursor(chartCursor);
 
     var periodSelector = new AmCharts.PeriodSelector();
     periodSelector.periods = [
@@ -292,8 +310,8 @@ InterfaceManager.prototype.renderInitialDetailedChart = function() {
 }
 InterfaceManager.prototype.renderChart = function() {
     this.detailedChart.write('big');
-    this.detailedChart.panels[0].chartCursor.categoryBalloonFunction = function (category) {
-        return 'Yes';
+    this.detailedChart.panels[0].chartCursor.categoryBalloonFunction = function (date) {
+        return date.valueOf()/1e7;
     };
 }
 InterfaceManager.prototype.renderDetailed = function () {
@@ -305,6 +323,8 @@ InterfaceManager.prototype.renderDetailed = function () {
              this.renderInitialDetailedChart();
          } else if (document.getElementById('big').innerHTML.length < 100) { //TODO: Better check
             this.renderChart();
-        }
+        } else {
+             this.detailedChart.validateData();
+         }
      }
 }
