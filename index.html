@@ -99,7 +99,7 @@
                         <select class="floatleft" ng-change="$parent.interfaceManager.detailedUpdateRequired=true" ng-model="$parent.interfaceManager.detailedViewTemplate" data-ng-options="t.index as t.id + ' - ' + t.name for t in $parent.templateManager.getTemplatesAsJson()"></select>
                         <label class="floatleft">z: </label>
                         <input class="floatleft numberInput" type="text" ng-change="$parent.interfaceManager.detailedUpdateRequired=true" ng-model="$parent.interfaceManager.detailedViewZ">
-                        <input class="floatright numberInput" type="text" ng-model="$parent.interfaceManager.detailedViewZMax"/>
+                        <button class="floatright" ng-click="$parent.interfaceManager.saveManual()">Save Manual Redshift</button>
                         <div class="fill">
                             <input type="range" min=0 max="{{$parent.interfaceManager.detailedViewZMax}}" step="0.0001" ng-change="$parent.interfaceManager.detailedUpdateRequired=true" ng-model="$parent.interfaceManager.detailedViewZ">
                         </div>
@@ -130,9 +130,12 @@
                 <p>Analysing spectra. Please wait.   {{interfaceManager.getNumAnalysed()}}/{{interfaceManager.getNumSpectra()}}</p>
             </div>
             <div class="floatleft" ng-if="interfaceManager.finishedAnalysis()">
-                <p>Analysis finished. Downloading results.   {{interfaceManager.getNumAnalysed()}}/{{interfaceManager.getNumSpectra()}}</p>
+                <p>Analysis finished. {{interfaceManager.getNumAnalysed()}}/{{interfaceManager.getNumSpectra()}}</p>
             </div>
-            <div class="filrest">
+            <div class="floatright" style="margin-top: -4px;" ng-if="interfaceManager.finishedAnalysis()">
+                <button ng-click="finishedProcessing()">Download</button>
+            </div>
+            <div class="fillrest">
                 <progress ng-value="interfaceManager.getNumAnalysed()" max="{{interfaceManager.getNumSpectra()}}" class="html5"></progress>
             </div>
         </div>

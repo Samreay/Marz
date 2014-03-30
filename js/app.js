@@ -32,8 +32,8 @@ function MainController($scope, $timeout) {
     $scope.goToDetailed = function() {
         var spectra =  $scope.spectraManager.getSpectra($scope.interfaceManager.spectraIndex);
         if (spectra != null) {
-            var tid = spectra.templateIndex;
-            var tz = spectra.templateZ;
+            var tid = spectra.getFinalTemplate();
+            var tz = spectra.getFinalRedshift();
         }
         $scope.interfaceManager.detailedViewTemplate = tid == null ? 0 : tid;
         $scope.interfaceManager.detailedViewZ = tz == null? 0 : tz;

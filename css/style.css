@@ -32,7 +32,7 @@ html, body, .main {
     line-height: 20px;
     vertical-align: middle;
     color: #DDD;
-    padding: 15px 200px 5px 200px;
+    padding: 10px 10% 5px 10%;
     right: 0px;
     bottom: 0px;
 }
@@ -442,9 +442,31 @@ progress[value]::-moz-progress-bar {
         -webkit-linear-gradient( left, #09c, #04c204);
 }
 
-.filrest {
+.fillrest {
     padding-left: 20px;
+    padding-right: 20px;
     position: relative;
     display: block;
     overflow:hidden;
+}
+
+button {
+    background: linear-gradient(to bottom, #94D9FF 0%,#0070FF 100%);
+    /*background: -moz-linear-gradient(top,#94D9FF 0%,#0070FF);*/
+    /*background: -webkit-gradient(linear, left top, left bottom,from(#94D9FF),to(#0070FF));*/
+    border-radius: 3px;
+    padding: 3px;
+    border: 1px solid black;
+    color: black;
+    -webkit-transition: all 1s ease-out;
+    -moz-transition: all 1s ease-out;
+    -o-transition: all 1s ease-out;
+    transition: all 1s ease-out;
+}
+button:hover {
+    border-color: white;
+    -webkit-transition: all 1s ease-out;
+    -moz-transition: all 1s ease-out;
+    -o-transition: all 1s ease-out;
+    transition: all 1s ease-out;
 }

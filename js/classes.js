@@ -151,6 +151,8 @@ function Spectra(index, id, lambda, intensity, variance) {
     this.plotProcessedIntensity = null
     this.plotProcessedVariance = null;
 
+    this.manualZ = null;
+    this.manualTemplateIndex = null;
 
     this.templateIndex = null;
     this.templateZ = null;
@@ -161,6 +163,16 @@ function Spectra(index, id, lambda, intensity, variance) {
 Spectra.prototype.setTemplateManager = function(templateManager) {
     this.templateManager = templateManager;
 };
+Spectra.prototype.getFinalTemplate = function() {
+    return this.manualTemplateIndex == null ? this.templateIndex : this.manualTemplateIndex;
+}
+Spectra.prototype.getFinalRedshift = function() {
+    return this.manualZ == null ? this.templateZ : this.manualZ;
+}
+Spectra.prototype.setManual = function(redshift, template) {
+    this.manualZ = redshift;
+    this.manualTemplateIndex = template;
+}
 Spectra.prototype.getTemplateId = function() {
     if (this.templateIndex == null || this.templateManager == null) return null;
     return this.templateManager.get(this.templateIndex).id;
@@ -232,11 +244,11 @@ SpectraManager.prototype.getAnalysed = function() {
     return this.analysed;
 }
 SpectraManager.prototype.getOutputResults = function() {
-    var results = "ID,TemplateIndex,Redshift,Chi2\n"; //TODO: Replace with actual template information.
+    var results = "ID,AutomaticTemplateIndex,AutomaticRedshift,AutomaticChi2,FinalRedshift\n"; //TODO: Replace with actual template information.
     var tmp = [];
     for (var i = 0; i < this.analysed.length; i++) {
         var s = this.analysed[i];
-        tmp.push({i: s.id, txt: s.id + "," + s.templateIndex + "," + s.templateZ.toFixed(5) + "," + s.templateChi2.toFixed(0) + "\n"});
+        tmp.push({i: s.id, txt: s.id + "," + s.templateIndex + "," + s.templateZ.toFixed(5) + "," + s.templateChi2.toFixed(0) + "," + s.getFinalRedshift().toFixed(5) +  "\n"});
     }
     tmp.sort(function(a, b) {
         if (a.i < b.i) {

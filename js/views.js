@@ -14,6 +14,7 @@ function InterfaceManager(scope, spectraManager, templateManager, processorManag
     this.dispRawPrev = 1;
     this.dispPrePrev = 1;
     this.dispMatchedPrev = 1;
+    this.detailedViewZMax = 2.5;
 
     this.interface = {
         rawColour: "#E8BA6B",
@@ -54,6 +55,10 @@ InterfaceManager.prototype.getProgessPercent = function() {
         return 0;
     }
     return Math.ceil(-0.01 + (100 * this.getNumAnalysed() / this.getNumSpectra()));
+}
+InterfaceManager.prototype.saveManual = function() {
+    var spectra = this.spectraManager.getSpectra(this.spectraIndex);
+    spectra.setManual(parseFloat(this.detailedViewZ), this.detailedViewTemplate);
 }
 InterfaceManager.prototype.finishedAnalysis = function() {
     return (this.getNumSpectra() == this.getNumAnalysed());
