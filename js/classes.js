@@ -89,7 +89,7 @@ FitsFile.prototype.getFibres = function(fits) {
     fits.getDataUnit(2).getColumn("TYPE", function(data, opt) {
         var ind = 0;
         for (var i = 0; i < data.length; i++) {
-            if (data[i] == "P" && i < 100) {
+            if (data[i] == "P" && i < 50) {
                 opt.spectra.push({index: ind++, id: i+1, lambda: opt.lambda.slice(0), intensity: [], variance: [], miniRendered: 0});
             }
         }
@@ -151,6 +151,8 @@ function Spectra(index, id, lambda, intensity, variance) {
     this.plotProcessedIntensity = null
     this.plotProcessedVariance = null;
 
+    this.manualZ = null;
+    this.manualTemplateIndex = null;
 
     this.templateIndex = null;
     this.templateZ = null;
@@ -161,6 +163,16 @@ function Spectra(index, id, lambda, intensity, variance) {
 Spectra.prototype.setTemplateManager = function(templateManager) {
     this.templateManager = templateManager;
 };
+Spectra.prototype.getFinalTemplate = function() {
+    return this.manualTemplateIndex == null ? this.templateIndex : this.manualTemplateIndex;
+}
+Spectra.prototype.getFinalRedshift = function() {
+    return this.manualZ == null ? this.templateZ : this.manualZ;
+}
+Spectra.prototype.setManual = function(redshift, template) {
+    this.manualZ = redshift;
+    this.manualTemplateIndex = template;
+}
 Spectra.prototype.getTemplateId = function() {
     if (this.templateIndex == null || this.templateManager == null) return null;
     return this.templateManager.get(this.templateIndex).id;
@@ -202,8 +214,10 @@ Spectra.prototype.isMatched = function() {
 
 
 
-function SpectraManager(processorManager, templateManager) {
+function SpectraManager(scope, processorManager, templateManager) {
     this.spectraList = [];
+    this.scope = scope;
+    this.analysed = [];
     this.processorManager = processorManager;
     this.templateManager = templateManager;
 };
@@ -220,7 +234,36 @@ SpectraManager.prototype.getAll = function() {
 SpectraManager.prototype.getSpectra = function(i) {
     return this.spectraList[i];
 };
-
+SpectraManager.prototype.addToUpdated = function(i) {
+    this.analysed.push(i);
+    if (this.analysed.length == this.spectraList.length) {
+        this.scope.finishedProcessing();
+    }
+}
+SpectraManager.prototype.getAnalysed = function() {
+    return this.analysed;
+}
+SpectraManager.prototype.getOutputResults = function() {
+    var results = "ID,AutomaticTemplateIndex,AutomaticRedshift,AutomaticChi2,FinalRedshift\n"; //TODO: Replace with actual template information.
+    var tmp = [];
+    for (var i = 0; i < this.analysed.length; i++) {
+        var s = this.analysed[i];
+        tmp.push({i: s.id, txt: s.id + "," + s.templateIndex + "," + s.templateZ.toFixed(5) + "," + s.templateChi2.toFixed(0) + "," + s.getFinalRedshift().toFixed(5) +  "\n"});
+    }
+    tmp.sort(function(a, b) {
+        if (a.i < b.i) {
+            return -1;
+        } else if (a.i > b.i) {
+            return 1;
+        } else {
+            return 0;
+        }
+    });
+    for (var i = 0; i < tmp.length; i++) {
+        results += tmp[i].txt;
+    }
+    return results;
+}
 
 function ProcessorManager(numProcessors, scope) {
     this.scope = scope;
@@ -242,6 +285,17 @@ ProcessorManager.prototype.setSpectra = function(spectraManager) {
         this.processSpectra();
     }
 };
+ProcessorManager.prototype.isProcessing = function() {
+    if (this.processQueue.length > 0) {
+        return true;
+    }
+    for (var i = 0; i < this.processors.length; i++) {
+        if (!this.processors[i].isIdle()) {
+            return true;
+        }
+    }
+    return false;
+}
 ProcessorManager.prototype.processSpectra = function() {
     if (this.processQueue.length > 0) {
         var processor = this.getFreeProcessor();
@@ -250,6 +304,7 @@ ProcessorManager.prototype.processSpectra = function() {
             processor = this.getFreeProcessor();
         }
     }
+    this.scope.$apply();
 };
 ProcessorManager.prototype.getFreeProcessor = function () {
     for (var i = 0; i < this.processors.length; i++) {
@@ -272,6 +327,7 @@ function Processor(manager) {
         this.workingSpectra.setProcessedValues(e.data.processedLambda, e.data.processedIntensity,
             e.data.processedVariance, e.data.bestIndex, e.data.templateResults);
         this.manager.scope.updatedSpectra(this.workingSpectra.index);
+        this.manager.spectraManager.addToUpdated(this.workingSpectra);
         this.workingSpectra = null;
         this.manager.processSpectra();
     }.bind(this), false);
@@ -283,3 +339,15 @@ Processor.prototype.processSpectra = function(spectra) {
     this.workingSpectra = spectra;
     this.worker.postMessage(spectra.getAsJson());
 };
+
+
+function FileManager() {
+    this.filename = "results.txt";
+}
+FileManager.prototype.setFitsFileName = function(filename) {
+    this.filename = filename.substr(0, filename.lastIndexOf('.')) + "_Results.txt";
+}
+FileManager.prototype.saveResults = function(results) {
+    var blob = new Blob([results], {type: 'text/html'});
+    saveAs(blob, this.filename);
+}
