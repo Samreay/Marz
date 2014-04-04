@@ -213,14 +213,7 @@ InterfaceManager.prototype.getDetailedData = function () {
         } else {
             data[i].matched = 0;
         }
-        //data[i].lambda = new Date(1e9*i);
-        //data[i].raw = (Math.random() * 100).toFixed(2);
-        //data[i].pre = (Math.random() * 200).toFixed(2);
-        //data[i].matched = (Math.random() * 100-100).toFixed(2);
     }
-    data[0].raw = 0.1;
-    data[0].pre = 0.1;
-    data[0].matched = 0.1;
     return data;
 }
 InterfaceManager.prototype.renderInitialDetailedChart = function() {
@@ -255,6 +248,7 @@ InterfaceManager.prototype.renderInitialDetailedChart = function() {
 
 
     var stockPanel = new AmCharts.StockPanel();
+    stockPanel.recalculateToPercents = "never";
     chart.panels = [stockPanel];
 
     var legend = new AmCharts.StockLegend();
@@ -283,9 +277,9 @@ InterfaceManager.prototype.renderInitialDetailedChart = function() {
 
     var categoryAxesSettings = new AmCharts.CategoryAxesSettings();
     categoryAxesSettings.dashLength = 5;
-    categoryAxesSettings.maxSeries = 100;
-    categoryAxesSettings.groupToPeriods = ["ss"];
-    categoryAxesSettings.minPeriod = "ss";
+    categoryAxesSettings.maxSeries = 30;
+    categoryAxesSettings.groupToPeriods = ["WW"];
+    categoryAxesSettings.minPeriod = "WW";
     chart.categoryAxesSettings = categoryAxesSettings;
 
     var valueAxesSettings = new AmCharts.ValueAxesSettings();
