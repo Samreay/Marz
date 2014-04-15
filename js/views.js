@@ -69,6 +69,12 @@ InterfaceManager.prototype.showFooter = function () {
 InterfaceManager.prototype.getDetailedZ = function () {
     return parseFloat(this.detailedViewZ);
 }
+InterfaceManager.prototype.getDetailedTemplate = function() {
+    return this.templateManager.templates[this.detailedViewTemplate];
+}
+InterfaceManager.prototype.getMinRedshiftForDetailedTemplate = function() {
+    return this.getDetailedTemplate().redshift;
+}
 InterfaceManager.prototype.renderTemplate = function (i) {
     var canvas = document.getElementById('smallTemplateCanvas' + i);
     var arr = this.templateManager.getTemplateLambda(i);
@@ -138,7 +144,7 @@ InterfaceManager.prototype.renderOverview = function (index) {
     }
 }
 InterfaceManager.prototype.updateDetailedData = function () {
-    /*var spectra = this.spectraManager.getSpectra(this.spectraIndex);
+    var spectra = this.spectraManager.getSpectra(this.spectraIndex);
     var isPreprocessed = spectra == null ? false : spectra.isProcessed();
     if (this.detailedChart != null) {
         if (this.dispRaw) {
@@ -179,7 +185,7 @@ InterfaceManager.prototype.updateDetailedData = function () {
         } else {
             this.chartScrollbar.graph = this.detailedRawGraph;
         }
-    }*/
+    }
     this.detailedUpdateRequired = true;
 }
 
@@ -197,7 +203,7 @@ InterfaceManager.prototype.getDetailedData = function () {
         addValuesToDataDictionary(data, l, matched, 'matched', spectra.gap);
     }
     for (var i = 0; i < data.length; i++) {
-        data[i].lambda = new Date(data[i].lambda * 1e7);
+        //data[i].lambda = new Date(data[i].lambda * 1e7);
         if (!isFinite(data[i].raw) || isNaN(data[i].raw) || data[i].raw == null) {
             data[i].raw = 0;
         } else {
@@ -216,7 +222,7 @@ InterfaceManager.prototype.getDetailedData = function () {
     }
     return data;
 }
-InterfaceManager.prototype.renderInitialDetailedChart = function() {
+/*InterfaceManager.prototype.renderInitialDetailedChart = function() {
     var chart = new AmCharts.AmStockChart();
     this.detailedChart = chart;
     chart.pathToImages = "images/";
@@ -321,4 +327,128 @@ InterfaceManager.prototype.renderDetailed = function () {
              this.detailedChart.validateData();
          }
      }
+}*/
+
+InterfaceManager.prototype.renderDetailed = function() {
+    var spectra = this.spectraManager.getSpectra(this.spectraIndex);
+    if (spectra == null || spectra.intensity == null || this.menuActive != "Detailed") {
+        return;
+    }
+    if (!(this.detailedChart == null || this.detailedUpdateRequired == true)) {
+        return;
+    }
+
+
+    if (this.detailedChart == null) {
+        //this.detailedChart = new AmCharts.AmXYChart();
+        this.detailedChart = new AmCharts.AmSerialChart();
+        var c = this.detailedChart;
+        c.zoomOutOnDataUpdate = false;
+        c.dataProvider = this.getDetailedData();
+        c.theme = "light";
+        c.pathToImages = "images/";
+        c.categoryField = "lambda";
+
+        var categoryAxis = c.categoryAxis;
+        categoryAxis.title = "Wavelength";
+        categoryAxis.gridPosition = "start";
+        //categoryAxis.parseDates = true;
+        //categoryAxis.minPeriod = "mm";
+        /*var xAxis = new AmCharts.ValueAxis();
+         //xAxis.title = "Wavelength";
+         xAxis.position = "bottom";
+         xAxis.autoGridCount = true;
+         xAxis.gridAlpha = 0.1;
+         //xAxis.gridPosition = "start";
+         c.addValueAxis(xAxis);*/
+
+//        var yAxis = new AmCharts.ValueAxis();
+//        yAxis.position = "left";
+//        yAxis.gridAlpha = 0.1;
+//        yAxis.autoGridCount = true;
+//        c.addValueAxis(yAxis);
+
+        c.exportConfig = {
+            menuBottom: "80px",
+            menuRight: "20px",
+            backgroundColor: "#efefef",
+            menuItemStyle: {backgroundColor: '#DDD', rollOverBackgroundColor: '#EEE'},
+            menuItems: [{
+                textAlign: 'center',
+                icon: 'images/export.png',
+//                    icon: 'http://www.amcharts.com/lib/3/images/export.png',
+                onclick:function(){},
+                items: [{
+                    title: 'PNG',
+                    format: 'png'
+                }, {
+                    title: 'SVG',
+                    format: 'svg'
+                }]
+            }]
+        };
+
+        this.detailedRawGraph = new AmCharts.AmGraph();
+        this.detailedRawGraph.title = "raw";
+//        this.detailedRawGraph.xField = "x";
+        this.detailedRawGraph.valueField = "raw";
+        //this.detailedRawGraph.bullet = "none";
+        this.detailedRawGraph.lineThickness = 1;
+        //this.detailedRawGraph.connect = true;
+        this.detailedRawGraph.lineColor = this.interface.rawColour;
+        //this.detailedRawGraph.balloonText = "Lambda: [[x]], I: [[raw]]";
+        c.addGraph(this.detailedRawGraph);
+
+        this.detailedProcessedGraph = new AmCharts.AmGraph();
+        this.detailedProcessedGraph.title = "preprocessed";
+//        this.detailedProcessedGraph.xField = "x";
+        this.detailedProcessedGraph.valueField = "pre";
+        //this.detailedProcessedGraph.bullet = "none";
+        this.detailedProcessedGraph.lineThickness = 1;
+        //this.detailedProcessedGraph.connect = true;
+        this.detailedProcessedGraph.lineColor = this.interface.processedColour;
+        //this.detailedProcessedGraph.balloonText = "Lambda: [[x]], I: [[pre]]";
+        c.addGraph(this.detailedProcessedGraph);
+
+        this.detailedMatchedGraph = new AmCharts.AmGraph();
+        this.detailedMatchedGraph.title = "matched";
+//        this.detailedMatchedGraph.xField = "x";
+//        this.detailedMatchedGraph.yField = "matched";
+        this.detailedMatchedGraph.valueField = "matched";
+        this.detailedMatchedGraph.bullet = "none";
+        this.detailedMatchedGraph.lineThickness = 1;
+        this.detailedMatchedGraph.connect = true;
+        this.detailedMatchedGraph.lineColor = this.interface.matchedColour;
+        //this.detailedMatchedGraph.balloonText = "Lambda: [[x]], I: [[matched]]";
+        c.addGraph(this.detailedMatchedGraph);
+
+        var chartCursor = new AmCharts.ChartCursor();
+        chartCursor.cursorPosition = "mouse";
+        chartCursor.bulletsEnabled = true;
+        c.addChartCursor(chartCursor);
+
+        this.chartScrollbar = new AmCharts.ChartScrollbar();
+        if (spectra.isProcessed()) {
+            this.chartScrollbar.graph = this.detailedProcessedGraph;
+        } else {
+            this.chartScrollbar.graph = this.detailedRawGraph;
+        }
+        this.chartScrollbar.scrollbarHeight = 50;
+        this.chartScrollbar.color = "#FFFFFF";
+        this.chartScrollbar.autoGridCount = false;
+        this.chartScrollbar.graphLineAlpha = 1;
+        this.chartScrollbar.selectedGraphLineAlpha = 1;
+        c.addChartScrollbar(this.chartScrollbar);
+
+        c.write('big');
+        this.detailedUpdateRequired = false;
+
+    } else if (document.getElementById('big').innerHTML.length < 100) { //TODO: Better check
+        this.detailedChart.write('big');
+    }
+    if (this.detailedUpdateRequired) {
+        this.detailedChart.dataProvider = this.getDetailedData();
+        this.detailedChart.validateData();
+        this.detailedUpdateRequired = false;
+    }
 }

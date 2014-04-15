@@ -106,30 +106,6 @@ function convertVarianceToNumber(intensity, variance) {
 }
 
 /**
- * Converts the equispaced linear scale of the given lambda into an equispaced log scale.
- * Interpolates intensity and variance to this new scale.
- *
- * @param lambda
- * @param intensity
- * @param variance
- */
-function convertLambdaToLogLambda(lambda, intensity, variance) {
-    var logLambda = linearScale(Math.log(lambda[0])/Math.LN10, Math.log(lambda[lambda.length - 1])/Math.LN10, lambda.length);
-    var rescale = logLambda.map(function(x) { return Math.pow(10, x);});
-    var newIntensity = interpolate(rescale, lambda, intensity);
-    var newVariance = interpolate(rescale, lambda, variance);
-
-    for (var i = 0; i < intensity.length; i++) {
-        lambda[i] = logLambda[i];
-        intensity[i] = newIntensity[i];
-        variance[i] = newVariance[i];
-        if (variance[i] == 0) {
-            variance[i] = max_error;
-        }
-    }
-}
-
-/**
  * Function transposed from AutoZ code written by Ivan Baldry.
  * Equation from SDSS web page: http://www.sdss.org/dr7/products/spectra/vacwavelength.html
  * Reference to Morton (1991, ApJS, 77, 119).
@@ -166,7 +142,8 @@ function matchTemplates(lambda, intensity, variance) {
         var tr = templateResults[j];
 
         var initialTemplateOffset = (lambda[0] - t.interpolatedStart) / spacing;
-        var z = t.z_start;
+        var z = t.z_start + t.redshift;
+        var lambda_start = Math.pow(10, t.spec[0]) / (1 + t.redshift);
         var offsetFromZ = Math.floor((Math.log(1 + z)/Math.LN10) / spacing);
         var running = true;
         var totalWeight = 0;
@@ -175,16 +152,15 @@ function matchTemplates(lambda, intensity, variance) {
         }
         while(running) {
             var localChi2 = 0;
-            var int = 0;
+            var scale = 1;
             var templateIndex = 0;
-            var noMatchError = 200 * t.totalWeight/ t.interpolatedSpec.length;
             for (var i = 0; i < lambda.length; i++) {
-                int = Math.abs(intensity[i]);
+                scale = Math.pow(Math.abs(intensity[i]),0.5);
                 templateIndex = i + initialTemplateOffset - offsetFromZ;
                 if (templateIndex < 0 || templateIndex >= t.interpolatedSpec.length) {
-                    localChi2 += 150 + Math.pow(intensity[i]/variance[i], 2);
+                    localChi2 += scale * 1.2*Math.pow(intensity[i]/variance[i], 2);
                 } else {
-                    localChi2 += Math.pow((intensity[i] - t.interpolatedSpec[templateIndex])/variance[i], 2)
+                    localChi2 += scale * Math.pow((intensity[i] - t.interpolatedSpec[templateIndex])/variance[i], 2)
                 }
                 if (localChi2 > tr.chi2) {
                     break;
@@ -202,7 +178,8 @@ function matchTemplates(lambda, intensity, variance) {
                 //tr.weightRatio = (weight / totalWeight);
             }
             offsetFromZ++;
-            z = Math.pow(10, (offsetFromZ * spacing)) - 1;
+            var lambda_end = Math.pow(10, t.spec[0] + (offsetFromZ * spacing));
+            z = (lambda_end/lambda_start) - 1;
             if (z > t.z_end || offsetFromZ > lambda.length) {
                 running = false;
             }

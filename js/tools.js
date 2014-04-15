@@ -60,6 +60,32 @@ function addValuesToDataDictionary(original, lambda, val, key, gap) {
         original.unshift(beginning[i]);
     }
 }
+/**
+ * Converts the equispaced linear scale of the given lambda into an equispaced log scale.
+ * Interpolates intensity and variance to this new scale.
+ *
+ * @param lambda
+ * @param intensity
+ * @param variance
+ */
+function convertLambdaToLogLambda(lambda, intensity, variance) {
+    var logLambda = linearScale(Math.log(lambda[0])/Math.LN10, Math.log(lambda[lambda.length - 1])/Math.LN10, lambda.length);
+    var rescale = logLambda.map(function(x) { return Math.pow(10, x);});
+    var newIntensity = interpolate(rescale, lambda, intensity);
+    if (variance != null) {
+        var newVariance = interpolate(rescale, lambda, variance);
+    }
+    for (var i = 0; i < intensity.length; i++) {
+        lambda[i] = logLambda[i];
+        intensity[i] = newIntensity[i];
+        if (variance != null) {
+            variance[i] = newVariance[i];
+            if (variance[i] == 0) {
+                variance[i] = max_error;
+            }
+        }
+    }
+}
 
 // SOURCED FROM http://www.csgnetwork.com/julianmodifdateconv.html
 function MJDtoYMD(mjd_in) {

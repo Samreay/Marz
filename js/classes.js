@@ -1,4 +1,29 @@
+function TemplateExtractor(filename, fits, scope) {
+    this.scope = scope;
+    var header0 = fits.getHDU(0).header;
+    var lstart = header0.get('CRVAL1');
+    var li = header0.get('CRPIX1');
+    var trans = header0.get('CD1_1');
+    if (trans == null) {
+        trans = header0.get('CDELT1');
+    }
+    this.logLinear = header0.get('DC-FLAG') == 1;
+    var length = header0.get('NAXIS1');
+    this.name = filename.substr(0, filename.indexOf("."));
+    this.redshift = 0;
+    this.transform = 0;
+    this.start_lambda = lstart - li*trans;
+    this.end_lambda = lstart + (length-li-1)*trans;
 
+    fits.getDataUnit(0).getFrame(0, function(data, opt) {
+        opt.spec = Array.prototype.slice.call(data);
+        var obj = {name: opt.name, redshift: opt.redshift, start_lambda: opt.start_lambda, end_lambda: opt.end_lambda,
+            z_start: 0, z_end: 2.0, log_linear: this.logLinear,  spec: opt.spec};
+        opt.scope.fileManager.saveResults("this.templates.push(" + JSON.stringify(obj).replace(/"/g, "'") + ");");
+    }, this)
+
+
+}
 
 function FitsFile(filename, fits, scope) {
     this.filename = filename;
@@ -89,7 +114,7 @@ FitsFile.prototype.getFibres = function(fits) {
     fits.getDataUnit(2).getColumn("TYPE", function(data, opt) {
         var ind = 0;
         for (var i = 0; i < data.length; i++) {
-            if (data[i] == "P" && i < 5) {
+            if (data[i] == "P" && i < 50) {
                 opt.spectra.push({index: ind++, id: i+1, lambda: opt.lambda.slice(0), intensity: [], variance: [], miniRendered: 0});
             }
         }

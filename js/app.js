@@ -17,7 +17,7 @@ function MainController($scope, $timeout) {
 
     // Model managers
     $scope.templateManager = new TemplateManager();
-    $scope.processorManager = new ProcessorManager(2, $scope); //TODO: Core estimation
+    $scope.processorManager = new ProcessorManager(1, $scope); //TODO: Core estimation
     $scope.spectraManager = new SpectraManager($scope, $scope.processorManager, $scope.templateManager);
     $scope.interfaceManager = new InterfaceManager($scope, $scope.spectraManager, $scope.templateManager, $scope.processorManager);
     $scope.fileManager = new FileManager();
@@ -46,6 +46,7 @@ function MainController($scope, $timeout) {
             $scope.$apply(function () {
                 $scope.fileManager.setFitsFileName(f.name);
                 $scope.fits = new FitsFile(f.name, rawFits, $scope);
+//                $scope.fits = new TemplateExtractor(f.name, rawFits, $scope);
             });
         });
     };
