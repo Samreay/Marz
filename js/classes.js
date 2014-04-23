@@ -214,17 +214,13 @@ Spectra.prototype.setProcessedValues = function(pl, pi, pv, ti, tr) {
     addValuesToDataDictionary(this.plotData, this.plotProcessedLambda, this.plotProcessedIntensity, 'pre', this.gap);
 
 
-    this.templateIndex = ti;
+    this.templateIndex = tr[ti].index;
     this.templateZ = tr[ti].z;
     this.templateChi2 = tr[ti].chi2;
 
     this.templateResults = tr;
-//    var result = this.templateManager.getShiftedLinearTemplate(ti, tz);
-//    this.templateLambda = result[0];
-//    this.templateIntensity = result[1];
-//    this.plotTemplateIntensity = this.templateManager.getPlottingShiftedLinearLambda(ti, tz, this.plotProcessedLambda);
     this.templateLambda = this.plotProcessedLambda;
-    this.templateIntensity = this.templateManager.getPlottingShiftedLinearLambda(ti, this.templateZ, this.plotProcessedLambda);
+    this.templateIntensity = this.templateManager.getPlottingShiftedLinearLambda(this.templateIndex, this.templateZ, this.plotProcessedLambda);
 
 };
 Spectra.prototype.getAsJson = function() {

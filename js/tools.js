@@ -1,5 +1,6 @@
 var normalised_height = 1000;
-var polyDeg = 10;
+var normalised_area = 100000;
+var polyDeg = 6;
 
 function indexgenerate(num) {
     var result = [];
@@ -369,7 +370,7 @@ function normaliseViaShift(array, bottom, top, optional) {
         array[j] = newVal;
     }
 }
-function normaliseViaAbsoluteDeviation(array, top, optional) {
+function normaliseViaAbsoluteDeviation(array, variance) {
     var max = -9e9;
     for (var j = 0; j < array.length; j++) {
         var v = Math.abs(array[j]);
@@ -379,11 +380,28 @@ function normaliseViaAbsoluteDeviation(array, top, optional) {
     }
     for (var j = 0; j < array.length; j++) {
         var r = array[j] / max;
-        array[j] = top * r;
-        if (optional != null) {
-            optional[j] = optional[j] * r;
+        array[j] = normalised_height * r;
+        if (variance != null) {
+            variance[j] = variance[j] * r;
         }
+    }
+}
 
+function normaliseViaArea(array, variance) {
+    var area = getAreaInArray(array, 0, array.length - 1);
+    var r = normalised_area / area;
+    for (var j = 0; j < array.length; j++) {
+        array[j] = array[j] * r;
+        if (variance != null) {
+            variance[j] = variance[j] * r;
+        }
+    }
+}
+
+function subtractPolyFit(lambda, intensity) {
+    var r = polyFit(lambda, intensity);
+    for (var i = 0; i < intensity.length; i++) {
+        intensity[i] = intensity[i] - r[i];
     }
 }
 
@@ -403,3 +421,26 @@ function polyFitNormalise(lambda, intensity, variance) {
     }
     //normaliseViaAbsoluteDeviation(intensity, normalised_height, variance);
 }
+
+
+function normaliseArray(array, max) {
+    for (var i = 0; i < array.length; i++) {
+        array[i] = array[i] * normalised_height / max;
+    }
+}
+
+/**
+ * Returns the area in an array subsection
+ *
+ * @param array to read through
+ * @param start start index
+ * @param end INCLUSIVE end index
+ */
+function getAreaInArray(array, start, end) {
+    var area = 0;
+    for (var i = start; i <= end; i++) {
+        area += Math.abs(array[i]);
+    }
+    return area;
+}
+

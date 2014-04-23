@@ -13,44 +13,45 @@ var max_error = 1e6;
  * @param intensity
  * @param variance
  */
-function removeCosmicRay(intensity, variance, factor, numPoints) {
-    //TODO: SCIENCE: Actually do rms removal correctly. This is just wrong.
-    var rms = 0;
-    var mean = 0;
-    for (var i = 0; i < intensity.length; i++) {
-        mean += intensity[i];
-    }
-    mean = mean / intensity.length;
-    for (var i = 0; i < intensity.length; i++) {
-        rms += Math.pow(intensity[i] - mean, 2);
-    }
-    rms = rms / intensity.length;
-    rms = Math.pow(rms, 0.5);
-    for (var i = 0; i < intensity.length; i++) {
-        if (Math.abs(intensity[i] - mean) < factor * rms) {
-            continue;
+function removeCosmicRay(intensity, variance, factor, numPoints, numTimes) {
+    for (var n = 0; n < numTimes; n++) {
+        var rms = 0;
+        var mean = 0;
+        for (var i = 0; i < intensity.length; i++) {
+            mean += intensity[i];
         }
-        var maxNeighbour = 0;
-        if (i > 0) {
-            maxNeighbour = Math.abs(intensity[i - 1] - intensity[i]);
+        mean = mean / intensity.length;
+        for (var i = 0; i < intensity.length; i++) {
+            rms += Math.pow(intensity[i] - mean, 2);
         }
-        if (i < intensity.length - 1) {
-            maxNeighbour = Math.max(maxNeighbour, Math.abs(intensity[i + 1] - intensity[i]));
-        }
-        if (maxNeighbour > factor * rms) {
-            var r = 0;
-            var c = 0;
-            for (var j = i - numPoints; j < (i + 1 + numPoints); j++) {
-                if (j >= 0 && j < intensity.length && !isNaN2(intensity[j]) && Math.abs(intensity[j]-mean) < rms) {
-                    c++;
-                    r += intensity[j];
+        rms = rms / intensity.length;
+        rms = Math.pow(rms, 0.5);
+        for (var i = 0; i < intensity.length; i++) {
+            if (Math.abs(intensity[i] - mean) < factor * rms) {
+                continue;
+            }
+            var maxNeighbour = 0;
+            if (i > 0) {
+                maxNeighbour = Math.abs(intensity[i - 1] - intensity[i]);
+            }
+            if (i < intensity.length - 1) {
+                maxNeighbour = Math.max(maxNeighbour, Math.abs(intensity[i + 1] - intensity[i]));
+            }
+            if (maxNeighbour > factor * rms) {
+                var r = 0;
+                var c = 0;
+                for (var j = i - numPoints; j < (i + 1 + numPoints); j++) {
+                    if (j >= 0 && j < intensity.length && !isNaN2(intensity[j]) && Math.abs(intensity[j]-mean) < rms) {
+                        c++;
+                        r += intensity[j];
+                    }
                 }
+                if (c != 0) {
+                    r = r / c;
+                }
+                intensity[i] = r;
+                variance[i] = max_error;
             }
-            if (c != 0) {
-                r = r / c;
-            }
-            intensity[i] = r;
-            variance[i] = max_error;
         }
     }
 }
@@ -125,9 +126,10 @@ function convertVacuumFromAir(lambda) {
 function processData(lambda, intensity, variance) {
     removeBlanks(intensity, variance, 3);
     convertVacuumFromAir(lambda);
-    removeCosmicRay(intensity, variance, 4, 2);
-    rollingPointMean(intensity, variance, 2, 0.8);
-    polyFitNormalise(lambda, intensity, variance);
+    removeCosmicRay(intensity, variance, 4, 2, 2);
+    rollingPointMean(intensity, variance, 4, 0.85);
+    subtractPolyFit(lambda, intensity);
+    normaliseViaArea(intensity, variance);
     convertLambdaToLogLambda(lambda, intensity, variance);
 }
 function matchTemplates(lambda, intensity, variance) {
@@ -139,48 +141,57 @@ function matchTemplates(lambda, intensity, variance) {
         var t = templateManager.get(j);
 
         templateResults.push({'index':j, 'id': t.id, 'gof': 9e9, 'chi2': 9e9, 'z':0});
-        var tr = templateResults[j];
+        var tr = templateResults[templateResults.length - 1];
 
         var initialTemplateOffset = (lambda[0] - t.interpolatedStart) / spacing;
         var z = t.z_start + t.redshift;
-        var lambda_start = Math.pow(10, t.spec[0]) / (1 + t.redshift);
+        var lambda_start = Math.pow(10, t.interpolatedLambda[0]) / (1 + t.redshift);
         var offsetFromZ = Math.floor((Math.log(1 + z)/Math.LN10) / spacing);
         var running = true;
         var totalWeight = 0;
         for (var i = 0; i < intensity.length; i++) {
             totalWeight += Math.abs(intensity[i]);
         }
+        // Want to get the area
+        normaliseViaArea(t.interpolatedSpec);
+        var area = normalised_area - t.interpolatedSpec[initialTemplateOffset];
         while(running) {
             var localChi2 = 0;
             var scale = 1;
             var templateIndex = 0;
+            var start_templateIndex = initialTemplateOffset - offsetFromZ;
+            var end_templateIndex = Math.min(t.interpolatedSpec.length - 1, start_templateIndex + lambda.length - 1);
+            if (start_templateIndex >= 0) {
+                area += t.interpolatedSpec[start_templateIndex];
+            }
+            if (end_templateIndex < t.interpolatedSpec.length - 1) {
+                area -=  t.interpolatedSpec[end_templateIndex + 1];
+            }
+            var scaleFactor = area / normalised_area;
+
             for (var i = 0; i < lambda.length; i++) {
                 scale = Math.pow(Math.abs(intensity[i]),0.5);
-                templateIndex = i + initialTemplateOffset - offsetFromZ;
+                templateIndex = i + start_templateIndex;
                 if (templateIndex < 0 || templateIndex >= t.interpolatedSpec.length) {
                     localChi2 += scale * 1.2*Math.pow(intensity[i]/variance[i], 2);
                 } else {
-                    localChi2 += scale * Math.pow((intensity[i] - t.interpolatedSpec[templateIndex])/variance[i], 2)
+                    localChi2 += scale * Math.pow((intensity[i] - (scaleFactor*t.interpolatedSpec[templateIndex]))/variance[i], 2)
                 }
                 if (localChi2 > tr.chi2) {
                     break;
                 }
             }
-//            if (t.id == '44' && z < 1.2) {
-//                console.log("z: " + z.toFixed(4) + " chi2: " + localChi2.toFixed(1))
-//            }
             // Add in weighting for the amount matched
             var gof = localChi2;
             if (gof < tr.gof) {
                 tr.chi2 = localChi2;
                 tr.gof = gof;
                 tr.z = z;
-                //tr.weightRatio = (weight / totalWeight);
             }
             offsetFromZ++;
-            var lambda_end = Math.pow(10, t.spec[0] + (offsetFromZ * spacing));
+            var lambda_end = Math.pow(10, t.interpolatedLambda[0] + (offsetFromZ * spacing));
             z = (lambda_end/lambda_start) - 1;
-            if (z > t.z_end || offsetFromZ > lambda.length) {
+            if (z > t.z_end) {
                 running = false;
             }
         }
