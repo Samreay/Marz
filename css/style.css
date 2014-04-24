@@ -93,7 +93,7 @@ nav ul li.active {
     background-color: #E8E8E8;
 }
 .left {
-    width: 280px;
+    width: 250px;
 }
 .scroll {
     position: absolute;
@@ -154,10 +154,12 @@ div[dropzone] .info li .label {
     box-sizing: border-box;
     border-left: 10px solid transparent;
     font-weight: bold;
+    font-size: 14px;
     vertical-align: middle;
 }
-.spectraSmall p .info {
+.spectraSmall .info p {
     font-weight: normal;
+    margin-top: -5px;
 }
 
 .spectraSmall .info {
@@ -181,7 +183,7 @@ div[dropzone] .info li .label {
     height: 50px;
     right: 0px;
     background: linear-gradient(to bottom,  #444 0%,#222 100%);
-    left: 300px;
+    left: 270px;
 }
 .centralheader p {
     display: inline-block;
@@ -190,7 +192,7 @@ div[dropzone] .info li .label {
 .central {
     margin: 10px;
     position: absolute;
-    left: 300px;
+    left: 270px;
     top: 0px;
     bottom: 0px;
     right: 0px;

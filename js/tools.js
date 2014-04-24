@@ -259,39 +259,6 @@ function interpolate(xinterp, xvals, yvals) {
     return [xmin, xmax, ymin, ymax];
 }
 
-function getBounds(vals) {
-    var xmin = 9e9;
-    var xmax = -9e9;
-    var ymin = 9e9;
-    var ymax = -9e9;
-    for (var i = 0; i < vals.length; i++) {
-        var xs = vals[i].x;
-        var ys = vals[i].y;
-        if (xs != null) {
-            for (var j = 0; j < xs.length; j++) {
-                if (xs[j] < xmin) {
-                    xmin = xs[j];
-                }
-                if (xs[j] > xmax) {
-                    xmax = xs[j];
-                }
-            }
-        }
-        if (ys != null) {
-            for (var j = 0; j < ys.length; j++) {
-                if (ys[j] < ymin) {
-                    ymin = ys[j];
-                }
-                if (ys[j] > ymax) {
-                    ymax = ys[j];
-                }
-            }
-        }
-    }
-    console.log('Got bounds');
-    return [xmin, xmax, ymin, ymax];
-}
-
 function clearPlot(canvas) {
     canvas.width = Math.max(canvas.clientWidth, canvas.width);
     canvas.height = Math.max(canvas.clientHeight, canvas.height);
@@ -304,16 +271,6 @@ function clearPlot(canvas) {
     c.restore();
 }
 
-function clear(canvas) {
-    console.log('Clearing canvas');
-    var c = canvas.getContext("2d");
-    c.save();
-    // Use the identity matrix while clearing the canvas
-    c.setTransform(1, 0, 0, 1, 0, 0);
-    c.clearRect(0, 0, canvas.width, canvas.height);
-    // Restore the transform
-    c.restore();
-}
 
 function plot(xs, data, colour, canvas, bounds) {
     if (data == null || data.length == 0) {
@@ -340,41 +297,6 @@ function plot(xs, data, colour, canvas, bounds) {
     }
     c.stroke();
 }
-
-function plotDetailed(canvas, data, bounds, detailedPlotSettings) {
-    var c = canvas.getContext("2d");
-    var h = canvas.height - detailedPlotSettings.top - detailedPlotSettings.bottom;
-    var w = canvas.width - detailedPlotSettings.left - detailedPlotSettings.right;
-
-    if (data == null || data.length == 0) {
-        return;
-    }
-
-    var xmin = bounds[0];
-    var xmax = bounds[1];
-    var ymin = bounds[2];
-    var ymax = bounds[3];
-
-    for (var j = 0; j < data.length; j++) {
-        console.log('Plotting ' + data[j].id);
-        c.beginPath();
-        c.strokeStyle = data[j].colour;
-        xs = data[j].x;
-        ys = data[j].y;
-
-        for (var i = 1; i < xs.length; i++) {
-            var x = detailedPlotSettings.left + ((xs[i]-xmin)/(xmax-xmin)) * w;
-            var y = detailedPlotSettings.top  + (1-((ys[i]-ymin)/(ymax-ymin))) * h;
-            if (i == 0) {
-                c.moveTo(x,y);
-            } else {
-                c.lineTo(x,y);
-            }
-        }
-        c.stroke();
-    }
-}
-
 
 //TODO: Make rolling point num config in settings
 function rollingPointMean(intensity, variance, numPoints, falloff) {
@@ -522,3 +444,32 @@ function getAreaInArray(array, start, end) {
     return area;
 }
 
+function distance(x1, y1, x2, y2) {
+    return Math.pow((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2), 0.5);
+}
+
+/**
+ * Interpolates a line from (x1,y1) to (x2,y2) at point x3
+ * @param x1
+ * @param y1
+ * @param x2
+ * @param y2
+ * @param x3
+ */
+function interpx(x1, y1, x2, y2, x3) {
+    var r2 = (x3-x1)/(x2-x1);
+    return r2*y2 + (1-r2)*y1;
+}
+
+/**
+ * Interpolates a line from (x1,y1) to (x2,y2) at point y3
+ * @param x1
+ * @param y1
+ * @param x2
+ * @param y2
+ * @param x3
+ */
+function interpy(x1, y1, x2, y2, y3) {
+    var r2 = (y3-y1)/(y2-y1);
+    return r2*x2 + (1-r2)*x1;
+}

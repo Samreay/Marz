@@ -60,7 +60,10 @@ function MainController($scope, $timeout) {
     $scope.setSpectraIndex = function(i) {
         $scope.interfaceManager.spectraIndex = i;
         //TODO: Remove duplicate code
-        if ($scope.interfaceManager.menuActive == 'Detailed') $scope.goToDetailed();
+        if ($scope.interfaceManager.menuActive == 'Detailed') {
+            $scope.interfaceManager.detailedSettings.unlockBounds(); // So that it can zoom out. Need to rework events. Sigh.
+            $scope.goToDetailed();
+        }
         $timeout(function() {
             var leftrel = $('.spectralList ul li.activeSelect').position().top;
             var leftheight = $('.spectralList').height();
@@ -78,9 +81,15 @@ function MainController($scope, $timeout) {
         if (category == 'raw') {
             $scope.interfaceManager.dispRaw = 1 - $scope.interfaceManager.dispRaw;
             $scope.interfaceManager.changedRaw = 1;
+            if ($scope.interfaceManager.dispRaw == 0 && $scope.interfaceManager.dispProcessed == 0) {
+                $scope.interfaceManager.dispProcessed = 1;
+            }
         } else if (category == 'pro') {
             $scope.interfaceManager.dispProcessed = 1 - $scope.interfaceManager.dispProcessed;
             $scope.interfaceManager.changedProcessed = 1;
+            if ($scope.interfaceManager.dispRaw == 0 && $scope.interfaceManager.dispProcessed == 0) {
+                $scope.interfaceManager.dispRaw = 1;
+            }
         } else if (category == 'templ') {
             $scope.interfaceManager.dispTemplate = 1 - $scope.interfaceManager.dispTemplate;
             $scope.interfaceManager.changedTemplate = 1;
@@ -101,7 +110,7 @@ function MainController($scope, $timeout) {
 
     $scope.resizeEvent = function() {
         if ($scope.interfaceManager.detailedCanvas != null) {
-            $scope.interfaceManager.resizeDetailedCanvas();
+            $scope.interfaceManager.detailedSettings.redraw();
         }
     }
 
