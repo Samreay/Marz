@@ -249,6 +249,7 @@ div[dropzone] .info li .label {
 }
 
 #big {
+    width: 100%;
     height: 500px;
 }
 

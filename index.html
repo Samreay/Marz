@@ -6,12 +6,6 @@
     <link href="css/normalize.css" rel="stylesheet"/>
     <link href="css/style.css" rel="stylesheet"/>
     <script src="js/jquery-2.1.0.js"></script>
-    <script src="js/amcharts.js"></script>
-    <script src="js/serial.js"></script>
-    <script src="js/xy.js"></script>
-    <script src="js/light.js"></script>
-    <script src="js/amexport.js"></script>
-    <script src="js/amstock.js"></script>
 
     <script src="js/angular.js"></script>
     <script src="js/angular-animate.js"></script>
@@ -65,8 +59,8 @@
                 <div class="centralheader" ng-show="interfaceManager.menuActive=='Overview' || interfaceManager.menuActive=='Detailed'">
                     <div class="overviewheader" ng-show="interfaceManager.menuActive=='Overview' || interfaceManager.menuActive=='Detailed'">
                         <p ng-click="toggleDisp('raw')">Raw</p>
-                        <p ng-click="toggleDisp('pre')">Preprocessed</p>
-                        <p ng-click="toggleDisp('matched')">Matched</p>
+                        <p ng-click="toggleDisp('pro')">Processed</p>
+                        <p ng-click="toggleDisp('templ')">Template</p>
                     </div>
                     <div class="detailedheader" ng-show="interfaceManager.menuActive=='Detailed'">
                     </div>
@@ -95,15 +89,16 @@
                         </ul>
                     </div>-->
                     <div class="detailedView" ng-if="interfaceManager.menuActive=='Detailed'">
-                        <div id="big">{{interfaceManager.renderDetailed()}}</div>
+                        <div id="big"><canvas id="detailedCanvas" style="height: 100%; width: 100%"></canvas></div>
                         <label class="floatleft">Template:</label>
-                        <select class="floatleft" ng-change="$parent.interfaceManager.detailedUpdateRequired=true" ng-model="$parent.interfaceManager.detailedViewTemplate" data-ng-options="t.index as t.id + ' - ' + t.name for t in $parent.templateManager.getTemplatesAsJson()"></select>
+                        <select class="floatleft" ng-change="$parent.changedTemplate()" ng-model="$parent.interfaceManager.detailedViewTemplate" data-ng-options="t.index as t.id + ' - ' + t.name for t in $parent.templateManager.getTemplatesAsJson()"></select>
                         <label class="floatleft">z: </label>
-                        <input class="floatleft numberInput" type="text" ng-change="$parent.interfaceManager.detailedUpdateRequired=true" ng-model="$parent.interfaceManager.detailedViewZ">
-                        <button class="floatright" ng-click="$parent.interfaceManager.saveManual()">Save Manual Redshift</button>
+                        <input class="floatleft numberInput" type="text" ng-change="$parent.changedTemplate()" ng-model="$parent.interfaceManager.detailedViewZ">
+                        <button class="floatright" ng-click="$parent.interfaceManager.saveManual()">Save</button>
                         <div class="fill">
                             <input type="range" min={{$parent.interfaceManager.getMinRedshiftForDetailedTemplate()}} max="{{$parent.interfaceManager.detailedViewZMax}}" step="0.0001" ng-change="$parent.interfaceManager.detailedUpdateRequired=true" ng-model="$parent.interfaceManager.detailedViewZ">
                         </div>
+                        {{interfaceManager.renderDetailedInitial()}}
                     </div>
                     <div class="usage" ng-if="interfaceManager.menuActive=='Usage'">
                         <div class="h1group lined">

@@ -114,7 +114,7 @@ FitsFile.prototype.getFibres = function(fits) {
     fits.getDataUnit(2).getColumn("TYPE", function(data, opt) {
         var ind = 0;
         for (var i = 0; i < data.length; i++) {
-            if (data[i] == "P" && i < 50) {
+            if (data[i] == "P" && i == 5) {
                 opt.spectra.push({index: ind++, id: i+1, lambda: opt.lambda.slice(0), intensity: [], variance: [], miniRendered: 0});
             }
         }
@@ -157,24 +157,9 @@ function Spectra(index, id, lambda, intensity, variance) {
     this.intensity = intensity;
     this.variance = variance;
 
-    // All these plotting variables are used to make interpolation faster
-    // when generating the data for the detailed view
-    this.gap = 1;
-    this.plotData = [];
-    this.plotLambda = linearSep(Math.floor(lambda[0]), Math.ceil(lambda[lambda.length - 1]), this.gap);
-    this.plotIntensity = interpolate(this.plotLambda, lambda, intensity);
-    this.plotVariance = interpolate(this.plotLambda, lambda, variance);
-    for (var i = 0; i < this.plotLambda.length; i++) {
-        this.plotData.push({lambda: this.plotLambda[i], raw: this.plotIntensity[i]});
-    }
-
-
     this.processedLambda = null;
     this.processedIntensity = null;
     this.processedVariance = null;
-    this.plotProcessedLambda = null;
-    this.plotProcessedIntensity = null
-    this.plotProcessedVariance = null;
 
     this.manualZ = null;
     this.manualTemplateIndex = null;
@@ -182,12 +167,10 @@ function Spectra(index, id, lambda, intensity, variance) {
     this.templateIndex = null;
     this.templateZ = null;
     this.templateChi2 = null;
-    this.plotTemplateLambda = null
-    this.plotTemplateIntensity = null;
 }
-Spectra.prototype.setTemplateManager = function(templateManager) {
+/*Spectra.prototype.setTemplateManager = function(templateManager) {
     this.templateManager = templateManager;
-};
+};*/
 Spectra.prototype.getFinalTemplate = function() {
     return this.manualTemplateIndex == null ? this.templateIndex : this.manualTemplateIndex;
 }
@@ -198,30 +181,17 @@ Spectra.prototype.setManual = function(redshift, template) {
     this.manualZ = redshift;
     this.manualTemplateIndex = template;
 }
-Spectra.prototype.getTemplateId = function() {
-    if (this.templateIndex == null || this.templateManager == null) return null;
-    return this.templateManager.get(this.templateIndex).id;
-}
 Spectra.prototype.setProcessedValues = function(pl, pi, pv, ti, tr) {
     this.processedLambda = pl.map(function(x) {return Math.pow(10, x);});
     this.processedIntensity = pi;
     this.processedVariance = pv;
-
-    this.plotProcessedLambda = linearSep(Math.floor(this.processedLambda[0]), Math.ceil(this.processedLambda[this.processedLambda.length - 1]), this.gap);
-    this.plotProcessedIntensity = interpolate(this.plotProcessedLambda, this.processedLambda, pi);
-    this.plotProcessedVariance = interpolate(this.plotProcessedLambda, this.processedLambda, pv);
-
-    addValuesToDataDictionary(this.plotData, this.plotProcessedLambda, this.plotProcessedIntensity, 'pre', this.gap);
-
 
     this.templateIndex = tr[ti].index;
     this.templateZ = tr[ti].z;
     this.templateChi2 = tr[ti].chi2;
 
     this.templateResults = tr;
-    this.templateLambda = this.plotProcessedLambda;
-    this.templateIntensity = this.templateManager.getPlottingShiftedLinearLambda(this.templateIndex, this.templateZ, this.plotProcessedLambda);
-
+    //this.templateIntensity = this.templateManager.getPlottingShiftedLinearLambda(this.templateIndex, this.templateZ, this.plotProcessedLambda);
 };
 Spectra.prototype.getAsJson = function() {
     return {'index':this.index, 'start_lambda':this.lambda[0], 'end_lambda':this.lambda[this.lambda.length - 1], 'intensity':this.intensity, 'variance':this.variance};
@@ -244,9 +214,6 @@ function SpectraManager(scope, processorManager, templateManager) {
 };
 SpectraManager.prototype.setSpectra = function(spectraList) {
     this.spectraList = spectraList;
-    for (var i = 0; i < spectraList.length; i++) {
-        this.spectraList[i].setTemplateManager(this.templateManager);
-    }
     this.processorManager.setSpectra(this);
 };
 SpectraManager.prototype.getAll = function() {

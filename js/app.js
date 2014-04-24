@@ -38,7 +38,7 @@ function MainController($scope, $timeout) {
         $scope.interfaceManager.detailedViewTemplate = tid == null ? 0 : tid;
         $scope.interfaceManager.detailedViewZ = tz == null? 0 : tz;
         $scope.interfaceManager.menuActive = 'Detailed';
-        this.interfaceManager.updateDetailedData();
+        this.interfaceManager.updateDetailedData(true);
 
     }
     $scope.addfile = function (f) {
@@ -77,16 +77,20 @@ function MainController($scope, $timeout) {
     $scope.toggleDisp = function(category) {
         if (category == 'raw') {
             $scope.interfaceManager.dispRaw = 1 - $scope.interfaceManager.dispRaw;
-        } else if (category == 'pre') {
-            $scope.interfaceManager.dispPre = 1 - $scope.interfaceManager.dispPre;
-        } else if (category == 'matched') {
-            $scope.interfaceManager.dispMatched = 1 - $scope.interfaceManager.dispMatched;
+            $scope.interfaceManager.changedRaw = 1;
+        } else if (category == 'pro') {
+            $scope.interfaceManager.dispProcessed = 1 - $scope.interfaceManager.dispProcessed;
+            $scope.interfaceManager.changedProcessed = 1;
+        } else if (category == 'templ') {
+            $scope.interfaceManager.dispTemplate = 1 - $scope.interfaceManager.dispTemplate;
+            $scope.interfaceManager.changedTemplate = 1;
         }
+        //TODO: Consider making this only if the overview screen is active
         for (var i = 0; i < $scope.spectraManager.getAll().length; i++) {
             $scope.interfaceManager.rerenderOverview(i);
         }
         if (this.interfaceManager.menuActive == 'Detailed') {
-            this.interfaceManager.updateDetailedData();
+            this.interfaceManager.updateDetailedData(false);
         }
     }
 
@@ -95,4 +99,15 @@ function MainController($scope, $timeout) {
         this.fileManager.saveResults(results);
     }
 
+    $scope.resizeEvent = function() {
+        if ($scope.interfaceManager.detailedCanvas != null) {
+            $scope.interfaceManager.resizeDetailedCanvas();
+        }
+    }
+
+    $scope.changedTemplate = function() {
+        this.interfaceManager.changedTemplate = true;
+        this.interfaceManager.updateDetailedData(false);
+    }
+    $(window).on("resize",$scope.resizeEvent);
 }

@@ -9,11 +9,11 @@ function InterfaceManager(scope, spectraManager, templateManager, processorManag
     this.spectraIndex = 0;
 
     this.dispRaw = 1;
-    this.dispPre = 1;
-    this.dispMatched = 1;
-    this.dispRawPrev = 1;
-    this.dispPrePrev = 1;
-    this.dispMatchedPrev = 1;
+    this.dispProcessed = 1;
+    this.dispTemplate = 1;
+    this.changedRaw = 1;
+    this.changedProcessed = 1;
+    this.changedTemplate = 1;
     this.detailedViewZMax = 2.5;
 
     this.interface = {
@@ -26,12 +26,9 @@ function InterfaceManager(scope, spectraManager, templateManager, processorManag
     this.detailedViewZ = 0;
     this.detailedUpdateRequired = false;
 
-    this.detailedChart = null;
-    this.detailedRawGraph = null;
-    this.detailedProcessedGraph = null;
-    this.detailedMatchedGraph = null;
-    this.chartScrollbar = null;
-
+    this.detailedCanvas = null;
+    this.detailedBounds = null;
+    this.detailedSettings = new DetailedPlotSettings();
 
     this.renderOverviewDone = new Array();
 
@@ -113,20 +110,21 @@ InterfaceManager.prototype.renderOverview = function (index) {
     if (v.intensity.length > 0) {
         var lambda = condenseToXPixels(v.lambda, width);
         var intensity = condenseToXPixels(v.intensity, width);
-        var preprocessedLambda = condenseToXPixels(v.processedLambda, width);
-        var preprocessed = condenseToXPixels(v.processedIntensity, width);
-        var tempLambda = condenseToXPixels(v.templateLambda, width);
-        var tempIntensity = condenseToXPixels(v.templateIntensity, width);
+        var processedLambda = condenseToXPixels(v.processedLambda, width);
+        var processed = condenseToXPixels(v.processedIntensity, width);
+        var r = this.templateManager.getShiftedLinearTemplate(v.getFinalTemplate(), v.getFinalRedshift())
+        var tempLambda = condenseToXPixels(r[0], width);
+        var tempIntensity = condenseToXPixels(r[1], width);
 
         clearPlot(canvas);
         var toBound = [];
         if (this.dispRaw) {
             toBound.push([lambda, intensity]);
         }
-        if (this.dispPre) {
-            toBound.push([preprocessedLambda, preprocessed]);
+        if (this.dispProcessed) {
+            toBound.push([processedLambda, processed]);
         }
-        if (this.dispMatched) {
+        if (this.dispTemplate) {
             toBound.push([tempLambda, tempIntensity]);
         }
 
@@ -135,320 +133,109 @@ InterfaceManager.prototype.renderOverview = function (index) {
         if (this.dispRaw) {
             plot(lambda, intensity, this.interface.rawColour, canvas, bounds);
         }
-        if (this.dispPre) {
-            plot(preprocessedLambda, preprocessed, this.interface.processedColour, canvas, bounds);
+        if (this.dispProcessed) {
+            plot(processedLambda,processed, this.interface.processedColour, canvas, bounds);
         }
-        if (this.dispMatched) {
+        if (this.dispTemplate) {
             plot(tempLambda, tempIntensity, this.interface.matchedColour, canvas, bounds);
         }
     }
 }
-InterfaceManager.prototype.updateDetailedData = function () {
-    var spectra = this.spectraManager.getSpectra(this.spectraIndex);
-    var isPreprocessed = spectra == null ? false : spectra.isProcessed();
-    if (this.detailedChart != null) {
-        if (this.dispRaw) {
-            if (!this.dispRawPrev) {
-                this.detailedChart.showGraph(this.detailedRawGraph);
-                this.dispRawPrev = true;
-            }
-        } else {
-            if (this.dispRawPrev) {
-                this.detailedChart.hideGraph(this.detailedRawGraph);
-                this.dispRawPrev = false;
-            }
-        }
-        if (this.dispPre && isPreprocessed) {
-            if (!this.dispPrePrev) {
-                this.detailedChart.showGraph(this.detailedProcessedGraph);
-                this.dispPrePrev = true;
-            }
-        } else {
-            if (this.dispPrePrev) {
-                this.detailedChart.hideGraph(this.detailedProcessedGraph);
-                this.dispPrePrev = false;
-            }
-        }
-        if (this.dispMatched) {
-            if (!this.dispMatchedPrev) {
-                this.detailedChart.showGraph(this.detailedMatchedGraph);
-                this.dispMatchedPrev = true;
-            }
-        } else {
-            if (this.dispMatchedPrev) {
-                this.detailedChart.hideGraph(this.detailedMatchedGraph);
-                this.dispMatchedPrev = false;
-            }
-        }
-        if (isPreprocessed) {
-            this.chartScrollbar.graph = this.detailedProcessedGraph;
-        } else {
-            this.chartScrollbar.graph = this.detailedRawGraph;
-        }
-    }
-    this.detailedUpdateRequired = true;
-}
 
-//TODO: Bloody recode this entire bloody section and mangle the x axis so that I dont need to interpolate a thousand
-//TODO: bloody times. God I'm close to just writing the graphing functions myself.
-InterfaceManager.prototype.getDetailedData = function () {
+
+
+
+
+
+
+
+
+
+
+
+InterfaceManager.prototype.updateDetailedData = function (changedToDetailed) {
+    if (changedToDetailed || this.detailedCanvas == null) {
+        this.renderDetailedInitial();
+    } else {
+        if (this.changedRaw || this.changedProcessed) {
+            this.changedRaw = false;
+            this.changedProcessed = false;
+            this.renderDetailedStatic();
+        }
+        if (this.changedTemplate) {
+            this.changedTemplate = false;
+            this.renderDetailedTemplate();
+        }
+    }
+}
+InterfaceManager.prototype.renderDetailedInitial = function() {
+    var c = document.getElementById ('detailedCanvas');
+    if (c == null || c.clientWidth == 0) {
+        return;
+    } else {
+        this.detailedCanvas = c;
+        this.resizeDetailedCanvas();
+    }
+}
+InterfaceManager.prototype.renderDetailedBackground = function() {
+    clear(this.detailedCanvas);
+}
+InterfaceManager.prototype.getStaticData = function () {
+    var data = [];
     var spectra = this.spectraManager.getSpectra(this.spectraIndex);
-    var data = JSON.parse(JSON.stringify(spectra.plotData));
-    var ti = this.detailedViewTemplate;
-    var tz = this.getDetailedZ();
-    var isProcessed = spectra.isProcessed();
-    if (this.dispMatched) {
-        var l = isProcessed ? spectra.plotProcessedLambda : spectra.plotLambda;
-        var matched = this.templateManager.getPlottingShiftedLinearLambda(ti, tz, l);
-        addValuesToDataDictionary(data, l, matched, 'matched', spectra.gap);
+    if (this.dispRaw && spectra.intensity != null) {
+        data.push({id: 'raw',
+            colour: this.interface.rawColour,
+            x: spectra.lambda,
+            y: spectra.intensity,
+            e: spectra.variance});
     }
-    for (var i = 0; i < data.length; i++) {
-        //data[i].lambda = new Date(data[i].lambda * 1e7);
-        if (!isFinite(data[i].raw) || isNaN(data[i].raw) || data[i].raw == null) {
-            data[i].raw = 0;
-        } else {
-            data[i].raw = data[i].raw;
-        }
-        if (data[i].pre != null) {
-            data[i].pre = data[i].pre.toFixed(2);
-        } else {
-            data[i].pre = 0;
-        }
-        if (data[i].matched != null) {
-            data[i].matched = data[i].matched.toFixed(2);
-        } else {
-            data[i].matched = 0;
-        }
+    if (this.dispProcessed && spectra.processedIntensity != null) {
+        data.push({id: 'processed',
+            colour: this.interface.processedColour,
+            x: spectra.processedLambda,
+            y: spectra.processedIntensity,
+            e: spectra.processedVariance});
     }
+    console.log('Got data');
     return data;
 }
-/*InterfaceManager.prototype.renderInitialDetailedChart = function() {
-    var chart = new AmCharts.AmStockChart();
-    this.detailedChart = chart;
-    chart.pathToImages = "images/";
-
-    var dataSet = new AmCharts.DataSet();
-    dataSet.dataProvider = this.getDetailedData();
-    dataSet.fieldMappings = [{fromField: "raw", toField: "value"}];
-    dataSet.categoryField = "lambda";
-    dataSet.title = "Raw Data"
-    dataSet.color = this.interface.rawColour;
-
-    var dataSet2 = new AmCharts.DataSet();
-    dataSet2.dataProvider = this.getDetailedData();
-    dataSet2.fieldMappings = [{fromField: "pre", toField: "value"}];
-    dataSet2.categoryField = "lambda";
-    dataSet2.title = "Processed Data"
-    dataSet2.compared = true;
-    dataSet2.color = this.interface.processedColour;
-
-    var dataSet3 = new AmCharts.DataSet();
-    dataSet3.dataProvider = this.getDetailedData();
-    dataSet3.fieldMappings = [{fromField: "matched", toField: "value"}];
-    dataSet3.categoryField = "lambda";
-    dataSet3.title = "Template Prediction"
-    dataSet3.compared = true;
-    dataSet3.color = this.interface.matchedColour;
-
-    chart.dataSets = [dataSet, dataSet2, dataSet3];
-
-
-    var stockPanel = new AmCharts.StockPanel();
-    stockPanel.recalculateToPercents = "never";
-    chart.panels = [stockPanel];
-
-    var legend = new AmCharts.StockLegend();
-    legend.valueTextComparing = "[[value]]";
-    stockPanel.stockLegend = legend;
-    stockPanel.sequencedAnimation = false;
-
-
-    var panelsSettings = new AmCharts.PanelsSettings();
-    panelsSettings.startDuration = 1;
-    chart.panelsSettings = panelsSettings;
-
-    var graph = new AmCharts.StockGraph();
-    graph.valueField = "value";
-    graph.comparable = true;
-    graph.type = "line";
-    graph.balloonText = "[[title]]: [[value]]"
-    graph.compareGraphBalloonText = "[[title]]: [[value]]"
-    graph.periodValue = "Average";
-    stockPanel.addStockGraph(graph);
-
-    var categoryAxis = stockPanel.categoryAxis;
-    categoryAxis.labelFunction = function (a, b) {
-        return b.valueOf()/1e7;
-    }
-
-    var categoryAxesSettings = new AmCharts.CategoryAxesSettings();
-    categoryAxesSettings.dashLength = 5;
-    categoryAxesSettings.maxSeries = 30;
-    categoryAxesSettings.groupToPeriods = ["WW"];
-    categoryAxesSettings.minPeriod = "WW";
-    chart.categoryAxesSettings = categoryAxesSettings;
-
-    var valueAxesSettings = new AmCharts.ValueAxesSettings();
-    valueAxesSettings.dashLength = 5;
-    chart.valueAxesSettings = valueAxesSettings;
-
-    var chartScrollbarSettings = new AmCharts.ChartScrollbarSettings();
-    chartScrollbarSettings.graph = graph;
-    chartScrollbarSettings.graphType = "line";
-    chart.chartScrollbarSettings = chartScrollbarSettings;
-
-
-    var periodSelector = new AmCharts.PeriodSelector();
-    periodSelector.periods = [
-        {period: "MAX", label: "Zoom Out"}
-    ];
-    chart.periodSelector = periodSelector;
-
-    this.renderChart();
-
-
+InterfaceManager.prototype.getTemplateData = function () {
+    var r = this.templateManager.getShiftedLinearTemplate(this.detailedViewTemplate, this.getDetailedZ());
+    return [{id: 'template',
+        colour: this.interface.templateColour,
+        x: r[0],
+        y: r[1]}];
 }
-InterfaceManager.prototype.renderChart = function() {
-    this.detailedChart.write('big');
-    this.detailedChart.panels[0].chartCursor.categoryBalloonFunction = function (date) {
-        return date.valueOf()/1e7;
-    };
-}
-InterfaceManager.prototype.renderDetailed = function () {
-     var spectra = this.spectraManager.getSpectra(this.spectraIndex);
-     if (spectra == null || spectra.intensity == null) {
-        console.log("Not rendering detailed");
-     } else {
-         if (this.detailedChart == null) {
-             this.renderInitialDetailedChart();
-         } else if (document.getElementById('big').innerHTML.length < 100) { //TODO: Better check
-            this.renderChart();
-        } else {
-             this.detailedChart.validateData();
-         }
-     }
-}*/
-
-InterfaceManager.prototype.renderDetailed = function() {
+InterfaceManager.prototype.renderDetailedStatic = function() {
     var spectra = this.spectraManager.getSpectra(this.spectraIndex);
-    if (spectra == null || spectra.intensity == null || this.menuActive != "Detailed") {
-        return;
-    }
-    if (!(this.detailedChart == null || this.detailedUpdateRequired == true)) {
-        return;
-    }
+    if (spectra == null) return;
+
+    var dataToPlot = this.getStaticData(); //TODO: Only do this when data changes
+    this.detailedBounds = getBounds(dataToPlot);
+    plotDetailed(this.detailedCanvas, dataToPlot, this.detailedBounds, this.detailedSettings);
+}
+InterfaceManager.prototype.renderDetailedTemplate = function() {
+    var spectra = this.spectraManager.getSpectra(this.spectraIndex);
+    if (spectra == null) return;
+
+    var dataToPlot = this.getTemplateData(); //TODO: Only do this when data changes
+    plotDetailed(this.detailedCanvas, dataToPlot, this.detailedBounds, this.detailedSettings);
+
+}
+InterfaceManager.prototype.resizeDetailedCanvas = function() {
+    this.detailedCanvas.width = this.detailedCanvas.clientWidth;
+    this.detailedCanvas.height = this.detailedCanvas.clientHeight;
+    this.renderDetailedBackground();
+    this.renderDetailedStatic();
+    this.renderDetailedTemplate();
+}
 
 
-    if (this.detailedChart == null) {
-        //this.detailedChart = new AmCharts.AmXYChart();
-        this.detailedChart = new AmCharts.AmSerialChart();
-        var c = this.detailedChart;
-        c.zoomOutOnDataUpdate = false;
-        c.dataProvider = this.getDetailedData();
-        c.theme = "light";
-        c.pathToImages = "images/";
-        c.categoryField = "lambda";
 
-        var categoryAxis = c.categoryAxis;
-        categoryAxis.title = "Wavelength";
-        categoryAxis.gridPosition = "start";
-        //categoryAxis.parseDates = true;
-        //categoryAxis.minPeriod = "mm";
-        /*var xAxis = new AmCharts.ValueAxis();
-         //xAxis.title = "Wavelength";
-         xAxis.position = "bottom";
-         xAxis.autoGridCount = true;
-         xAxis.gridAlpha = 0.1;
-         //xAxis.gridPosition = "start";
-         c.addValueAxis(xAxis);*/
-
-//        var yAxis = new AmCharts.ValueAxis();
-//        yAxis.position = "left";
-//        yAxis.gridAlpha = 0.1;
-//        yAxis.autoGridCount = true;
-//        c.addValueAxis(yAxis);
-
-        c.exportConfig = {
-            menuBottom: "80px",
-            menuRight: "20px",
-            backgroundColor: "#efefef",
-            menuItemStyle: {backgroundColor: '#DDD', rollOverBackgroundColor: '#EEE'},
-            menuItems: [{
-                textAlign: 'center',
-                icon: 'images/export.png',
-//                    icon: 'http://www.amcharts.com/lib/3/images/export.png',
-                onclick:function(){},
-                items: [{
-                    title: 'PNG',
-                    format: 'png'
-                }, {
-                    title: 'SVG',
-                    format: 'svg'
-                }]
-            }]
-        };
-
-        this.detailedRawGraph = new AmCharts.AmGraph();
-        this.detailedRawGraph.title = "raw";
-//        this.detailedRawGraph.xField = "x";
-        this.detailedRawGraph.valueField = "raw";
-        //this.detailedRawGraph.bullet = "none";
-        this.detailedRawGraph.lineThickness = 1;
-        //this.detailedRawGraph.connect = true;
-        this.detailedRawGraph.lineColor = this.interface.rawColour;
-        //this.detailedRawGraph.balloonText = "Lambda: [[x]], I: [[raw]]";
-        c.addGraph(this.detailedRawGraph);
-
-        this.detailedProcessedGraph = new AmCharts.AmGraph();
-        this.detailedProcessedGraph.title = "preprocessed";
-//        this.detailedProcessedGraph.xField = "x";
-        this.detailedProcessedGraph.valueField = "pre";
-        //this.detailedProcessedGraph.bullet = "none";
-        this.detailedProcessedGraph.lineThickness = 1;
-        //this.detailedProcessedGraph.connect = true;
-        this.detailedProcessedGraph.lineColor = this.interface.processedColour;
-        //this.detailedProcessedGraph.balloonText = "Lambda: [[x]], I: [[pre]]";
-        c.addGraph(this.detailedProcessedGraph);
-
-        this.detailedMatchedGraph = new AmCharts.AmGraph();
-        this.detailedMatchedGraph.title = "matched";
-//        this.detailedMatchedGraph.xField = "x";
-//        this.detailedMatchedGraph.yField = "matched";
-        this.detailedMatchedGraph.valueField = "matched";
-        this.detailedMatchedGraph.bullet = "none";
-        this.detailedMatchedGraph.lineThickness = 1;
-        this.detailedMatchedGraph.connect = true;
-        this.detailedMatchedGraph.lineColor = this.interface.matchedColour;
-        //this.detailedMatchedGraph.balloonText = "Lambda: [[x]], I: [[matched]]";
-        c.addGraph(this.detailedMatchedGraph);
-
-        var chartCursor = new AmCharts.ChartCursor();
-        chartCursor.cursorPosition = "mouse";
-        chartCursor.bulletsEnabled = true;
-        c.addChartCursor(chartCursor);
-
-        this.chartScrollbar = new AmCharts.ChartScrollbar();
-        if (spectra.isProcessed()) {
-            this.chartScrollbar.graph = this.detailedProcessedGraph;
-        } else {
-            this.chartScrollbar.graph = this.detailedRawGraph;
-        }
-        this.chartScrollbar.scrollbarHeight = 50;
-        this.chartScrollbar.color = "#FFFFFF";
-        this.chartScrollbar.autoGridCount = false;
-        this.chartScrollbar.graphLineAlpha = 1;
-        this.chartScrollbar.selectedGraphLineAlpha = 1;
-        c.addChartScrollbar(this.chartScrollbar);
-
-        c.write('big');
-        this.detailedUpdateRequired = false;
-
-    } else if (document.getElementById('big').innerHTML.length < 100) { //TODO: Better check
-        this.detailedChart.write('big');
-    }
-    if (this.detailedUpdateRequired) {
-        this.detailedChart.dataProvider = this.getDetailedData();
-        this.detailedChart.validateData();
-        this.detailedUpdateRequired = false;
-    }
+function DetailedPlotSettings() {
+    this.top = 20;
+    this.bottom = 50;
+    this.left = 50;
+    this.right = 20;
 }
