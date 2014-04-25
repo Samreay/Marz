@@ -104,6 +104,13 @@ SpectralLines.prototype.getEnabled = function() {
     }
     return result;
 }
+SpectralLines.prototype.getFromID = function(id) {
+    for (var i = 0; i < this.lines.length; i++) {
+        if (this.lines[i].id == id) {
+            return this.lines[i];
+        }
+    }
+}
 SpectralLines.prototype.toggle = function(id) {
     for (var i = 0; i < this.lines.length; i++) {
         if (this.lines[i].id == id) {

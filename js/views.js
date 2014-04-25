@@ -244,7 +244,17 @@ InterfaceManager.prototype.getTemplateData = function () {
     var r = this.templateManager.getShiftedLinearTemplate(this.detailedViewTemplate, this.getDetailedZ());
     this.detailedSettings.addData('template', false, this.interface.templateColour, r[0].slice(0), r[1].slice(0));
 }
-
+InterfaceManager.prototype.clickSpectralLine= function(id) {
+    if (this.detailedSettings.waitingForSpectra) {
+        var currentWavelength = this.spectralLines.getFromID(id).wavelength;
+        var desiredWavelength = this.detailedSettings.getFocusWavelength();
+        var z = desiredWavelength/currentWavelength - 1;
+        this.detailedViewZ = z;
+        //this.detailedSettings.selectedSpectra();
+    } else {
+        this.spectralLines.toggle(id);
+    }
+}
 
 
 function DetailedPlotSettings(interfaceManager, spectralLines) {
@@ -285,6 +295,12 @@ function DetailedPlotSettings(interfaceManager, spectralLines) {
     this.displayingSpectralLines = false;
     this.spectralLineColour = 'rgba(0, 115, 255, 0.8)';
     this.spectralLineTextColour = '#FFFFFF';
+
+    this.focusX = null;
+    this.focusY = null;
+    this.focusCosmeticColour = 'rgba(104, 0, 103, 0.9)';
+    this.focusCosmeticMaxRadius = 6;
+    this.waitingForSpectra = false;
 }
 DetailedPlotSettings.prototype.toggleSpectralLines = function() {
     this.displayingSpectralLines = !this.displayingSpectralLines;
@@ -553,6 +569,17 @@ DetailedPlotSettings.prototype.plotSpectralLines = function() {
         }
     }
 }
+DetailedPlotSettings.prototype.drawFocus = function() {
+    if (this.focusX == null || this.focusY == null) return;
+    this.c.strokeStyle = this.focusCosmeticColour;
+    this.c.lineWidth = 2;
+    this.c.beginPath();
+    this.c.arc(this.focusX, this.focusY, 2, 0, 2 * Math.PI, false);
+    this.c.stroke();
+    this.c.beginPath();
+    this.c.arc(this.focusX, this.focusY, this.focusCosmeticMaxRadius, 0, 2 * Math.PI, false);
+    this.c.stroke();
+}
 DetailedPlotSettings.prototype.redraw = function() {
     this.refreshSettings();
     this.getBounds();
@@ -565,6 +592,7 @@ DetailedPlotSettings.prototype.redraw = function() {
     this.plotAxesLabels(true);
     this.drawZoomOut();
     this.plotSpectralLines();
+    this.drawFocus();
 }
 
 
@@ -584,8 +612,17 @@ DetailedPlotSettings.prototype.checkDataXInRange = function(x) {
 DetailedPlotSettings.prototype.checkDataYInRange = function(y) {
     return y >= this.yMin && y <= this.yMax;
 }
-DetailedPlotSettings.prototype.checkXYInRange = function(x,y) {
+DetailedPlotSettings.prototype.checkDataXYInRange = function(x,y) {
     return this.checkXInRange(x) && this.checkYInRange(y);
+}
+DetailedPlotSettings.prototype.checkCanvasXInRange = function(x) {
+    return x >= this.left && x <= (this.left + this.width)
+}
+DetailedPlotSettings.prototype.checkCanvasYInRange = function(y) {
+    return y >= this.top && y <= (this.top + this.height);
+}
+DetailedPlotSettings.prototype.checkCanvasInRange = function(x,y) {
+    return this.checkCanvasXInRange(x) && this.checkCanvasYInRange(y);
 }
 DetailedPlotSettings.prototype.windowToCanvas = function(e) {
     var result = {};
@@ -606,6 +643,18 @@ DetailedPlotSettings.prototype.canvasMouseDown = function(loc) {
         this.lastYDown = loc.y;
     }
 }
+DetailedPlotSettings.prototype.selectedSpectra = function() {
+    this.focusX = null;
+    this.focusY = null;
+    this.waitingForSpectra = false;
+}
+DetailedPlotSettings.prototype.getWaiting = function() {
+    console.log('get waiting');
+    return this.waitingForSpectra;
+}
+DetailedPlotSettings.prototype.getFocusWavelength = function() {
+    return this.convertCanvasXCoordinateToDataPoint(this.focusX);
+}
 DetailedPlotSettings.prototype.canvasMouseUp = function(loc) {
     this.currentMouseX = loc.x;
     this.currentMouseY = loc.y;
@@ -620,14 +669,28 @@ DetailedPlotSettings.prototype.canvasMouseUp = function(loc) {
         this.yMin = Math.min(y1, y2);
         this.yMax = Math.max(y1, y2);
         this.lockedBounds = true;
+        this.focusX = null;
+        this.focusY = null;
+        this.waitingForSpectra = false;
     } else {
         if (loc.x > (this.canvas.width - this.zoomOutWidth) && loc.y < this.zoomOutHeight) {
             this.lockedBounds = false;
+        } else if (this.checkCanvasInRange(loc.x, loc.y)) {
+            if (this.focusX == null && this.focusY == null) {
+                this.focusX = loc.x;
+                this.focusY = loc.y;
+                this.waitingForSpectra = true;
+            } else {
+                this.focusX = null;
+                this.focusY = null;
+                this.waitingForSpectra = false;
+            }
         }
     }
     this.lastXDown = null;
     this.lastYDown = null;
-    this.redraw();
+    //this.redraw();
+    this.interfaceManager.scope.$apply();
 }
 DetailedPlotSettings.prototype.canvasMouseMove = function(loc) {
     if (this.lastXDown == null || this.lastYDown == null || !loc.inside) {

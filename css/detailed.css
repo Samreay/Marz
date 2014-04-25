@@ -213,6 +213,7 @@ div[dropzone] ul li b {
     margin-bottom: 10px;
 }
 #rightbar .button {
+    transition: background-color 0.25s;
     display: inline-block;
     padding: 5px 10px 5px 10px;
     border: 1px solid #444;
@@ -240,11 +241,21 @@ div[dropzone] ul li b {
     color: #999999;
     cursor: hand;
     cursor: pointer;
+    transition: background-color 0.25s;
+
 }
 .sline.enabled {
     color: #222222;
 }
-
+.sline:hover {
+    background-color: #ADD6FF;
+}
+.glowing li {
+    border: 1px solid #5E99FF;
+    -webkit-box-shadow: 0px 0px 5px 5px rgba(63, 169, 255, 0.2);
+    -moz-box-shadow: 0px 0px 5px 5px rgba(63, 169, 255, 0.2);
+    box-shadow: 0px 0px 5px 5px rgba(63, 169, 255, 0.2);
+}
 
 /************************************/
 /*    CSS FOR THE FOOTER SECTION    */

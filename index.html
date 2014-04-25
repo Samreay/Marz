@@ -87,8 +87,8 @@
                     </div>
                     <div class="topspace" ng-if="interfaceManager.menuActive=='Detailed'">
                         <b>Spectral Lines</b>
-                        <ul>
-                            <li class="sline lined"  ng-click="$parent.spectalLines.toggle(i.id)" ng-class="{enabled:i.enabled}" ng-repeat="i in spectalLines.getAll() track by i.id">
+                        <ul ng-class="{glowing:interfaceManager.detailedSettings.getWaiting()}">
+                            <li class="sline lined"  ng-click="$parent.interfaceManager.clickSpectralLine(i.id)" ng-class="{enabled:i.enabled}" ng-repeat="i in spectalLines.getAll() track by i.id">
                                     {{i.name}}
                             </li>
                         </ul>
