@@ -1,0 +1,252 @@
+/************************************/
+/*    CSS FOR THE HEADER SECTION    */
+/************************************/
+
+
+#header, #footer {
+    color: #DDD;
+    padding-left: 20px;
+    background-color: #222222;
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.004);
+    background: linear-gradient(to bottom,  #444 0%,#222 100%);
+    line-height: 30px;
+}
+#header h1 {
+    display: inline;
+}
+nav ul li {
+    display: inline-block;
+    transition: color 0.25s;
+    margin-right: 30px;
+    text-transform: uppercase;
+    text-align: center;
+    color: #CCC;
+    cursor: hand;
+    cursor: pointer;
+}
+nav, nav ul {
+    display: inline-block;
+    margin-left: 20px;
+}
+
+
+
+/************************************/
+/*     GENERAL CSS RULES FOR ALL    */
+/************************************/
+.active {
+    color: #5E99FF;
+}
+.lined {
+    border: 1px solid #AAA;
+    background-color: #E8E8E8;
+}
+.boxed {
+    box-sizing: border-box;
+}
+.centered {
+    text-align: center;
+}
+.even {
+    background-color: #E0E0E0;
+}
+.activeSelect {
+    background-color: #D3DFF5;
+    border: 1px solid #5E99FF;
+}
+.topspace {
+    margin-top: 20px;
+}
+.floatright {
+    float: right;
+}
+
+.floatleft {
+    float: left;
+}
+/************************************/
+/*     CSS FOR THE LEFT SECTION     */
+/************************************/
+
+
+div[dropzone] {
+    height: 230px;
+    border: 4px dashed #bbb;
+    transition: border 0.25s;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    padding: 15px;
+}
+div[dropzone].dropover {
+    color: #5E99FF;
+    border: 3px dashed #5E99FF;
+}
+div[dropzone] ul {
+    margin-top: 10px;
+}
+div[dropzone] ul li {
+    margin-top: 3px;
+}
+div[dropzone] ul li b {
+    width: 90px;
+    display: inline-block;
+}
+
+.spectralList {
+    height: calc(100% - 250px);
+    width: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.spectralList ul, .spectralList li, .spectralList p, .spectralList .info {
+    display: inline-block;
+}
+.spectralList li {
+    font-size: 14px;
+    padding: 10px;
+    height: 40px;
+    width: 100%;
+    line-height: 40px;
+}
+.spectralList .info {
+    padding-left: 10px;
+}
+
+/************************************/
+/*    CSS FOR THE CENTER SECTION    */
+/************************************/
+.overviewItem {
+    width: 300px;
+    height: 150px;
+    margin-right: 10px;
+    margin-bottom: 10px;
+    float: left;
+    position: relative;
+}
+
+.overviewItem.overviewLarge {
+    width: 500px;
+    height: 200px;
+}
+.overviewItem .topbar {
+    overflow: hidden;
+    height: 30px;
+    line-height: 30px;
+    width: 100%;
+    background-color: #CCC;
+    background: linear-gradient(to bottom,  #DDD 0%,#CCC 100%);
+    display: block;
+}
+.overviewItem .topbar b {
+    margin-left: 10px;
+}
+.overviewItem .topbar p {
+    display: inline;
+    margin-left: 15px;
+}
+.overviewItem .graph {
+    display: block;
+    position: absolute;
+    top: 30px;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
+}
+
+.usage h1 {
+    colour: #222;
+    line-height: 1.5em;
+}
+
+.usage h2 {
+    color: #444;
+    font-size: 22px;
+    line-height:  1.5em;
+    margin-bottom: 10px;
+    margin-top: 20px;
+}
+.usage p {
+    color: #555;
+    line-height: 1.6em;
+    font-size: 1em;
+
+}
+.usage .h1group {
+    margin-bottom: 20px;
+    padding: 30px;
+}
+
+.usage hr {
+    border: 0;
+    margin-top: 0px;
+    height: 1px;
+    background-image: -webkit-linear-gradient(left, rgba(0,0,0,0.5), rgba(0,0,0,0));
+    background-image:    -moz-linear-gradient(left, rgba(0,0,0,0.5), rgba(0,0,0,0));
+    background-image:     -ms-linear-gradient(left, rgba(0,0,0,0.5), rgba(0,0,0,0));
+    background-image:      -o-linear-gradient(left, rgba(0,0,0,0.5), rgba(0,0,0,0));
+}
+
+
+.usage ul {
+    padding: 10px 0 10px 0;
+    list-style-type: circle;
+}
+.usage li {
+    margin-left: 50px;
+}
+
+
+
+#big {
+    width: 100%;
+    height: 500px;
+}
+
+
+/************************************/
+/*    CSS FOR THE RIGHT SECTION     */
+/************************************/
+#rightbar b {
+    display: block;
+    width: 100%;
+    margin-bottom: 10px;
+}
+#rightbar .button {
+    display: inline-block;
+    padding: 5px 10px 5px 10px;
+    border: 1px solid #444;
+    border-radius: 5px;
+    margin-right: 10px;
+}
+
+#rightbar label, #rightbar select, #rightbar input {
+    display: inline-block;
+}
+#rightbar label {
+    width: 70px;
+    height: 20px;
+    margin-bottom: 10px;
+}
+
+
+
+/************************************/
+/*    CSS FOR THE FOOTER SECTION    */
+/************************************/
+
+
+.footer p {
+    display: inline-block;
+}
+
+.footer progress {
+    display: inline-block;
+}
+.fillrest {
+    padding-left: 20px;
+    padding-right: 20px;
+    position: relative;
+    display: block;
+    overflow:hidden;
+}

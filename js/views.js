@@ -5,7 +5,7 @@ function InterfaceManager(scope, spectraManager, templateManager, processorManag
     this.processorManager = processorManager;
 
     this.menuOptions = ['Overview', 'Detailed', 'Templates', 'Settings', 'Usage'];
-    this.menuActive = 'Overview';
+    this.menuActive = 'Detailed';
     this.spectraIndex = 0;
 
     this.dispRaw = 1;
@@ -14,9 +14,10 @@ function InterfaceManager(scope, spectraManager, templateManager, processorManag
     this.changedRaw = 1;
     this.changedProcessed = 1;
     this.changedTemplate = 1;
-    this.detailedViewZMax = 2.5;
+    this.detailedViewZMax = 4;
 
     this.interface = {
+        unselected: '#E8E8E8',
         rawColour: "#E8BA6B",
         processedColour: "#058518",
         matchedColour: "#AA0000",
@@ -30,6 +31,29 @@ function InterfaceManager(scope, spectraManager, templateManager, processorManag
 
     this.renderOverviewDone = new Array();
 
+}
+InterfaceManager.prototype.getButtonColour = function(category) {
+    if (category == 'raw') {
+        if (this.dispRaw) {
+            return this.interface.rawColour;
+        } else {
+            return this.interface.unselected;
+        }
+    }
+    if (category == 'pro') {
+        if (this.dispProcessed) {
+            return this.interface.processedColour;
+        } else {
+            return this.interface.unselected;
+        }
+    }
+    if (category == 'templ') {
+        if (this.dispTemplate) {
+            return this.interface.templateColour;
+        } else {
+            return this.interface.unselected;
+        }
+    }
 }
 InterfaceManager.prototype.getNumSpectra = function () {
     return this.spectraManager.getAll().length;
@@ -55,7 +79,13 @@ InterfaceManager.prototype.saveManual = function () {
     var spectra = this.spectraManager.getSpectra(this.spectraIndex);
     spectra.setManual(parseFloat(this.detailedViewZ), this.detailedViewTemplate);
 }
+InterfaceManager.prototype.waitingDrop = function() {
+    return this.getNumSpectra() == 0;
+}
 InterfaceManager.prototype.finishedAnalysis = function () {
+    if (this.getNumSpectra() == 0) {
+        return false
+    }
     return (this.getNumSpectra() == this.getNumAnalysed());
 }
 InterfaceManager.prototype.showFooter = function () {
@@ -202,7 +232,6 @@ InterfaceManager.prototype.getStaticData = function () {
         this.detailedSettings.addData('processed',true,this.interface.processedColour,
             spectra.processedLambda, spectra.processedIntensity, spectra.processedVariance);
     }
-    console.log('Got data');
 }
 InterfaceManager.prototype.getTemplateData = function () {
     if (!this.dispTemplate) {
@@ -210,7 +239,7 @@ InterfaceManager.prototype.getTemplateData = function () {
     }
     if (this.spectraManager.getSpectra(this.spectraIndex) == null) return;
     var r = this.templateManager.getShiftedLinearTemplate(this.detailedViewTemplate, this.getDetailedZ());
-    this.detailedSettings.addData('template', false, this.interface.templateColour, r[0], r[1]);
+    this.detailedSettings.addData('template', false, this.interface.templateColour, r[0].slice(0), r[1].slice(0));
 }
 /*InterfaceManager.prototype.renderDetailedStatic = function() {
     var spectra = this.spectraManager.getSpectra(this.spectraIndex);
@@ -256,13 +285,24 @@ function DetailedPlotSettings() {
     this.left = 70;
     this.right = 20;
 
+    this.templateScale = '1';
+    this.minScale = 0.2;
+    this.maxScale = 3;
+
     this.axesColour = '#444';
     this.zeroLineColour = '#444';
     this.stepColour = '#CCC';
     this.dragInteriorColour = 'rgba(38, 147, 232, 0.2)';
     this.dragOutlineColour = 'rgba(38, 147, 232, 0.6)';
+    this.spacingFactor = 1.2;
+
+    this.zoomOutWidth = 20;
+    this.zoomOutHeight = 20;
+    this.zoomOutImg = new Image();
+    this.zoomOutImg.src = 'images/lens.png'
 
     this.data = [];
+    this.template = null;
 
     this.labelWidth = 70;
     this.labelHeight = 40;
@@ -291,30 +331,62 @@ DetailedPlotSettings.prototype.refreshSettings = function () {
 DetailedPlotSettings.prototype.getCanvas = function() {
     return this.canvas;
 }
+DetailedPlotSettings.prototype.setTemplateScale = function() {
+    if (this.template == null) {
+        return;
+    }
+    var s = parseFloat(this.templateScale);
+    if (s == null || isNaN(s) || s < this.minScale || s > this.maxScale) {
+        return;
+    }
+    for (var i = 0; i < this.data.length; i++) {
+        if (this.data[i].id == 'template') {
+            for (var j = 0; j < this.data[i].y.length; j++) {
+                this.data[i].y[j] = this.template[j] * s;
+            }
+        }
+    }
+    this.redraw();
+}
 DetailedPlotSettings.prototype.clearData = function() {
     this.data = [];
 }
 DetailedPlotSettings.prototype.addData = function(id, bound, colour, x, y, e) {
-    this.data.push({id: id, bound: bound, colour: colour, x: x, y: y, e: e});
+    var item = {id: id, bound: bound, colour: colour, x: x, y: y, e: e};
+    if (id == 'template') {
+        this.template = [];
+        for (var v = 0; v < y.length; v++) {
+            this.template.push(y[v]);
+        }
+        var s = parseFloat(this.templateScale);
+        for (var i = 0; i < y.length; i++) {
+            y[i] *= s;
+        }
+    }
+    this.data.push(item);
 }
 DetailedPlotSettings.prototype.getBounds = function() {
     if (this.lockedBounds) return;
+    var c = 0;
     this.xMin = 9e9;
     this.xMax = -9e9;
     this.yMin = 9e9;
     this.yMax = -9e9;
     for (var i = 0; i < this.data.length; i++) {
-        if (this.data[i].bound == false) continue;
-
+        if (this.data[i].bound) {
+            c++;
+        }
         var xs = this.data[i].x;
         var ys = this.data[i].y;
-        if (xs != null) {
-            for (var j = 0; j < xs.length; j++) {
-                if (xs[j] < this.xMin) {
-                    this.xMin = xs[j];
-                }
-                if (xs[j] > this.xMax) {
-                    this.xMax = xs[j];
+        if (this.data[i].bound) {
+            if (xs != null) {
+                for (var j = 0; j < xs.length; j++) {
+                    if (xs[j] < this.xMin) {
+                        this.xMin = xs[j];
+                    }
+                    if (xs[j] > this.xMax) {
+                        this.xMax = xs[j];
+                    }
                 }
             }
         }
@@ -327,6 +399,23 @@ DetailedPlotSettings.prototype.getBounds = function() {
                     this.yMax = ys[j];
                 }
             }
+        }
+    }
+    if (c == 0) {
+        this.xMin = 4000;
+        this.xMax = 9000;
+        this.yMin = 0;
+        this.yMax = 1000;
+    } else {
+        if (this.yMin < 0) {
+            this.yMin *= this.spacingFactor;
+        } else {
+            this.yMin /= this.spacingFactor;
+        }
+        if (this.yMax < 0) {
+            this.yMax /= this.spacingFactor;
+        } else {
+            this.yMax *= this.spacingFactor;
         }
     }
 }
@@ -353,17 +442,12 @@ DetailedPlotSettings.prototype.clearPlot = function() {
 }
 DetailedPlotSettings.prototype.renderPlots = function() {
     for (var j = 0; j < this.data.length; j++) {
-        console.log('Plotting ' + this.data[j].id);
         this.c.beginPath();
         this.c.strokeStyle = this.data[j].colour;
         var xs = this.data[j].x;
         var ys = this.data[j].y;
         var disconnect = true;
         for (var i = 1; i < xs.length; i++) {
-            /*if (xs[i] < this.xMin || xs[i] > this.xMax || ys[i] < this.yMin || ys[i] > this.yMax) {
-                disconnect = true;
-                continue;
-            }*/
             if (disconnect == true) {
                 disconnect = false;
                 this.c.moveTo(this.convertDataXToCanvasCoordinate(xs[i]),this.convertDataYToCanvasCoordinate(ys[i]));
@@ -449,6 +533,11 @@ DetailedPlotSettings.prototype.plotZeroLine = function() {
     this.c.lineTo(this.left + this.width, y + 0.5);
     this.c.stroke();
 }
+DetailedPlotSettings.prototype.drawZoomOut = function() {
+    var x = this.canvas.width - this.zoomOutWidth;
+    var y = 0;
+    this.c.drawImage(this.zoomOutImg, x, y);
+}
 DetailedPlotSettings.prototype.redraw = function() {
     this.refreshSettings();
     this.getBounds();
@@ -459,6 +548,7 @@ DetailedPlotSettings.prototype.redraw = function() {
     this.renderPlots();
     this.clearSurrounding();
     this.plotAxesLabels(true);
+    this.drawZoomOut();
 }
 
 
@@ -469,7 +559,6 @@ DetailedPlotSettings.prototype.handleEvent = function(e) {
     } else if (e.type == 'mouseup' || e.type == 'touchend') {
         this.canvasMouseUp(res);
     } else if (e.type == 'mousemove' || e.type == 'touchmove') {
-        console.log('mousemove');
         this.canvasMouseMove(res);
     }
 }
@@ -493,7 +582,10 @@ DetailedPlotSettings.prototype.canvasMouseDown = function(loc) {
     }
 }
 DetailedPlotSettings.prototype.canvasMouseUp = function(loc) {
-    if (distance(this.lastXDown, this.lastYDown, this.currentMouseX, this.currentMouseY) > this.minDragForZoom) {
+    this.currentMouseX = loc.x;
+    this.currentMouseY = loc.y;
+    if (this.lastXDown != null && this.lastYDown != null && this.currentMouseX != null && this.currentMouseY != null &&
+        distance(this.lastXDown, this.lastYDown, this.currentMouseX, this.currentMouseY) > this.minDragForZoom) {
         var x1 = this.convertCanvasXCoordinateToDataPoint(this.lastXDown);
         var x2 = this.convertCanvasXCoordinateToDataPoint(this.currentMouseX);
         var y1 = this.convertCanvasYCoordinateToDataPoint(this.lastYDown);
@@ -503,6 +595,10 @@ DetailedPlotSettings.prototype.canvasMouseUp = function(loc) {
         this.yMin = Math.min(y1, y2);
         this.yMax = Math.max(y1, y2);
         this.lockedBounds = true;
+    } else {
+        if (loc.x > (this.canvas.width - this.zoomOutWidth) && loc.y < this.zoomOutHeight) {
+            this.lockedBounds = false;
+        }
     }
     this.lastXDown = null;
     this.lastYDown = null;
