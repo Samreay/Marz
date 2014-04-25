@@ -4,7 +4,9 @@
     <title>InterfaceZ: Return of the Z-iffying</title>
     <link rel="shortcut icon" href="images/favicon.ico" />
     <link href="css/normalize.css" rel="stylesheet"/>
-    <link href="css/style.css" rel="stylesheet"/>
+    <link href="css/structure.css" rel="stylesheet"/>
+    <link href="css/detailed.css" rel="stylesheet"/>
+    <link href="css/fancy.css" rel="stylesheet"/>
     <script src="js/jquery-2.1.0.js"></script>
 
     <script src="js/angular.js"></script>
@@ -20,12 +22,11 @@
     <script src="js/views.js"></script>
     <script src="js/classes.js"></script>
     <script src="js/app.js"></script>
-
 </head>
 <body ng-app="thesis" ng-controller="MainController">
-    <div class="main">
-        <div class="container" ng-class="{containerFooter:interfaceManager.showFooter()}">
-            <div class="header">
+    <div id="container">
+        <div id="header">
+            <div class="spacing">
                 <h1>InterfaceZ</h1>
                 <nav class="menu" ng-click="$event.preventDefault()">
                     <ul>
@@ -35,40 +36,61 @@
                     </ul>
                 </nav>
             </div>
-            <div class="content">
-                <div class="boxed fitsFileSelector left" dropzone>
-                    <h3 ng-show="!fits.properties[0]">Drop a FITS File</h3>
-                    <div class="info" ng-show="fits.properties[0]">
-                        <h3>{{fits.properties[0].value}}</h3>
+        </div>
+        <div id="content">
+            <div id="leftbar">
+                <div class="spacing">
+                    <div class="boxed fitsFileSelector" dropzone>
+                        <h3 class="centered" ng-show="!fits.properties[0]">Drop a FITS File</h3>
+                        <div class="info" ng-show="fits.properties[0]">
+                            <h3 class="centered" >{{fits.properties[0].value}}</h3>
+                            <ul>
+                                <li ng-repeat="i in fits.properties | onlyDisplay"><b class="label">{{i.label}}:</b> {{i.displayValue}}</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="boxed lined spectralList">
                         <ul>
-                            <li ng-repeat="i in fits.properties | onlyDisplay"><b class="label">{{i.label}}:</b> {{i.displayValue}}</li>
+                            <li ng-class-even="'even'" ng-repeat="i in spectraManager.getAll() track by i.id" ng-dblclick="$parent.goToDetailed()" ng-click="$parent.setSpectraIndex(i.index)" ng-class="{activeSelect:interfaceManager.spectraIndex==i.index}" class="spectraSmall">
+                                <p><b>{{i.id}}</b></p>
+                                <div class="info" id="spectra{{i.id}}">
+                                    <p ng-show="i.templateIndex==null">Not analysed</p>
+                                    <p ng-show="i.templateIndex!=null">{{i.getFinalTemplate()}},  z={{i.getFinalRedshift().toFixed(4)}},      &Chi;<sup>2</sup>: {{i.templateChi2.toFixed(0)}}</p>
+                                </div>
+                            </li>
                         </ul>
                     </div>
                 </div>
-                <div class="boxed lined left spectralList scroll">
-                    <ul>
-                        <li ng-repeat="i in spectraManager.getAll() track by i.id" ng-dblclick="$parent.goToDetailed()" ng-click="$parent.setSpectraIndex(i.index)" ng-class="{activeSelect:interfaceManager.spectraIndex==i.index}" class="spectraSmall">
-                            <p>{{i.id}}</p>
-                            <div class="info" id="spectra{{i.id}}">
-                                <p ng-show="i.templateIndex==null">Not analysed</p>
-                                <p ng-show="i.templateIndex!=null">{{i.getFinalTemplate()}},  z={{i.getFinalRedshift().toFixed(4)}}    &Chi;<sup>2</sup>: {{i.templateChi2.toFixed(0)}}</p>
-                            </div>
-                        </li>
-                    </ul>
-                </div>
-                <div class="centralheader" ng-show="interfaceManager.menuActive=='Overview' || interfaceManager.menuActive=='Detailed'">
-                    <div class="overviewheader" ng-show="interfaceManager.menuActive=='Overview' || interfaceManager.menuActive=='Detailed'">
-                        <p ng-click="toggleDisp('raw')">Raw</p>
-                        <p ng-click="toggleDisp('pro')">Processed</p>
-                        <p ng-click="toggleDisp('templ')">Template</p>
+            </div>
+            <div id="rightbar" ng-class="{nonzero:(interfaceManager.menuActive=='Overview' || interfaceManager.menuActive=='Detailed')}">
+                <div ng-class="{spacing:(interfaceManager.menuActive=='Overview' || interfaceManager.menuActive=='Detailed')}">
+                    <div class="dataselector" ng-show="interfaceManager.menuActive=='Overview' || interfaceManager.menuActive=='Detailed'">
+                        <b>Data Selection:</b>
+                        <p class='button' style="background-color: {{interfaceManager.getButtonColour('raw')}}" ng-click="toggleDisp('raw')">Raw</p>
+                        <p class='button' style="background-color: {{interfaceManager.getButtonColour('pro')}}" ng-click="toggleDisp('pro')">Processed</p>
+                        <p class='button' style="background-color: {{interfaceManager.getButtonColour('templ')}}" ng-click="toggleDisp('templ')">Template</p>
                     </div>
-                    <div class="detailedheader" ng-show="interfaceManager.menuActive=='Detailed'">
+                    <div class="topspace" ng-if="interfaceManager.menuActive=='Detailed'">
+                        <b>Template Details:</b>
+                        <label>Template:</label>
+                        <select style="width: 250px" ng-change="$parent.changedTemplate()" ng-model="$parent.interfaceManager.detailedViewTemplate" data-ng-options="t.index as t.id + ' - ' + t.name for t in $parent.templateManager.getTemplatesAsJson()"></select>
+
+                        <label>Scale: </label>
+                        <input style="width: 50px" type="text" ng-change="$parent.interfaceManager.detailedSettings.updateTemplateScale()" ng-model="$parent.interfaceManager.detailedSettings.templateScale">
+                        <input style="width: 190px" type="range" min="{{$parent.interfaceManager.detailedSettings.minScale}}" max="{{$parent.interfaceManager.detailedSettings.maxScale}}"  step="0.01" ng-change="$parent.interfaceManager.detailedSettings.setTemplateScale()" ng-model="$parent.interfaceManager.detailedSettings.templateScale">
+
+                        <label>Redshift: </label>
+                        <input style="width: 50px" type="text" ng-change="$parent.changedTemplate()" ng-model="$parent.interfaceManager.detailedViewZ">
+                        <input style="width: 190px" type="range" min={{$parent.interfaceManager.getMinRedshiftForDetailedTemplate()}} max="{{$parent.interfaceManager.detailedViewZMax}}" step="0.0001" ng-change="$parent.interfaceManager.detailedUpdateRequired=true" ng-model="$parent.interfaceManager.detailedViewZ">
+                        <button style="display: block; width: 200px; margin: 0 auto;" ng-click="$parent.interfaceManager.saveManual()">Save this redshift</button>
                     </div>
                 </div>
-                <div class="central" ng-class="{allowHeader:interfaceManager.isMenuActive(['Detailed','Overview'])}">
+            </div>
+            <div id="central">
+                <div class="spacing">
                     <div class="overviewList" ng-show="interfaceManager.menuActive=='Overview'">
                         <ul>
-                            <li class="overviewItem lined overviewSmall" ng-dblclick="$parent.goToDetailed()" ng-click="$parent.setSpectraIndex(i.index)" ng-class="{activeSelect:interfaceManager.spectraIndex==i.index}" ng-repeat="i in spectraManager.getAll() track by i.id">
+                            <li class="overviewItem lined" ng-dblclick="$parent.goToDetailed()" ng-click="$parent.setSpectraIndex(i.index)" ng-class="{activeSelect:interfaceManager.spectraIndex==i.index}" ng-repeat="i in spectraManager.getAll() track by i.id">
                                 <div class="topbar"><b>ID: {{i.id}}</b><p ng-show="i.templateIndex!=null">T: {{i.getTemplateId()}}, z={{i.templateZ.toFixed(4)}} Chi2: {{i.templateChi2.toFixed(0)}}</p></div>
                                 <div class="graph"><canvas id="smallGraphCanvas{{$index}}" style="width:100%; height:100%;"></canvas>{{interfaceManager.renderOverview($index)}}</div>
                             </li>
@@ -77,27 +99,13 @@
                     <div class="templateList" ng-show="interfaceManager.menuActive=='Templates'">
                         <ul>
                             <li class="overviewItem lined overviewLarge" ng-repeat="t in templateManager.getAll() track by t.id">
-                                <div class="topbar"><b>Template ID: {{t.id}}</b><p>Name: {{t.name}}, Lambda Start: {{t.start_lambda_linear.toFixed(2)}} Lambda End: {{t.end_lambda_linear.toFixed(2)}}</p></div>
+                                <div class="topbar"><b>Template ID: {{t.id}}</b><p>{{t.name}},  &Aring;: {{t.start_lambda_linear.toFixed(1)}} &rarr; {{t.end_lambda_linear.toFixed(1)}}</p></div>
                                 <div class="graph"><canvas id="smallTemplateCanvas{{$index}}" style="width:100%; height:100%;"></canvas>{{interfaceManager.renderTemplate($index)}}</div>
                             </li>
                         </ul>
                     </div>
-                    <!--<div class="settingsList" ng-show="active=='Settings'">
-                        <h3>Global Properties:</h3>
-                        <ul>
-                            <li ng-repeat="(name, prop) in properties"><label>{{prop.label}}:</label></li>
-                        </ul>
-                    </div>-->
                     <div class="detailedView" ng-if="interfaceManager.menuActive=='Detailed'">
                         <div id="big"><canvas id="detailedCanvas" style="height: 100%; width: 100%"></canvas></div>
-                        <label class="floatleft">Template:</label>
-                        <select class="floatleft" ng-change="$parent.changedTemplate()" ng-model="$parent.interfaceManager.detailedViewTemplate" data-ng-options="t.index as t.id + ' - ' + t.name for t in $parent.templateManager.getTemplatesAsJson()"></select>
-                        <label class="floatleft">z: </label>
-                        <input class="floatleft numberInput" type="text" ng-change="$parent.changedTemplate()" ng-model="$parent.interfaceManager.detailedViewZ">
-                        <button class="floatright" ng-click="$parent.interfaceManager.saveManual()">Save</button>
-                        <div class="fill">
-                            <input type="range" min={{$parent.interfaceManager.getMinRedshiftForDetailedTemplate()}} max="{{$parent.interfaceManager.detailedViewZMax}}" step="0.0001" ng-change="$parent.interfaceManager.detailedUpdateRequired=true" ng-model="$parent.interfaceManager.detailedViewZ">
-                        </div>
                         {{interfaceManager.renderDetailedInitial()}}
                     </div>
                     <div class="usage" ng-if="interfaceManager.menuActive=='Usage'">
@@ -121,18 +129,25 @@
                 </div>
             </div>
         </div>
-        <div class="footer" ng-if="interfaceManager.showFooter()">
-            <div class="floatleft" ng-if="!interfaceManager.finishedAnalysis()">
-                <p>Analysing spectra. Please wait.   {{interfaceManager.getNumAnalysed()}}/{{interfaceManager.getNumSpectra()}}</p>
+    </div>
+    <div id="footer">
+        <div class="spacing">
+            <div ng-if="interfaceManager.waitingDrop()">
+                <p>Please drop in a FITs file.</p>
             </div>
-            <div class="floatleft" ng-if="interfaceManager.finishedAnalysis()">
-                <p>Analysis finished. {{interfaceManager.getNumAnalysed()}}/{{interfaceManager.getNumSpectra()}}</p>
-            </div>
-            <div class="floatright" style="margin-top: -4px;" ng-if="interfaceManager.finishedAnalysis()">
-                <button ng-click="finishedProcessing()">Download</button>
-            </div>
-            <div class="fillrest">
-                <progress ng-value="interfaceManager.getNumAnalysed()" max="{{interfaceManager.getNumSpectra()}}" class="html5"></progress>
+            <div ng-if="!interfaceManager.waitingDrop()">
+                <div class="floatleft" ng-if="!interfaceManager.finishedAnalysis()">
+                    <p>Analysing spectra. Please wait.   {{interfaceManager.getNumAnalysed()}}/{{interfaceManager.getNumSpectra()}}</p>
+                </div>
+                <div class="floatleft" ng-if="interfaceManager.finishedAnalysis()">
+                    <p>Analysis finished. {{interfaceManager.getNumAnalysed()}}/{{interfaceManager.getNumSpectra()}}</p>
+                </div>
+                <div class="floatright" style="margin-top: -4px;" ng-if="interfaceManager.finishedAnalysis()">
+                    <button class="small" ng-click="finishedProcessing()">Download</button>
+                </div>
+                <div class="fillrest">
+                    <progress ng-value="interfaceManager.getNumAnalysed()" max="{{interfaceManager.getNumSpectra()}}" class="html5"></progress>
+                </div>
             </div>
         </div>
     </div>

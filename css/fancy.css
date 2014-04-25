@@ -1,0 +1,189 @@
+/************************************/
+/*   FANCY CSS STYLING FOR STUFF    */
+/************************************/
+
+
+input[type='range'] {
+    -webkit-appearance: none;
+    border-radius: 5px;
+    /*box-shadow: inset 0 0 5px #333;*/
+    background-color: rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(0, 0, 0, 0.3);;
+    height: 5px;
+    vertical-align: middle;
+}
+input[type='range']::-moz-range-track {
+    -moz-appearance: none;
+    border-radius: 5px;
+    /*box-shadow: inset 0 0 5px #333;*/
+    background-color: #999;
+    height: 10px;
+}
+input[type='range']::-webkit-slider-thumb {
+    -webkit-appearance: none !important;
+    border-radius: 20px;
+    background-color: #FFF;
+    /*box-shadow:inset 0 0 10px rgba(000,000,000,0.5);*/
+    border: 1px solid #333;
+    height: 20px;
+    width: 10px;
+}
+input[type='range']::-moz-range-thumb {
+    -moz-appearance: none;
+    border-radius: 10px;
+    background-color: #FFF;
+    /*box-shadow:inset 0 0 10px rgba(000,000,000,0.5);*/
+    border: 1px solid #333;
+    height: 20px;
+    width: 10px;
+}
+
+button {
+    -moz-box-shadow:inset 0px 1px 0px 0px #bee2f9;
+    -webkit-box-shadow:inset 0px 1px 0px 0px #bee2f9;
+    box-shadow:inset 0px 1px 0px 0px #bee2f9;
+    background:-webkit-gradient(linear, left top, left bottom, color-stop(0.05, #63b8ee), color-stop(1, #468ccf));
+    background:-moz-linear-gradient(top, #63b8ee 5%, #468ccf 100%);
+    background:-webkit-linear-gradient(top, #63b8ee 5%, #468ccf 100%);
+    background:-o-linear-gradient(top, #63b8ee 5%, #468ccf 100%);
+    background:-ms-linear-gradient(top, #63b8ee 5%, #468ccf 100%);
+    background:linear-gradient(to bottom, #63b8ee 5%, #468ccf 100%);
+    filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#63b8ee', endColorstr='#468ccf',GradientType=0);
+    background-color:#63b8ee;
+    -moz-border-radius:6px;
+    -webkit-border-radius:6px;
+    border-radius:6px;
+    border:1px solid #3866a3;
+    display:inline-block;
+    cursor:pointer;
+    color:#14396a;
+    font-family:arial;
+    font-size:15px;
+    font-weight:bold;
+    padding:6px 24px;
+    text-decoration:none;
+    text-shadow:0px 1px 0px #7cacde;
+}
+button.small {
+    padding: 0px 10px;
+}
+button:hover {
+    background:-webkit-gradient(linear, left top, left bottom, color-stop(0.05, #468ccf), color-stop(1, #63b8ee));
+    background:-moz-linear-gradient(top, #468ccf 5%, #63b8ee 100%);
+    background:-webkit-linear-gradient(top, #468ccf 5%, #63b8ee 100%);
+    background:-o-linear-gradient(top, #468ccf 5%, #63b8ee 100%);
+    background:-ms-linear-gradient(top, #468ccf 5%, #63b8ee 100%);
+    background:linear-gradient(to bottom, #468ccf 5%, #63b8ee 100%);
+    filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#468ccf', endColorstr='#63b8ee',GradientType=0);
+    background-color:#468ccf;
+}
+
+
+progress:not(value) {
+    /* Add your styles here. As part of this walkthrough we will focus only on determinate progress bars. */
+}
+/* Styling the determinate progress element */
+progress[value] {
+    /* Get rid of the default appearance */
+    appearance: none;
+    /* This unfortunately leaves a trail of border behind in Firefox and Opera. We can remove that by setting the border to none. */
+    border: none;
+    /* Add dimensions */
+    width: 100%; height: 16px;
+    /* Although firefox doesn't provide any additional pseudo class to style the progress element container, any style applied here works on the container. */
+    background-color: whiteSmoke;
+    border-radius: 3px;
+    box-shadow: 0 2px 3px rgba(0,0,0,.5) inset;
+    /* Of all IE, only IE10 supports progress element that too partially. It only allows to change the background-color of the progress value using the 'color' attribute. */
+    color: royalblue;
+
+    position: relative;
+    margin-top: 2px;
+}
+
+progress[value]::-webkit-progress-bar {
+    background-color: whiteSmoke;
+    border-radius: 3px;
+    box-shadow: 0 2px 3px rgba(0,0,0,.5) inset;
+}
+progress[value]::-webkit-progress-value {
+    position: relative;
+
+    background-size: 35px 20px, 100% 100%, 100% 100%;
+    border-radius:3px;
+
+    /* Let's animate this */
+    animation: animate-stripes 100s linear infinite;
+    -webkit-animation: animate-stripes 100s linear infinite;
+}
+
+@-webkit-keyframes animate-stripes {
+    100% { background-position: -1000px 0px; }
+}
+
+@keyframes animate-stripes {
+    100% { background-position: -1000px 0px; }
+}
+/* Let's spice up things little bit by using pseudo elements. */
+
+/*progress[value]::-webkit-progress-value:after {
+    *//* Only webkit/blink browsers understand pseudo elements on pseudo classes. A rare phenomenon! *//*
+    content: '';
+    position: absolute;
+
+    width:5px; height:5px;
+    top:7px; right:7px;
+
+    background-color: white;
+    border-radius: 100%;
+}*/
+
+/* Firefox provides a single pseudo class to style the progress element value and not for container. -moz-progress-bar */
+
+progress[value]::-moz-progress-bar {
+    /* Gradient background with Stripes */
+    background-image:
+        -moz-linear-gradient( 135deg,
+        transparent,
+        transparent 33%,
+        rgba(0,0,0,.1) 33%,
+        rgba(0,0,0,.1) 66%,
+        transparent 66%),
+        -moz-linear-gradient( top,
+        rgba(255, 255, 255, .25),
+        rgba(0,0,0,.2)),
+        -moz-linear-gradient( left, #09c, #04c204);
+
+    background-size: 35px 20px, 100% 100%, 100% 100%;
+    border-radius:3px;
+
+    /* Firefox doesn't support CSS3 keyframe animations on progress element. Hence, we did not include animate-stripes in this code block */
+}
+
+/* Fallback technique styles */
+.progress-bar {
+    background-color: whiteSmoke;
+    border-radius: 3px;
+    box-shadow: 0 2px 3px rgba(0,0,0,.5) inset;
+
+    /* Dimensions should be similar to the parent progress element. */
+    width: 100%; height:16px;
+}
+
+
+/* The percentage will automatically fall in place as soon as we make the width fluid. Now making widths fluid. */
+.html5::-webkit-progress-value {
+    /* Gradient background with Stripes */
+    background-image:
+        -webkit-linear-gradient( 135deg,
+        transparent,
+        transparent 33%,
+        rgba(0,0,0,.1) 33%,
+        rgba(0,0,0,.1) 66%,
+        transparent 66%),
+        -webkit-linear-gradient( top,
+        rgba(255, 255, 255, .25),
+        rgba(0,0,0,.2)),
+        -webkit-linear-gradient( left, #09c, #04c204);
+}
+

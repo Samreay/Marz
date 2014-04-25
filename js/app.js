@@ -68,12 +68,12 @@ function MainController($scope, $timeout) {
             var leftrel = $('.spectralList ul li.activeSelect').position().top;
             var leftheight = $('.spectralList').height();
             var rightrel = $('.overviewList ul li.activeSelect').position().top;
-            var rightheight = $('.central').height();
+            var rightheight = $('#central').height();
             if (leftrel < 50 || leftrel > leftheight-50) {
                 $('.spectralList').animate({scrollTop: (leftrel- $('.spectralList ul').position().top)+'px'},300);
             }
             if (rightrel < 150 || rightrel > rightheight-150) {
-                $('.central').animate({scrollTop: (rightrel - $('.overviewList ul').position().top)+'px'},300);
+                $('#central').animate({scrollTop: (rightrel - $('.overviewList ul').position().top)+'px'},300);
             }
         }, 0, false);
     };
