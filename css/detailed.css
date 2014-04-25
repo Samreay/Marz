@@ -203,7 +203,9 @@ div[dropzone] ul li b {
     height: 500px;
 }
 
-
+#detailedCanvas {
+    cursor: crosshair;
+}
 /************************************/
 /*    CSS FOR THE RIGHT SECTION     */
 /************************************/

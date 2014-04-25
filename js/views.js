@@ -212,6 +212,7 @@ InterfaceManager.prototype.renderDetailedInitial = function() {
             c.addEventListener("mousedown", this.detailedSettings, false);
             c.addEventListener("mouseup", this.detailedSettings, false);
             c.addEventListener("mousemove", this.detailedSettings, false);
+            c.addEventListener("mouseout", this.detailedSettings, false);
             c.addEventListener("touchstart", this.detailedSettings, false);
             c.addEventListener("touchend", this.detailedSettings, false);
             c.addEventListener("touchmove", this.detailedSettings, false);
@@ -279,6 +280,11 @@ function DetailedPlotSettings(interfaceManager, spectralLines) {
     this.zoomOutHeight = 20;
     this.zoomOutImg = new Image();
     this.zoomOutImg.src = 'images/lens.png'
+
+    this.cursorColour = 'rgba(104, 0, 103, 0.9)';
+    this.cursorTextColour = '#FFFFFF';
+    this.cursorXGap = 10;
+    this.cursorYGap = 10;
 
     this.data = [];
     this.template = null;
@@ -502,7 +508,7 @@ DetailedPlotSettings.prototype.plotAxesLabels = function(onlyLabels) {
     for (var i = 0; i < (zero - this.top) / this.labelHeight; i++) {
         y = zero - (this.labelHeight * i) + 0.5;
         if (onlyLabels) {
-            this.c.fillText(this.convertCanvasYCoordinateToDataPoint(y - 0.5).toFixed(0), x, y);
+            this.c.fillText(this.convertCanvasYCoordinateToDataPoint(y + 0.5).toFixed(0), x, y);
         } else {
             this.c.moveTo(this.left, y);
             this.c.lineTo(this.left + this.width, y);
@@ -511,7 +517,7 @@ DetailedPlotSettings.prototype.plotAxesLabels = function(onlyLabels) {
     for (var i = 1; i < (this.top + this.height - zero) / this.labelHeight; i++) {
         y = zero + (this.labelHeight * i) + 0.5;
         if (onlyLabels) {
-            this.c.fillText(this.convertCanvasYCoordinateToDataPoint(y - 0.5).toFixed(0), x, y);
+            this.c.fillText(this.convertCanvasYCoordinateToDataPoint(y + 0.5).toFixed(0), x, y);
         } else {
             this.c.moveTo(this.left, y);
             this.c.lineTo(this.left + this.width, y);
@@ -579,6 +585,52 @@ DetailedPlotSettings.prototype.drawFocus = function() {
     this.c.beginPath();
     this.c.arc(this.focusX, this.focusY, this.focusCosmeticMaxRadius, 0, 2 * Math.PI, false);
     this.c.stroke();
+    this.c.lineWidth = 1;
+}
+DetailedPlotSettings.prototype.drawCursor = function() {
+    if (this.currentMouseX == null || this.currentMouseY == null) return;
+    if (!this.checkCanvasInRange(this.currentMouseX, this.currentMouseY)) return;
+    var w = 60;
+    var h = 16;
+    this.c.strokeStyle = this.cursorColour;
+    this.c.beginPath();
+    this.c.moveTo(this.left, this.currentMouseY + 0.5);
+    this.c.lineTo(this.currentMouseX - this.cursorXGap, this.currentMouseY + 0.5);
+    this.c.moveTo(this.currentMouseX + this.cursorXGap, this.currentMouseY + 0.5);
+    this.c.lineTo(this.left + this.width, this.currentMouseY + 0.5);
+    this.c.moveTo(this.currentMouseX + 0.5, this.top);
+    this.c.lineTo(this.currentMouseX + 0.5, this.currentMouseY - this.cursorYGap);
+    this.c.moveTo(this.currentMouseX + 0.5, this.currentMouseY + this.cursorYGap);
+    this.c.lineTo(this.currentMouseX + 0.5, this.top + this.height);
+    this.c.stroke();
+    this.c.beginPath();
+    this.c.moveTo(this.left, this.currentMouseY + 0.5);
+    this.c.lineTo(this.left - 5, this.currentMouseY + h/2);
+    this.c.lineTo(this.left - w, this.currentMouseY + h/2);
+    this.c.lineTo(this.left - w, this.currentMouseY - h/2);
+    this.c.lineTo(this.left - 5, this.currentMouseY - h/2);
+    this.c.closePath();
+    this.c.fillStyle = this.cursorColour;
+    this.c.fill();
+    this.c.fillStyle = this.cursorTextColour;
+    this.c.textAlign = 'right';
+    this.c.textBaseline = 'center';
+    this.c.fillText(this.convertCanvasYCoordinateToDataPoint(this.currentMouseY + 0.5).toFixed(1), this.left - 10, this.currentMouseY)
+    this.c.beginPath();
+    var y = this.top + this.height;
+    this.c.moveTo(this.currentMouseX, y);
+    this.c.lineTo(this.currentMouseX + w/2, y + 5);
+    this.c.lineTo(this.currentMouseX + w/2, y + 5 + h);
+    this.c.lineTo(this.currentMouseX - w/2, y + 5 + h);
+    this.c.lineTo(this.currentMouseX - w/2, y + 5);
+    this.c.closePath();
+    this.c.fillStyle = this.cursorColour;
+    this.c.fill();
+    this.c.fillStyle = this.cursorTextColour;
+    this.c.textAlign = 'center';
+    this.c.textBaseline = 'top';
+    this.c.fillText(this.convertCanvasXCoordinateToDataPoint(this.currentMouseX + 0.5).toFixed(1), this.currentMouseX + 0.5, y + 5)
+
 }
 DetailedPlotSettings.prototype.redraw = function() {
     this.refreshSettings();
@@ -593,6 +645,7 @@ DetailedPlotSettings.prototype.redraw = function() {
     this.drawZoomOut();
     this.plotSpectralLines();
     this.drawFocus();
+    this.drawCursor();
 }
 
 
@@ -604,6 +657,8 @@ DetailedPlotSettings.prototype.handleEvent = function(e) {
         this.canvasMouseUp(res);
     } else if (e.type == 'mousemove' || e.type == 'touchmove') {
         this.canvasMouseMove(res);
+    } else if (e.type == 'mouseout') {
+        this.mouseOut(res);
     }
 }
 DetailedPlotSettings.prototype.checkDataXInRange = function(x) {
@@ -613,7 +668,7 @@ DetailedPlotSettings.prototype.checkDataYInRange = function(y) {
     return y >= this.yMin && y <= this.yMax;
 }
 DetailedPlotSettings.prototype.checkDataXYInRange = function(x,y) {
-    return this.checkXInRange(x) && this.checkYInRange(y);
+    return this.checkDataXInRange(x) && this.checkDataYInRange(y);
 }
 DetailedPlotSettings.prototype.checkCanvasXInRange = function(x) {
     return x >= this.left && x <= (this.left + this.width)
@@ -649,7 +704,6 @@ DetailedPlotSettings.prototype.selectedSpectra = function() {
     this.waitingForSpectra = false;
 }
 DetailedPlotSettings.prototype.getWaiting = function() {
-    console.log('get waiting');
     return this.waitingForSpectra;
 }
 DetailedPlotSettings.prototype.getFocusWavelength = function() {
@@ -693,19 +747,28 @@ DetailedPlotSettings.prototype.canvasMouseUp = function(loc) {
     this.interfaceManager.scope.$apply();
 }
 DetailedPlotSettings.prototype.canvasMouseMove = function(loc) {
-    if (this.lastXDown == null || this.lastYDown == null || !loc.inside) {
-        return;
-    }
-    if (distance(loc.x, loc.y, this.lastXDown, this.lastYDown) < this.minDragForZoom) {
-        return;
-    }
+    if (!loc.inside) return;
+    this.redraw();
+
     this.currentMouseX = loc.x;
     this.currentMouseY = loc.y;
+    console.log('mousemove');
+
+    if (this.lastXDown != null && this.lastYDown != null) {
+
+        if (distance(loc.x, loc.y, this.lastXDown, this.lastYDown) < this.minDragForZoom) {
+            return;
+        }
+        this.c.strokeStyle = this.dragOutlineColour;
+        this.c.fillStyle = this.dragInteriorColour;
+        var w = loc.x - this.lastXDown;
+        var h = loc.y - this.lastYDown;
+        this.c.fillRect(this.lastXDown + 0.5, this.lastYDown, w, h);
+        this.c.strokeRect(this.lastXDown + 0.5, this.lastYDown, w, h);
+    }
+}
+DetailedPlotSettings.prototype.mouseOut = function(loc) {
+    this.currentMouseX = null;
+    this.currentMouseY = null;
     this.redraw();
-    this.c.strokeStyle = this.dragOutlineColour;
-    this.c.fillStyle = this.dragInteriorColour;
-    var w = loc.x - this.lastXDown;
-    var h = loc.y - this.lastYDown;
-    this.c.fillRect(this.lastXDown + 0.5, this.lastYDown, w, h);
-    this.c.strokeRect(this.lastXDown + 0.5, this.lastYDown, w, h);
 }
