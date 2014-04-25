@@ -590,7 +590,7 @@ DetailedPlotSettings.prototype.drawFocus = function() {
 DetailedPlotSettings.prototype.drawCursor = function() {
     if (this.currentMouseX == null || this.currentMouseY == null) return;
     if (!this.checkCanvasInRange(this.currentMouseX, this.currentMouseY)) return;
-    var w = 60;
+    var w = 70;
     var h = 16;
     this.c.strokeStyle = this.cursorColour;
     this.c.beginPath();
