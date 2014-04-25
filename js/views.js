@@ -403,7 +403,7 @@ DetailedPlotSettings.prototype.getBounds = function() {
     if (c == 0) {
         this.xMin = 4000;
         this.xMax = 9000;
-        this.yMin = 0;
+        this.yMin = -500;
         this.yMax = 1000;
     } else {
         if (this.yMin < 0) {
