@@ -28,12 +28,14 @@ html, body {
     position: relative;
     width: 250px;
     height: 100%;
+    overflow: auto;
 }
 #rightbar {
     position: relative;
     float: right;
     width: 0px;
     height: 100%;
+    overflow: auto;
 }
 #rightbar.nonzero{
     width: 350px;
