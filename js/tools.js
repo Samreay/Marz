@@ -473,3 +473,23 @@ function interpy(x1, y1, x2, y2, y3) {
     var r2 = (y3-y1)/(y2-y1);
     return r2*x2 + (1-r2)*x1;
 }
+
+
+/**
+ * Function transposed from AutoZ code written by Ivan Baldry.
+ * Equation from SDSS web page: http://www.sdss.org/dr7/products/spectra/vacwavelength.html
+ * Reference to Morton (1991, ApJS, 77, 119).
+ * @param lambda
+ */
+function convertVacuumFromAir(lambda) {
+    for (var i = 0; i < lambda.length; i++) {
+        lambda[i] = lambda[i] * (1 + 2.735192e-4 + (131.4182/Math.pow(lambda[i], 2)) + (2.76249E8 /Math.pow(lambda[i], 4)));
+    }
+}
+function convertSingleVacuumFromAir(lambda) {
+    return lambda * (1 + 2.735192e-4 + (131.4182/Math.pow(lambda, 2)) + (2.76249E8 /Math.pow(lambda, 4)));
+}
+
+function shiftWavelength(lambda, z) {
+    return (1+z)*lambda;
+}

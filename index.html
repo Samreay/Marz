@@ -18,6 +18,7 @@
     <script src="js/regression.js"></script>
 
     <script src="js/tools.js"></script>
+    <script src="js/spectralLines.js"></script>
     <script src="js/templates.js"></script>
     <script src="js/views.js"></script>
     <script src="js/classes.js"></script>
@@ -84,6 +85,15 @@
                         <input style="width: 190px" type="range" min={{$parent.interfaceManager.getMinRedshiftForDetailedTemplate()}} max="{{$parent.interfaceManager.detailedViewZMax}}" step="0.0001" ng-change="$parent.interfaceManager.detailedUpdateRequired=true" ng-model="$parent.interfaceManager.detailedViewZ">
                         <button style="display: block; width: 200px; margin: 0 auto;" ng-click="$parent.interfaceManager.saveManual()">Save this redshift</button>
                     </div>
+                    <div class="topspace" ng-if="interfaceManager.menuActive=='Detailed'">
+                        <b>Spectral Lines</b>
+                        <ul>
+                            <li class="sline lined"  ng-click="$parent.spectalLines.toggle(i.id)" ng-class="{enabled:i.enabled}" ng-repeat="i in spectalLines.getAll() track by i.id">
+                                    {{i.name}}
+                            </li>
+                        </ul>
+                        <button style="display: block; width: 200px; margin: 0 auto;" ng-click="$parent.interfaceManager.detailedSettings.toggleSpectralLines()">{{getSpectralLinePhrase()}}</button>
+                    </div>
                 </div>
             </div>
             <div id="central">
@@ -104,7 +114,7 @@
                             </li>
                         </ul>
                     </div>
-                    <div class="detailedView" ng-if="interfaceManager.menuActive=='Detailed'">
+                    <div class="detailedView" ng-show="interfaceManager.menuActive=='Detailed'">
                         <div id="big"><canvas id="detailedCanvas" style="height: 100%; width: 100%"></canvas></div>
                         {{interfaceManager.renderDetailedInitial()}}
                     </div>

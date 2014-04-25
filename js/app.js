@@ -17,9 +17,10 @@ function MainController($scope, $timeout) {
 
     // Model managers
     $scope.templateManager = new TemplateManager();
+    $scope.spectalLines = new SpectralLines();
     $scope.processorManager = new ProcessorManager(1, $scope); //TODO: Core estimation
     $scope.spectraManager = new SpectraManager($scope, $scope.processorManager, $scope.templateManager);
-    $scope.interfaceManager = new InterfaceManager($scope, $scope.spectraManager, $scope.templateManager, $scope.processorManager);
+    $scope.interfaceManager = new InterfaceManager($scope, $scope.spectraManager, $scope.templateManager, $scope.processorManager, $scope.spectalLines);
     $scope.fileManager = new FileManager();
 
     $scope.fits = null; // Initialise new FitsFile on drop.
@@ -118,5 +119,14 @@ function MainController($scope, $timeout) {
         this.interfaceManager.changedTemplate = true;
         this.interfaceManager.updateDetailedData(false);
     }
+
+    $scope.getSpectralLinePhrase = function() {
+        if (this.interfaceManager.detailedSettings.displayingSpectralLines) {
+            return 'Hide Spectral Lines';
+        } else {
+            return 'Show Spectral Lines';
+        }
+    }
+
     $(window).on("resize",$scope.resizeEvent);
 }

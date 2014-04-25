@@ -107,18 +107,6 @@ function convertVarianceToNumber(intensity, variance) {
 }
 
 /**
- * Function transposed from AutoZ code written by Ivan Baldry.
- * Equation from SDSS web page: http://www.sdss.org/dr7/products/spectra/vacwavelength.html
- * Reference to Morton (1991, ApJS, 77, 119).
- * @param lambda
- */
-function convertVacuumFromAir(lambda) {
-    for (var i = 0; i < lambda.length; i++) {
-        lambda[i] = lambda[i] * (1 + 2.735192e-4 + (131.4182/Math.pow(lambda[i], 2)) + (2.76249E8 /Math.pow(lambda[i], 4)));
-    }
-}
-
-/**
  * Exploit javascripts passing by array references so return statements are not needed.
  *
  * Note that the linear lambda will be converted to a log scale.

@@ -1,11 +1,12 @@
-function InterfaceManager(scope, spectraManager, templateManager, processorManager) {
+function InterfaceManager(scope, spectraManager, templateManager, processorManager, spectralLines) {
     this.scope = scope;
     this.spectraManager = spectraManager;
     this.templateManager = templateManager;
     this.processorManager = processorManager;
+    this.spectralLines = spectralLines;
 
     this.menuOptions = ['Overview', 'Detailed', 'Templates', 'Settings', 'Usage'];
-    this.menuActive = 'Detailed';
+    this.menuActive = 'Overview';
     this.spectraIndex = 0;
 
     this.dispRaw = 1;
@@ -24,10 +25,11 @@ function InterfaceManager(scope, spectraManager, templateManager, processorManag
         templateColour: '#8C0623'};
 
     this.detailedViewTemplate = 0;
+    this.detailedRecreate = false;
     this.detailedViewZ = 0;
 
     this.detailedCanvas = null;
-    this.detailedSettings = new DetailedPlotSettings();
+    this.detailedSettings = new DetailedPlotSettings(this, spectralLines);
 
     this.renderOverviewDone = new Array();
 
@@ -116,7 +118,7 @@ InterfaceManager.prototype.plotZeroLine = function (canvas, colour, bounds) {
     var w = canvas.width;
     var ymin = bounds[2];
     var ymax = bounds[3];
-    var hh = h - (5 + (0 - ymin) * (h - 10) / (ymax - ymin));
+    var hh = h - (5 + (0 - ymin) * (h - 10) / (ymax - ymin)) + 0.5;
     c.strokeStyle = colour;
     c.moveTo(0, hh);
     c.lineTo(w, hh);
@@ -141,9 +143,11 @@ InterfaceManager.prototype.renderOverview = function (index) {
         var processedLambda = condenseToXPixels(v.processedLambda, width);
         var processed = condenseToXPixels(v.processedIntensity, width);
         var r = this.templateManager.getShiftedLinearTemplate(v.getFinalTemplate(), v.getFinalRedshift())
-        var tempLambda = condenseToXPixels(r[0], width);
-        var tempIntensity = condenseToXPixels(r[1], width);
-
+        if (r[0] == null || r[1] == null) {
+            var tempIntensity = null;
+        } else {
+            var tempIntensity = condenseToXPixels(interpolate(v.lambda, r[0], r[1]), width);
+        }
         clearPlot(canvas);
         var toBound = [];
         if (this.dispRaw) {
@@ -152,8 +156,8 @@ InterfaceManager.prototype.renderOverview = function (index) {
         if (this.dispProcessed) {
             toBound.push([processedLambda, processed]);
         }
-        if (this.dispTemplate) {
-            toBound.push([tempLambda, tempIntensity]);
+        if (this.dispTemplate && tempIntensity != null) {
+            toBound.push([lambda, tempIntensity]);
         }
 
         var bounds = getMaxes(toBound);
@@ -164,8 +168,8 @@ InterfaceManager.prototype.renderOverview = function (index) {
         if (this.dispProcessed) {
             plot(processedLambda,processed, this.interface.processedColour, canvas, bounds);
         }
-        if (this.dispTemplate) {
-            plot(tempLambda, tempIntensity, this.interface.matchedColour, canvas, bounds);
+        if (this.dispTemplate && tempIntensity != null) {
+            plot(lambda, tempIntensity, this.interface.matchedColour, canvas, bounds);
         }
     }
 }
@@ -199,28 +203,27 @@ InterfaceManager.prototype.updateDetailedData = function (changedToDetailed) {
 InterfaceManager.prototype.renderDetailedInitial = function() {
     var c = document.getElementById ('detailedCanvas');
     if (c == null || c.clientWidth == 0) {
+        this.detailedRecreate = true;
         return;
     } else {
-        if (this.detailedCanvas == null) {
+        if (this.detailedCanvas == null || this.detailedRecreate) {
             this.detailedCanvas = c;
+            this.detailedRecreate = false;
             c.addEventListener("mousedown", this.detailedSettings, false);
             c.addEventListener("mouseup", this.detailedSettings, false);
             c.addEventListener("mousemove", this.detailedSettings, false);
             c.addEventListener("touchstart", this.detailedSettings, false);
             c.addEventListener("touchend", this.detailedSettings, false);
             c.addEventListener("touchmove", this.detailedSettings, false);
+            this.detailedSettings.setCanvas(c);
         }
-        this.detailedSettings.setCanvas(c);
+        this.detailedSettings.refreshSettings();
         this.detailedSettings.clearData();
         this.getStaticData();
         this.getTemplateData();
         this.detailedSettings.redraw();
     }
 }
-/*InterfaceManager.prototype.renderDetailedBackground = function() {
-    clear(this.detailedCanvas);
-
-}*/
 InterfaceManager.prototype.getStaticData = function () {
     var spectra = this.spectraManager.getSpectra(this.spectraIndex);
     if (spectra == null) return;
@@ -241,46 +244,12 @@ InterfaceManager.prototype.getTemplateData = function () {
     var r = this.templateManager.getShiftedLinearTemplate(this.detailedViewTemplate, this.getDetailedZ());
     this.detailedSettings.addData('template', false, this.interface.templateColour, r[0].slice(0), r[1].slice(0));
 }
-/*InterfaceManager.prototype.renderDetailedStatic = function() {
-    var spectra = this.spectraManager.getSpectra(this.spectraIndex);
-    if (spectra == null) return;
-
-    this.getStaticData(); //TODO: Only do this when data changes
-    this.detailedSettings.renderPlots();
-}
-InterfaceManager.prototype.renderDetailedTemplate = function() {
-    var spectra = this.spectraManager.getSpectra(this.spectraIndex);
-    if (spectra == null) return;
-
-    var dataToPlot = this.getTemplateData(); //TODO: Only do this when data changes
-    plotDetailed(this.detailedCanvas, dataToPlot, this.detailedSettings);
-
-}*/
-
-/** Requires bounds to be set */
-/*InterfaceManager.prototype.renderDetailedAxes = function() {
-    plotAxes(this.detailedCanvas, this.detailedSettings);
-    plotZeroLine(this.detailedCanvas, this.detailedSettings);
-}
-InterfaceManager.prototype.resizeDetailedCanvas = function() {
-    this.detailedCanvas.width = this.detailedCanvas.clientWidth;
-    this.detailedCanvas.height = this.detailedCanvas.clientHeight;
-    this.detailedSettings.refreshSettings();
-    this.renderDetailedBackground();
-    this.renderDetailedStatic();
-    this.renderDetailedAxes();
-    this.renderDetailedTemplate();
-}
-*/
 
 
 
-
-
-
-
-function DetailedPlotSettings() {
-    this.top = 20;
+function DetailedPlotSettings(interfaceManager, spectralLines) {
+    this.interfaceManager = interfaceManager;
+    this.top = 30;
     this.bottom = 50;
     this.left = 70;
     this.right = 20;
@@ -294,7 +263,7 @@ function DetailedPlotSettings() {
     this.stepColour = '#CCC';
     this.dragInteriorColour = 'rgba(38, 147, 232, 0.2)';
     this.dragOutlineColour = 'rgba(38, 147, 232, 0.6)';
-    this.spacingFactor = 1.2;
+    this.spacingFactor = 1.1;
 
     this.zoomOutWidth = 20;
     this.zoomOutHeight = 20;
@@ -311,6 +280,15 @@ function DetailedPlotSettings() {
 
     this.minDragForZoom = 20;
     this.lockedBounds = false;
+
+    this.spectralLines = spectralLines;
+    this.displayingSpectralLines = false;
+    this.spectralLineColour = 'rgba(0, 115, 255, 0.8)';
+    this.spectralLineTextColour = '#FFFFFF';
+}
+DetailedPlotSettings.prototype.toggleSpectralLines = function() {
+    this.displayingSpectralLines = !this.displayingSpectralLines;
+    this.redraw()
 }
 DetailedPlotSettings.prototype.unlockBounds = function() {
     this.lockedBounds = false;
@@ -390,8 +368,13 @@ DetailedPlotSettings.prototype.getBounds = function() {
                 }
             }
         }
+    }
+    for (var i = 0; i < this.data.length; i++) {
+        var xs = this.data[i].x;
+        var ys = this.data[i].y;
         if (ys != null) {
             for (var j = 0; j < ys.length; j++) {
+                if (xs[j] < this.xMin || xs[j] > this.xMax) continue;
                 if (ys[j] < this.yMin) {
                     this.yMin = ys[j];
                 }
@@ -538,6 +521,38 @@ DetailedPlotSettings.prototype.drawZoomOut = function() {
     var y = 0;
     this.c.drawImage(this.zoomOutImg, x, y);
 }
+DetailedPlotSettings.prototype.plotSpectralLines = function() {
+    if (!this.displayingSpectralLines) return;
+    var lines = this.spectralLines.getEnabled();
+    console.log('Printing lines');
+    this.c.strokeStyle = this.spectralLineColour;
+    this.c.filLStyle = this.spectralLineColour;
+    this.c.textAlign = 'center';
+    this.c.textBaseline = 'bottom';
+    this.c.font = this.labelFont;
+
+    for (var i = 0; i < lines.length; i++) {
+        var lambda = shiftWavelength(lines[i].wavelength, this.interfaceManager.getDetailedZ());
+        if (this.checkDataXInRange(lambda)) {
+            var x = 0.5 + Math.floor(this.convertDataXToCanvasCoordinate(lambda));
+            this.c.beginPath();
+            this.c.moveTo(x, this.top);
+            this.c.lineTo(x, this.top + this.height);
+            this.c.stroke();
+            this.c.beginPath();
+            this.c.moveTo(x, this.top);
+            this.c.lineTo(x - 15, this.top - 5);
+            this.c.lineTo(x - 15, this.top - 20);
+            this.c.lineTo(x + 15, this.top - 20);
+            this.c.lineTo(x + 15, this.top - 5);
+            this.c.closePath();
+            this.c.fillStyle = this.spectralLineColour;
+            this.c.fill();
+            this.c.fillStyle = this.spectralLineTextColour;
+            this.c.fillText(lines[i].id, x, this.top - 5);
+        }
+    }
+}
 DetailedPlotSettings.prototype.redraw = function() {
     this.refreshSettings();
     this.getBounds();
@@ -549,6 +564,7 @@ DetailedPlotSettings.prototype.redraw = function() {
     this.clearSurrounding();
     this.plotAxesLabels(true);
     this.drawZoomOut();
+    this.plotSpectralLines();
 }
 
 
@@ -561,6 +577,15 @@ DetailedPlotSettings.prototype.handleEvent = function(e) {
     } else if (e.type == 'mousemove' || e.type == 'touchmove') {
         this.canvasMouseMove(res);
     }
+}
+DetailedPlotSettings.prototype.checkDataXInRange = function(x) {
+    return x >= this.xMin && x <= this.xMax;
+}
+DetailedPlotSettings.prototype.checkDataYInRange = function(y) {
+    return y >= this.yMin && y <= this.yMax;
+}
+DetailedPlotSettings.prototype.checkXYInRange = function(x,y) {
+    return this.checkXInRange(x) && this.checkYInRange(y);
 }
 DetailedPlotSettings.prototype.windowToCanvas = function(e) {
     var result = {};
