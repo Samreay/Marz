@@ -614,7 +614,7 @@ DetailedPlotSettings.prototype.drawCursor = function() {
     this.c.fill();
     this.c.fillStyle = this.cursorTextColour;
     this.c.textAlign = 'right';
-    this.c.textBaseline = 'center';
+    this.c.textBaseline = 'middle';
     this.c.fillText(this.convertCanvasYCoordinateToDataPoint(this.currentMouseY + 0.5).toFixed(1), this.left - 10, this.currentMouseY)
     this.c.beginPath();
     var y = this.top + this.height;
