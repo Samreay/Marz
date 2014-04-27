@@ -253,6 +253,9 @@ InterfaceManager.prototype.clickSpectralLine= function(id) {
         this.detailedViewZ = z;
         //this.detailedSettings.selectedSpectra();
     } else {
+        if (!this.detailedSettings.displayingSpectralLines)  {
+            this.detailedSettings.toggleSpectralLines();
+        }
         this.spectralLines.toggle(id);
     }
 }

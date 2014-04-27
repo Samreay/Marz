@@ -64,6 +64,9 @@ nav, nav ul {
 .floatleft {
     float: left;
 }
+.clear {
+    clear: both;
+}
 /************************************/
 /*     CSS FOR THE LEFT SECTION     */
 /************************************/
@@ -233,12 +236,14 @@ div[dropzone] ul li b {
 }
 
 .sline {
-    text-size: 14pt;
-    margin-right: 10px;
+    text-size: 13pt;
+    text-align: center;
+    margin-left: 5px;
+    margin-right: 6px;
     margin-bottom: 10px;
     padding: 5px;
     float: left;
-    width: 130px;
+    width: 30px;
     height: 20px;
     color: #999999;
     cursor: hand;

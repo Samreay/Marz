@@ -74,25 +74,26 @@
                     <div class="topspace" ng-if="interfaceManager.menuActive=='Detailed'">
                         <b>Template Details:</b>
                         <label>Template:</label>
-                        <select style="width: 250px" ng-change="$parent.changedTemplate()" ng-model="$parent.interfaceManager.detailedViewTemplate" data-ng-options="t.index as t.id + ' - ' + t.name for t in $parent.templateManager.getTemplatesAsJson()"></select>
+                        <select style="width: 235px" ng-change="$parent.changedTemplate()" ng-model="$parent.interfaceManager.detailedViewTemplate" data-ng-options="t.index as t.id + ' - ' + t.name for t in $parent.templateManager.getTemplatesAsJson()"></select>
 
                         <label>Scale: </label>
-                        <input style="width: 50px" type="text" ng-change="$parent.interfaceManager.detailedSettings.updateTemplateScale()" ng-model="$parent.interfaceManager.detailedSettings.templateScale">
-                        <input style="width: 190px" type="range" min="{{$parent.interfaceManager.detailedSettings.minScale}}" max="{{$parent.interfaceManager.detailedSettings.maxScale}}"  step="0.01" ng-change="$parent.interfaceManager.detailedSettings.setTemplateScale()" ng-model="$parent.interfaceManager.detailedSettings.templateScale">
+                        <input style="width: 55px" type="text" ng-change="$parent.interfaceManager.detailedSettings.updateTemplateScale()" ng-model="$parent.interfaceManager.detailedSettings.templateScale">
+                        <input style="width: 170px" type="range" min="{{$parent.interfaceManager.detailedSettings.minScale}}" max="{{$parent.interfaceManager.detailedSettings.maxScale}}"  step="0.01" ng-change="$parent.interfaceManager.detailedSettings.setTemplateScale()" ng-model="$parent.interfaceManager.detailedSettings.templateScale">
 
                         <label>Redshift: </label>
-                        <input style="width: 50px" type="text" ng-change="$parent.changedTemplate()" ng-model="$parent.interfaceManager.detailedViewZ">
-                        <input style="width: 190px" type="range" min={{$parent.interfaceManager.getMinRedshiftForDetailedTemplate()}} max="{{$parent.interfaceManager.detailedViewZMax}}" step="0.0001" ng-change="$parent.interfaceManager.detailedUpdateRequired=true" ng-model="$parent.interfaceManager.detailedViewZ">
-                        <button style="display: block; width: 200px; margin: 0 auto;" ng-click="$parent.interfaceManager.saveManual()">Save this redshift</button>
+                        <input style="width: 55px" type="text" ng-change="$parent.changedTemplate()" ng-model="$parent.interfaceManager.detailedViewZ">
+                        <input style="width: 170px" type="range" min={{$parent.interfaceManager.getMinRedshiftForDetailedTemplate()}} max="{{$parent.interfaceManager.detailedViewZMax}}" step="0.0001" ng-change="$parent.interfaceManager.detailedUpdateRequired=true" ng-model="$parent.interfaceManager.detailedViewZ">
+                        <div class="clear"></div>
+                        <button class="clear" style="display: block; width: 200px; margin: 0 auto;" ng-click="$parent.interfaceManager.saveManual()">Save this redshift</button>
                     </div>
                     <div class="topspace" ng-if="interfaceManager.menuActive=='Detailed'">
                         <b>Spectral Lines</b>
                         <ul ng-class="{glowing:interfaceManager.detailedSettings.getWaiting()}">
                             <li class="sline lined"  ng-click="$parent.interfaceManager.clickSpectralLine(i.id)" ng-class="{enabled:i.enabled}" ng-repeat="i in spectalLines.getAll() track by i.id">
-                                    {{i.name}}
+                                    {{i.id}}
                             </li>
                         </ul>
-                        <button style="display: block; width: 200px; margin: 0 auto;" ng-click="$parent.interfaceManager.detailedSettings.toggleSpectralLines()">{{getSpectralLinePhrase()}}</button>
+                        <button class="clear"  style="display: block; width: 200px; margin: 0 auto;" ng-click="$parent.interfaceManager.detailedSettings.toggleSpectralLines()">{{getSpectralLinePhrase()}}</button>
                     </div>
                 </div>
             </div>
