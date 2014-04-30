@@ -143,12 +143,7 @@ function MainController($scope, $timeout) {
             result = spectra.id;
         }
         if ($scope.interfaceManager.overviewSortField == 'finalTemplateID') {
-            result = spectra.finalTemplateID;
-            if ($scope.interfaceManager.overviewReverseSort) {
-                nullRes = '00000000';
-            } else {
-                nullRes = 'zzzzzzz';
-            }
+            result = parseInt(spectra.finalTemplateID);
         }
         if ($scope.interfaceManager.overviewSortField == 'finalTemplateName') {
             result = spectra.finalTemplateName;
