@@ -77,9 +77,10 @@ InterfaceManager.prototype.getProgessPercent = function () {
     }
     return Math.ceil(-0.01 + (100 * this.getNumAnalysed() / this.getNumSpectra()));
 }
-InterfaceManager.prototype.saveManual = function () {
+InterfaceManager.prototype.saveManual = function (qop) {
     var spectra = this.spectraManager.getSpectra(this.spectraIndex);
     spectra.setManual(parseFloat(this.detailedViewZ), this.detailedViewTemplate);
+    spectra.setManualQOP(qop);
 }
 InterfaceManager.prototype.waitingDrop = function() {
     return this.getNumSpectra() == 0;
@@ -265,7 +266,7 @@ function DetailedPlotSettings(interfaceManager, spectralLines) {
     this.interfaceManager = interfaceManager;
     this.top = 30;
     this.bottom = 50;
-    this.left = 70;
+    this.left = 60;
     this.right = 20;
 
     this.templateScale = '1';

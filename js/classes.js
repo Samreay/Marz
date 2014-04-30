@@ -114,7 +114,7 @@ FitsFile.prototype.getFibres = function(fits) {
     fits.getDataUnit(2).getColumn("TYPE", function(data, opt) {
         var ind = 0;
         for (var i = 0; i < data.length; i++) {
-            if (data[i] == "P") {
+            if (data[i] == "P" && i < 4) {
                 opt.spectra.push({index: ind++, id: i+1, lambda: opt.lambda.slice(0), intensity: [], variance: [], miniRendered: 0});
             }
         }
@@ -163,6 +163,7 @@ function Spectra(index, id, lambda, intensity, variance) {
 
     this.manualZ = null;
     this.manualTemplateIndex = null;
+    this.manualQOP = 0;
 
     this.templateIndex = null;
     this.templateZ = null;
@@ -202,7 +203,12 @@ Spectra.prototype.isProcessed = function() {
 Spectra.prototype.isMatched = function() {
     return this.templateIndex != null;
 };
-
+Spectra.prototype.getQOP = function() {
+    return this.manualQOP;
+}
+Spectra.prototype.setManualQOP = function(qop) {
+    this.manualQOP = qop;
+}
 
 
 function SpectraManager(scope, processorManager, templateManager) {
@@ -232,11 +238,11 @@ SpectraManager.prototype.getAnalysed = function() {
     return this.analysed;
 }
 SpectraManager.prototype.getOutputResults = function() {
-    var results = "ID,AutomaticTemplateIndex,AutomaticRedshift,AutomaticChi2,FinalRedshift\n"; //TODO: Replace with actual template information.
+    var results = "ID,AutomaticTemplateIndex,AutomaticRedshift,AutomaticChi2,FinalRedshift,QOP\n"; //TODO: Replace with actual template information.
     var tmp = [];
     for (var i = 0; i < this.analysed.length; i++) {
         var s = this.analysed[i];
-        tmp.push({i: s.id, txt: s.id + "," + s.templateIndex + "," + s.templateZ.toFixed(5) + "," + s.templateChi2.toFixed(0) + "," + s.getFinalRedshift().toFixed(5) +  "\n"});
+        tmp.push({i: s.id, txt: s.id + "," + s.templateIndex + "," + s.templateZ.toFixed(5) + "," + s.templateChi2.toFixed(0) + "," + s.getFinalRedshift().toFixed(5) + "," + s.getQOP() +  "\n"});
     }
     tmp.sort(function(a, b) {
         if (a.i < b.i) {
