@@ -133,6 +133,42 @@ function MainController($scope, $timeout) {
             return 'Show Spectral Lines';
         }
     }
-
+    $scope.sortOverview = function(spectra) {
+        var result = null;
+        var nullRes = 9e9;
+        if ($scope.interfaceManager.overviewReverseSort) {
+            nullRes = -1 * nullRes;
+        }
+        if ($scope.interfaceManager.overviewSortField == 'id') {
+            result = spectra.id;
+        }
+        if ($scope.interfaceManager.overviewSortField == 'finalTemplateID') {
+            result = spectra.finalTemplateID;
+            if ($scope.interfaceManager.overviewReverseSort) {
+                nullRes = '00000000';
+            } else {
+                nullRes = 'zzzzzzz';
+            }
+        }
+        if ($scope.interfaceManager.overviewSortField == 'finalTemplateName') {
+            result = spectra.finalTemplateName;
+            if ($scope.interfaceManager.overviewReverseSort) {
+                nullRes = '00000000';
+            } else {
+                nullRes = 'zzzzzzz';
+            }
+        }
+        if ($scope.interfaceManager.overviewSortField == 'finalZ') {
+            result = spectra.finalZ;
+        }
+        if ($scope.interfaceManager.overviewSortField == 'manualQOP') {
+            result = spectra.manualQOP;
+        }
+        if (result == null) {
+            return nullRes;
+        } else {
+            return result;
+        }
+    }
     $(window).on("resize",$scope.resizeEvent);
 }

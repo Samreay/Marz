@@ -17,6 +17,11 @@ function InterfaceManager(scope, spectraManager, templateManager, processorManag
     this.changedTemplate = 1;
     this.detailedViewZMax = 4;
 
+    this.overviewGraph = true;
+    this.overviewSortField = 'id';
+    this.overviewReverseSort = false;
+
+
     this.interface = {
         unselected: '#E8E8E8',
         rawColour: "#E8BA6B",
@@ -134,6 +139,7 @@ InterfaceManager.prototype.renderOverview = function (index) {
     if (this.renderOverviewDone['' + index] == 1) {
         return;
     } else {
+        if (!this.overviewGraph) return;
         this.renderOverviewDone['' + index] = 1;
     }
     var canvas = document.getElementById("smallGraphCanvas" + index);
@@ -569,7 +575,6 @@ DetailedPlotSettings.prototype.drawZoomOut = function() {
 DetailedPlotSettings.prototype.plotSpectralLines = function() {
     if (!this.displayingSpectralLines) return;
     var lines = this.spectralLines.getEnabled();
-    console.log('Printing lines');
     this.c.strokeStyle = this.spectralLineColour;
     this.c.filLStyle = this.spectralLineColour;
     this.c.textAlign = 'center';

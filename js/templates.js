@@ -118,6 +118,14 @@ TemplateManager.prototype.processTemplates = function() {
         t.spec_linear = interpolate(t.lambda_linear, tempLambda, t.spec);
     }
 };
+TemplateManager.prototype.getName = function(i) {
+    if (i == null) return "";
+    return this.templates[i].name;
+}
+TemplateManager.prototype.getID = function(i) {
+    if (i == null) return "";
+    return this.templates[i].id;
+}
 TemplateManager.prototype.get = function(i) {
     return this.templates[i];
 };

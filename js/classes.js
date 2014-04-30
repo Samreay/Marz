@@ -168,19 +168,31 @@ function Spectra(index, id, lambda, intensity, variance) {
     this.templateIndex = null;
     this.templateZ = null;
     this.templateChi2 = null;
+
+    this.finalZ = null;
+    this.finalTemplateIndex = null;
+    this.finalTemplateName = null;
+    this.finalTemplateID = null;
 }
 /*Spectra.prototype.setTemplateManager = function(templateManager) {
     this.templateManager = templateManager;
 };*/
 Spectra.prototype.getFinalTemplate = function() {
-    return this.manualTemplateIndex == null ? this.templateIndex : this.manualTemplateIndex;
+    return this.finalTemplateIndex;
+}
+Spectra.prototype.setTemplateManager = function(templateManager) {
+    this.templateManager = templateManager;
 }
 Spectra.prototype.getFinalRedshift = function() {
-    return this.manualZ == null ? this.templateZ : this.manualZ;
+    return this.finalZ;
 }
 Spectra.prototype.setManual = function(redshift, template) {
     this.manualZ = redshift;
     this.manualTemplateIndex = template;
+    this.finalZ = redshift;
+    this.finalTemplateIndex = template;
+    this.finalTemplateName = this.templateManager.getName(template);
+    this.finalTemplateID = this.templateManager.getID(template);
 }
 Spectra.prototype.setProcessedValues = function(pl, pi, pv, ti, tr) {
     this.processedLambda = pl.map(function(x) {return Math.pow(10, x);});
@@ -189,10 +201,14 @@ Spectra.prototype.setProcessedValues = function(pl, pi, pv, ti, tr) {
 
     this.templateIndex = tr[ti].index;
     this.templateZ = tr[ti].z;
+    if (this.manualTemplateIndex == null) {
+        this.finalTemplateIndex = this.templateIndex;
+        this.finalTemplateName = this.templateManager.getName(this.templateIndex);
+        this.finalTemplateID = this.templateManager.getID(this.templateIndex);
+        this.finalZ = this.templateZ;
+    }
     this.templateChi2 = tr[ti].chi2;
-
     this.templateResults = tr;
-    //this.templateIntensity = this.templateManager.getPlottingShiftedLinearLambda(this.templateIndex, this.templateZ, this.plotProcessedLambda);
 };
 Spectra.prototype.getAsJson = function() {
     return {'index':this.index, 'start_lambda':this.lambda[0], 'end_lambda':this.lambda[this.lambda.length - 1], 'intensity':this.intensity, 'variance':this.variance};
@@ -220,6 +236,9 @@ function SpectraManager(scope, processorManager, templateManager) {
 };
 SpectraManager.prototype.setSpectra = function(spectraList) {
     this.spectraList = spectraList;
+    for (var i = 0; i < this.spectraList.length; i++) {
+        this.spectraList[i].setTemplateManager(this.templateManager);
+    }
     this.processorManager.setSpectra(this);
 };
 SpectraManager.prototype.getAll = function() {
