@@ -566,15 +566,15 @@ DetailedPlotSettings.prototype.plotSpectralLines = function() {
             this.c.stroke();
             this.c.beginPath();
             this.c.moveTo(x, this.top);
-            this.c.lineTo(x - 15, this.top - 5);
-            this.c.lineTo(x - 15, this.top - 20);
-            this.c.lineTo(x + 15, this.top - 20);
-            this.c.lineTo(x + 15, this.top - 5);
+            this.c.lineTo(x - 20, this.top - 5);
+            this.c.lineTo(x - 20, this.top - 20);
+            this.c.lineTo(x + 20, this.top - 20);
+            this.c.lineTo(x + 20, this.top - 5);
             this.c.closePath();
             this.c.fillStyle = this.spectralLineColour;
             this.c.fill();
             this.c.fillStyle = this.spectralLineTextColour;
-            this.c.fillText(lines[i].id, x, this.top - 5);
+            this.c.fillText(lines[i].label, x, this.top - 5);
         }
     }
 }

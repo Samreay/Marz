@@ -104,7 +104,7 @@
                     <b>Spectral Lines</b>
                     <ul class="list-unstyled" ng-class="{glowing:interfaceManager.detailedSettings.getWaiting()}">
                         <li class="sline lined"  ng-click="$parent.interfaceManager.clickSpectralLine(i.id)" ng-class="{enabled:i.enabled}" ng-repeat="i in spectalLines.getAll() track by i.id">
-                                {{i.id}}
+                                {{i.label}}
                         </li>
                     </ul>
                     <button class="btn btn-primary"  style="display: block; width: 200px; margin: 0 auto;" ng-click="$parent.interfaceManager.detailedSettings.toggleSpectralLines()">{{getSpectralLinePhrase()}}</button>
