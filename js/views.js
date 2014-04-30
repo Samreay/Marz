@@ -136,7 +136,7 @@ InterfaceManager.prototype.renderOverview = function (index) {
         this.renderOverviewDone['' + index] = 1;
     }
     var canvas = document.getElementById("smallGraphCanvas" + index);
-    var width = Math.max(canvas.clientWidth, canvas.width);
+    var width = canvas.clientWidth;
     if (v.intensity.length > 0) {
         var lambda = condenseToXPixels(v.lambda, width);
         var intensity = condenseToXPixels(v.intensity, width);
@@ -277,7 +277,7 @@ function DetailedPlotSettings(interfaceManager, spectralLines) {
     this.stepColour = '#CCC';
     this.dragInteriorColour = 'rgba(38, 147, 232, 0.2)';
     this.dragOutlineColour = 'rgba(38, 147, 232, 0.6)';
-    this.spacingFactor = 1.1;
+    this.spacingFactor = 1.2;
 
     this.zoomOutWidth = 20;
     this.zoomOutHeight = 20;

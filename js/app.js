@@ -12,7 +12,7 @@ app.filter('onlyDisplay', function () {
 });
 
 function MainController($scope, $timeout) {
-    $scope.properties = {test: {label: "Test property", value: 20}};
+    $scope.properties = {downloadAutomatically: {label: "Download Automatically", value: false}};
 
 
     // Model managers
@@ -22,6 +22,7 @@ function MainController($scope, $timeout) {
     $scope.spectraManager = new SpectraManager($scope, $scope.processorManager, $scope.templateManager);
     $scope.interfaceManager = new InterfaceManager($scope, $scope.spectraManager, $scope.templateManager, $scope.processorManager, $scope.spectalLines);
     $scope.fileManager = new FileManager();
+
 
     $scope.fits = null; // Initialise new FitsFile on drop.
     $scope.goToMenu = function(menuOption) {
@@ -105,8 +106,13 @@ function MainController($scope, $timeout) {
     }
 
     $scope.finishedProcessing = function() {
-        var results = this.spectraManager.getOutputResults();
-        this.fileManager.saveResults(results);
+        if ($scope.properties.downloadAutomatically.value) {
+            var results = this.spectraManager.getOutputResults();
+            this.fileManager.saveResults(results);
+        }
+    }
+    $scope.downloadResults = function() {
+        this.fileManager.saveResults(this.spectraManager.getOutputResults());
     }
 
     $scope.resizeEvent = function() {

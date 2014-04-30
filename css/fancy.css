@@ -37,6 +37,7 @@ input[type='range']::-moz-range-thumb {
     height: 20px;
     width: 10px;
 }
+/*
 
 button {
     -moz-box-shadow:inset 0px 1px 0px 0px #bee2f9;
@@ -77,6 +78,7 @@ button:hover {
     filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#468ccf', endColorstr='#63b8ee',GradientType=0);
     background-color:#468ccf;
 }
+*/
 
 
 progress:not(value) {

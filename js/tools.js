@@ -260,8 +260,8 @@ function interpolate(xinterp, xvals, yvals) {
 }
 
 function clearPlot(canvas) {
-    canvas.width = Math.max(canvas.clientWidth, canvas.width);
-    canvas.height = Math.max(canvas.clientHeight, canvas.height);
+    canvas.width = canvas.clientWidth, canvas.width;
+    canvas.height =canvas.clientHeight, canvas.height;
     var c = canvas.getContext("2d");
     c.save();
     // Use the identity matrix while clearing the canvas

@@ -3,7 +3,7 @@
 /************************************/
 
 
-#header, #footer {
+/*#header, #footer {
     color: #DDD;
     padding-left: 20px;
     background-color: #222222;
@@ -27,7 +27,7 @@ nav ul li {
 nav, nav ul {
     display: inline-block;
     margin-left: 20px;
-}
+}*/
 
 
 
@@ -101,13 +101,15 @@ div[dropzone] ul li b {
     overflow-y: auto;
     overflow-x: hidden;
 }
-
+.spectralList > ul {
+    width: 100%;
+}
 .spectralList ul, .spectralList li, .spectralList p, .spectralList .info {
     display: inline-block;
 }
 .spectralList li {
     font-size: 14px;
-    padding: 10px;
+    padding-left: 10px;
     height: 40px;
     width: 100%;
     line-height: 40px;
@@ -243,8 +245,8 @@ div[dropzone] ul li b {
     margin-bottom: 10px;
     padding: 5px;
     float: left;
-    width: 30px;
-    height: 20px;
+    width: 40px;
+    height: 30px;
     color: #999999;
     cursor: hand;
     cursor: pointer;

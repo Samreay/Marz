@@ -1,28 +1,28 @@
-html, body {
+/*html, body {
     height: 100%;
     min-width: 800px;
     padding: 0;
     margin: 0;
     background-color: #E5E5E5;
     font-family: Helvetica,Arial,sans-serif;
-}
-#footer, .push {
-    height: 50px; /* '.push' must be the same height as 'footer' */
+}*/
+/*#footer, .push {
+    height: 50px; *//* '.push' must be the same height as 'footer' *//*
     z-index: 10;
 }
 #header {
     height: 50px;
 }
+#containertotal {
+    height: calc(100% - 50px); *//* Footer subtract *//*
+    position: relative;
+
+}
 #container {
-    height: calc(100% - 50px); /* Footer subtract */
+    height: calc(100% - 50px); *//* Header subtract *//*
     position: relative;
 
-}
-#content {
-    height: calc(100% - 50px); /* Header subtract */
-    position: relative;
-
-}
+}*/
 #leftbar {
     float: left;
     position: relative;
@@ -49,8 +49,10 @@ html, body {
 .spacing {
     position: relative;
     padding: 10px;
-    height: calc(100% - 20px);
-    width: calc(100% - 20px);
+    height: 100%;
+    width: 100%;
+    /*height: calc(100% - 20px);*/
+    /*width: calc(100% - 20px);*/
 }
 
 /****************************************************/
