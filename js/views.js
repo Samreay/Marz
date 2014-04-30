@@ -253,10 +253,10 @@ InterfaceManager.prototype.clickSpectralLine= function(id) {
         this.detailedViewZ = z;
         //this.detailedSettings.selectedSpectra();
     } else {
-        if (!this.detailedSettings.displayingSpectralLines)  {
-            this.detailedSettings.toggleSpectralLines();
-        }
         this.spectralLines.toggle(id);
+    }
+    if (!this.detailedSettings.displayingSpectralLines)  {
+        this.detailedSettings.toggleSpectralLines();
     }
 }
 
@@ -307,6 +307,8 @@ function DetailedPlotSettings(interfaceManager, spectralLines) {
 
     this.focusX = null;
     this.focusY = null;
+    this.focusDataX = null;
+    this.focusDataY = null;
     this.focusCosmeticColour = 'rgba(104, 0, 103, 0.9)';
     this.focusCosmeticMaxRadius = 6;
     this.waitingForSpectra = false;
@@ -425,6 +427,23 @@ DetailedPlotSettings.prototype.getBounds = function() {
         } else {
             this.yMax *= this.spacingFactor;
         }
+    }
+    this.recalculateFocus();
+}
+DetailedPlotSettings.prototype.removeFocus = function() {
+    this.focusX = null;
+    this.focusY = null;
+    this.focusDataX = null;
+    this.focusDataY = null;
+    this.waitingForSpectra = false;
+}
+DetailedPlotSettings.prototype.recalculateFocus = function() {
+    if (this.focusX == null || this.focusY == null) return;
+    if (this.checkDataXYInRange(this.focusDataX, this.focusDataY)) {
+        this.focusX = this.convertDataXToCanvasCoordinate(this.focusDataX);
+        this.focusY = this.convertDataYToCanvasCoordinate(this.focusDataY);
+    } else {
+        this.removeFocus();
     }
 }
 DetailedPlotSettings.prototype.convertCanvasXCoordinateToDataPoint = function(x) {
@@ -726,9 +745,7 @@ DetailedPlotSettings.prototype.canvasMouseUp = function(loc) {
         this.yMin = Math.min(y1, y2);
         this.yMax = Math.max(y1, y2);
         this.lockedBounds = true;
-        this.focusX = null;
-        this.focusY = null;
-        this.waitingForSpectra = false;
+        this.recalculateFocus();
     } else {
         if (loc.x > (this.canvas.width - this.zoomOutWidth) && loc.y < this.zoomOutHeight) {
             this.lockedBounds = false;
@@ -736,11 +753,11 @@ DetailedPlotSettings.prototype.canvasMouseUp = function(loc) {
             if (this.focusX == null && this.focusY == null) {
                 this.focusX = loc.x;
                 this.focusY = loc.y;
+                this.focusDataX = this.convertCanvasXCoordinateToDataPoint(loc.x);
+                this.focusDataY = this.convertCanvasYCoordinateToDataPoint(loc.y);
                 this.waitingForSpectra = true;
             } else {
-                this.focusX = null;
-                this.focusY = null;
-                this.waitingForSpectra = false;
+                this.removeFocus();
             }
         }
     }
@@ -755,7 +772,6 @@ DetailedPlotSettings.prototype.canvasMouseMove = function(loc) {
 
     this.currentMouseX = loc.x;
     this.currentMouseY = loc.y;
-    console.log('mousemove');
 
     if (this.lastXDown != null && this.lastYDown != null) {
 
