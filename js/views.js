@@ -284,7 +284,7 @@ function DetailedPlotSettings(interfaceManager, spectralLines) {
     this.stepColour = '#CCC';
     this.dragInteriorColour = 'rgba(38, 147, 232, 0.2)';
     this.dragOutlineColour = 'rgba(38, 147, 232, 0.6)';
-    this.spacingFactor = 1.2;
+    this.spacingFactor = 1.4;
 
     this.zoomOutWidth = 20;
     this.zoomOutHeight = 20;

@@ -51,8 +51,8 @@ nav, nav ul {
 .even {
     background-color: #E0E0E0;
 }
-.activeSelect {
-    background-color: #D3DFF5;
+.activeSelect, .activeSelect > td {
+    background-color: #D3DFF5 !important;
     border: 1px solid #5E99FF;
 }
 .topspace {
