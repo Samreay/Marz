@@ -98,10 +98,10 @@
                 <div class="topspace" ng-if="interfaceManager.menuActive=='Detailed'">
                     <b>Save this redshift with a QOP of:</b>
                     <div class="btn-group">
-                        <button class="btn btn-sm btn-danger" ng-click="$parent.interfaceManager.saveManual(1)">Illegible (1)</button>
-                        <button class="btn btn-sm btn-warning" ng-click="$parent.interfaceManager.saveManual(2)">Poor (2)</button>
-                        <button class="btn btn-sm btn-info" ng-click="$parent.interfaceManager.saveManual(3)">Good (3)</button>
-                        <button class="btn btn-sm btn-success" ng-click="$parent.interfaceManager.saveManual(4)">Great (4)</button>
+                        <button class="btn btn-sm btn-danger" ng-click="$parent.interfaceManager.saveManual(1)" tooltip="Saved!"  tooltip-trigger="focus" tooltip-placement="bottom">Illegible (1)</button>
+                        <button class="btn btn-sm btn-warning" ng-click="$parent.interfaceManager.saveManual(2)" tooltip="Saved!"  tooltip-trigger="focus" tooltip-placement="bottom">Poor (2)</button>
+                        <button class="btn btn-sm btn-info" ng-click="$parent.interfaceManager.saveManual(3)" tooltip="Saved!"  tooltip-trigger="focus" tooltip-placement="bottom">Good (3)</button>
+                        <button class="btn btn-sm btn-success" ng-click="$parent.interfaceManager.saveManual(4)" tooltip="Saved!"  tooltip-trigger="focus" tooltip-placement="bottom">Great (4)</button>
                     </div>
                 </div>
                 <div class="topspace" ng-if="interfaceManager.menuActive=='Detailed'">

@@ -261,6 +261,7 @@ SpectraManager.prototype.getOutputResults = function() {
     var tmp = [];
     for (var i = 0; i < this.analysed.length; i++) {
         var s = this.analysed[i];
+        if (s.finalZ == null) continue;
         tmp.push({i: s.id, txt: s.id + "," + s.templateIndex + "," + s.templateZ.toFixed(5) + "," + s.templateChi2.toFixed(0) + "," + s.getFinalRedshift().toFixed(5) + "," + s.getQOP() +  "\n"});
     }
     tmp.sort(function(a, b) {
