@@ -174,9 +174,6 @@ function Spectra(index, id, lambda, intensity, variance) {
     this.finalTemplateName = null;
     this.finalTemplateID = null;
 }
-/*Spectra.prototype.setTemplateManager = function(templateManager) {
-    this.templateManager = templateManager;
-};*/
 Spectra.prototype.getFinalTemplate = function() {
     return this.finalTemplateIndex;
 }
@@ -260,10 +257,13 @@ SpectraManager.prototype.getAnalysed = function() {
 SpectraManager.prototype.getOutputResults = function() {
     var results = "ID,AutomaticTemplateIndex,AutomaticRedshift,AutomaticChi2,FinalRedshift,QOP\n"; //TODO: Replace with actual template information.
     var tmp = [];
-    for (var i = 0; i < this.analysed.length; i++) {
-        var s = this.analysed[i];
+    for (var i = 0; i < this.spectraList.length; i++) {
+        var s = this.spectraList[i];
         if (s.finalZ == null) continue;
-        tmp.push({i: s.id, txt: s.id + "," + s.templateIndex + "," + s.templateZ.toFixed(5) + "," + s.templateChi2.toFixed(0) + "," + s.getFinalRedshift().toFixed(5) + "," + s.getQOP() +  "\n"});
+        var templateIndex = s.templateIndex == null ? 0 : s.templateIndex;
+        var templateZ = s.templateZ == null ? 0.00000 : s.templateZ.toFixed(5);
+        var templateChi2 = s.templateChi2 == null ? 0 : s.templateChi2.toFixed(0);
+        tmp.push({i: s.id, txt: s.id + "," + templateIndex + "," + templateZ + "," + templateChi2 + "," + s.getFinalRedshift().toFixed(5) + "," + s.getQOP() +  "\n"});
     }
     tmp.sort(function(a, b) {
         if (a.i < b.i) {
