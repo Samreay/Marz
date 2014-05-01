@@ -135,7 +135,7 @@ function MainController($scope, $timeout) {
     }
     $scope.sortOverview = function(spectra) {
         var result = null;
-        var nullRes = 9e9;
+        var nullRes = 9e9 + spectra.id;
         if ($scope.interfaceManager.overviewReverseSort) {
             nullRes = -1 * nullRes;
         }
@@ -144,13 +144,16 @@ function MainController($scope, $timeout) {
         }
         if ($scope.interfaceManager.overviewSortField == 'finalTemplateID') {
             result = parseInt(spectra.finalTemplateID);
+            if (isNan(result)) {
+                result = null;
+            }
         }
         if ($scope.interfaceManager.overviewSortField == 'finalTemplateName') {
             result = spectra.finalTemplateName;
             if ($scope.interfaceManager.overviewReverseSort) {
-                nullRes = '00000000';
+                nullRes = '00000000' + spectra.id;
             } else {
-                nullRes = 'zzzzzzz';
+                nullRes = 'zzzzzzz' + spectra.id;
             }
         }
         if ($scope.interfaceManager.overviewSortField == 'finalZ') {
@@ -159,7 +162,7 @@ function MainController($scope, $timeout) {
         if ($scope.interfaceManager.overviewSortField == 'manualQOP') {
             result = spectra.manualQOP;
         }
-        if (result == null || isNaN(result)) {
+        if (result == null) {
             return nullRes;
         } else {
             return result;
