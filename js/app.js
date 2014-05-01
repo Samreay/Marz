@@ -1,4 +1,4 @@
-var app = angular.module("thesis", ["dropzone"]);
+var app = angular.module("thesis", ["dropzone","ui.bootstrap"]);
 app.filter('onlyDisplay', function () {
     return function (arr) {
         var result = [];
