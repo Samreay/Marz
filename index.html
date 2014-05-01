@@ -48,7 +48,7 @@
                 <div class="boxed fitsFileSelector" dropzone>
                     <h3 class="centered" style="margin: 0;" ng-show="!fits.properties[0]">Drop a FITS File</h3>
                     <div class="info" ng-show="fits.properties[0]">
-                        <h3 class="centered"  style="margin: 0;">{{fits.properties[0].value}}</h3>
+                        <h4 class="centered"  style="margin: 0;">{{fits.properties[0].value}}</h4>
                         <ul class="list-unstyled">
                             <li ng-repeat="i in fits.properties | onlyDisplay"><b class="label">{{i.label}}:</b> {{i.displayValue}}</li>
                         </ul>
@@ -94,6 +94,15 @@
                     <input style="width: 55px" type="text" ng-change="$parent.changedTemplate()" ng-model="$parent.interfaceManager.detailedViewZ">
                     <input style="width: 170px" type="range" min={{$parent.interfaceManager.getMinRedshiftForDetailedTemplate()}} max="{{$parent.interfaceManager.detailedViewZMax}}" step="0.0001" ng-change="$parent.interfaceManager.detailedUpdateRequired=true" ng-model="$parent.interfaceManager.detailedViewZ">
                     <div class="clear"></div>
+                </div>
+                <div class="topspace" ng-if="interfaceManager.menuActive=='Detailed'">
+                    <b>Data Filtering</b>
+                    <label style="width: 130px">Raw Smooth:</label>
+                    <input style="width: 30px" type="text" ng-change="$parent.interfaceManager.changeRawSmooth()" ng-model="$parent.interfaceManager.detailViewRawSmooth">
+                    <input style="width: 135px" type="range" min="0" max="{{$parent.interfaceManager.detailViewSmoothMax}}"  step="1" ng-change="$parent.interfaceManager.changeRawSmooth()" ng-model="$parent.interfaceManager.detailViewRawSmooth">
+                    <label style="width: 130px">Processed Smooth:</label>
+                    <input style="width: 30px" type="text" ng-change="$parent.interfaceManager.changeProcessedSmooth()" ng-model="$parent.interfaceManager.detailViewProcessedSmooth">
+                    <input style="width: 135px" type="range" min="0" max="{{$parent.interfaceManager.detailViewSmoothMax}}"  step="1" ng-change="$parent.interfaceManager.changeProcessedSmooth()" ng-model="$parent.interfaceManager.detailViewProcessedSmooth">
                 </div>
                 <div class="topspace" ng-if="interfaceManager.menuActive=='Detailed'">
                     <b>Save this redshift with a QOP of:</b>

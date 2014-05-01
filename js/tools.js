@@ -298,6 +298,41 @@ function plot(xs, data, colour, canvas, bounds) {
     c.stroke();
 }
 
+function fastSmooth(y, num) {
+    if (num == 0) {
+        return y;
+    }
+    num += 1;
+    var frac = 2*num + 1;
+    // Remove NaNs
+    for (var i = 0; i < y.length; i++) {
+        if (isNaN(y[i])) {
+            if (i == 0) {
+                y[i] = 0;
+            } else {
+                y[i] = y[i - 1];
+            }
+        }
+    }
+    // Get initial sum
+    var rolling = 0;
+    for (var i = 0; i < num; i++) {
+        rolling += y[i];
+    }
+    // Average it
+    var d = [];
+    for (var i = 0; i < y.length; i++) {
+        if (i >= num) {
+            rolling -= y[i - num];
+        }
+        if (i <= y.length - num) {
+            rolling += y[i + num]
+        }
+        d.push(rolling / frac);
+    }
+    return d;
+}
+
 //TODO: Make rolling point num config in settings
 function rollingPointMean(intensity, variance, numPoints, falloff) {
     var rolling = 0;

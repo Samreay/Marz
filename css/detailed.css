@@ -236,6 +236,7 @@ div[dropzone] ul li b {
     width: 70px;
     height: 20px;
     margin-bottom: 10px;
+    font-weight: normal;
 }
 
 .sline {

@@ -32,12 +32,21 @@ function InterfaceManager(scope, spectraManager, templateManager, processorManag
     this.detailedViewTemplate = 0;
     this.detailedRecreate = false;
     this.detailedViewZ = 0;
+    this.detailViewSmoothMax = 5;
+    this.detailViewRawSmooth = 3;
+    this.detailViewProcessedSmooth = 0;
 
     this.detailedCanvas = null;
     this.detailedSettings = new DetailedPlotSettings(this, spectralLines);
 
     this.renderOverviewDone = new Array();
 
+}
+InterfaceManager.prototype.changeRawSmooth = function() {
+    this.renderDetailedInitial();
+}
+InterfaceManager.prototype.changeProcessedSmooth = function() {
+    this.renderDetailedInitial();
 }
 InterfaceManager.prototype.getButtonColour = function(category) {
     if (category == 'raw') {
@@ -376,6 +385,11 @@ DetailedPlotSettings.prototype.addData = function(id, bound, colour, x, y, e) {
         for (var i = 0; i < y.length; i++) {
             y[i] *= s;
         }
+    }
+    if (id == 'raw' && parseInt(this.interfaceManager.detailViewRawSmooth) != 0) {
+        item.y = fastSmooth(item.y, parseInt(this.interfaceManager.detailViewRawSmooth));
+    } else if (id == 'processed' && parseInt(this.interfaceManager.detailViewProcessedSmooth) != 0) {
+        item.y = fastSmooth(item.y, parseInt(this.interfaceManager.detailViewProcessedSmooth));
     }
     this.data.push(item);
 }

@@ -52,7 +52,7 @@ function FitsFile(filename, fits, scope) {
         {
             name: 'filename',
             label: 'Filename',
-            value: this.filename,
+            value: this.filename.replace(/\.[^/.]+$/, ""),
             display: false
         },
         {
