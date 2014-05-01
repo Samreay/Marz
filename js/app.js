@@ -159,7 +159,7 @@ function MainController($scope, $timeout) {
         if ($scope.interfaceManager.overviewSortField == 'manualQOP') {
             result = spectra.manualQOP;
         }
-        if (result == null) {
+        if (result == null || isNaN(result)) {
             return nullRes;
         } else {
             return result;

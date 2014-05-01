@@ -14,9 +14,6 @@
     <link href="css/detailed.css" rel="stylesheet"/>
     <link href="css/fancy.css" rel="stylesheet"/>
     <script src="js/jquery-2.1.0.js"></script>
-    <script src="js/angular.js"></script>
-    <script src="js/angular-animate.js"></script>
-    <script src="js/angular-drop.js"></script>
 
 </head>
 <body ng-app="thesis" ng-controller="MainController">
@@ -224,12 +221,15 @@
                     <button class="btn btn-small btn-primary" ng-click="downloadResults()">Download</button>
                 </div>
                 <div class="fillrest">
-                    <progress ng-value="interfaceManager.getNumAnalysed()" max="{{interfaceManager.getNumSpectra()}}" class="html5"></progress>
+                    <progressbar class="progress-striped active" max="interfaceManager.getNumSpectra()" value="interfaceManager.getNumAnalysed()" type="success"></progressbar>
                 </div>
             </div>
         </div>
     </div>
     <script src="js/bootstrap.js"></script>
+    <script src="js/angular.js"></script>
+    <script src="js/angular-animate.js"></script>
+    <script src="js/angular-drop.js"></script>
     <script src="js/ui-bootstrap-tpls-0.10.0.js"></script>
     <script src="js/fits.js"></script>
     <script src="js/FileSaver.js"></script>
