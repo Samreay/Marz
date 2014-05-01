@@ -135,11 +135,13 @@ InterfaceManager.prototype.rerenderOverview = function (index) {
     this.renderOverview(index);
 }
 InterfaceManager.prototype.renderOverview = function (index) {
+    if (this.menuActive != 'Overview' || !this.overviewGraph) {
+        return
+    }
     var v = this.spectraManager.getSpectra(index);
     if (this.renderOverviewDone['' + index] == 1) {
         return;
     } else {
-        if (!this.overviewGraph) return;
         this.renderOverviewDone['' + index] = 1;
     }
     var canvas = document.getElementById("smallGraphCanvas" + index);
