@@ -125,7 +125,7 @@
                         </li>
                     </ul>
                     <div ng-show="!interfaceManager.overviewGraph">
-                        <table class="table table-bordered table-hover table-condensed">
+                        <table class="overviewTable table table-bordered table-hover table-condensed">
                             <thead>
                             <tr>
                                 <th>
@@ -156,7 +156,7 @@
                             </tr>
                             </thead>
                             <tbody>
-                            <tr ng-repeat="i in spectraManager.getAll()|orderBy:sortOverview:interfaceManager.overviewReverseSort">
+                            <tr ng-class="{activeSelect:interfaceManager.spectraIndex==i.index}" ng-click="$parent.setSpectraIndex(i.index)" ng-dblclick="$parent.goToDetailed()" ng-repeat="i in spectraManager.getAll()|orderBy:sortOverview:interfaceManager.overviewReverseSort">
                                 <td>{{i.id}}</td>
                                 <td>{{i.finalTemplateID}}</td>
                                 <td>{{i.finalTemplateName}}</td>

@@ -59,6 +59,24 @@ function MainController($scope, $timeout) {
         }
         $scope.$digest();
     }
+    $scope.checkIfInView = function(element, scrollable) {
+        var padding = 100;
+        var docViewTop = $(scrollable).offset().top;
+        var docViewBottom = docViewTop + $(scrollable).height();
+
+        var elemTop = $(element).offset().top;
+        var elemBottom = elemTop + $(element).height();
+        var s = 0;
+        if (elemTop < docViewTop) {
+            s = docViewTop - elemTop + padding;
+            $(scrollable).animate({scrollTop: '-='+s}, 300);
+
+        } else if (elemBottom > docViewBottom) {
+            s = elemBottom - docViewBottom + padding;
+            $(scrollable).animate({scrollTop: '+='+s}, 300);
+        }
+
+    }
     $scope.setSpectraIndex = function(i) {
         $scope.interfaceManager.spectraIndex = i;
         //TODO: Remove duplicate code
@@ -67,16 +85,12 @@ function MainController($scope, $timeout) {
             $scope.goToDetailed();
         }
         $timeout(function() {
-            var leftrel = $('.spectralList ul li.activeSelect').position().top;
-            var leftheight = $('.spectralList').height();
-            var rightrel = $('.overviewList ul li.activeSelect').position().top;
-            var rightheight = $('#central').height();
-            if (leftrel < 50 || leftrel > leftheight-50) {
-                $('.spectralList').animate({scrollTop: (leftrel- $('.spectralList ul').position().top)+'px'},300);
+            if ($scope.interfaceManager.overviewGraph) {
+                $scope.checkIfInView('.overviewList .activeSelect', '#central');
+            } else {
+                $scope.checkIfInView('.overviewTable .activeSelect', '#central');
             }
-            if (rightrel < 150 || rightrel > rightheight-150) {
-                $('#central').animate({scrollTop: (rightrel - $('.overviewList ul').position().top)+'px'},300);
-            }
+            $scope.checkIfInView('.spectralList .activeSelect', '.spectralList');
         }, 0, false);
     };
     $scope.toggleDisp = function(category) {
