@@ -163,7 +163,7 @@ function Spectra(index, id, lambda, intensity, variance) {
 
     this.manualZ = null;
     this.manualTemplateIndex = null;
-    this.manualQOP = 0;
+    this.manualQOP = null;
 
     this.templateIndex = null;
     this.templateZ = null;
@@ -206,6 +206,7 @@ Spectra.prototype.setProcessedValues = function(pl, pi, pv, ti, tr) {
         this.finalTemplateName = this.templateManager.getName(this.templateIndex);
         this.finalTemplateID = this.templateManager.getID(this.templateIndex);
         this.finalZ = this.templateZ;
+        this.manualQOP = 0;
     }
     this.templateChi2 = tr[ti].chi2;
     this.templateResults = tr;
