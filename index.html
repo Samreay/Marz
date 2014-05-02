@@ -46,7 +46,7 @@
         <div id="leftbar">
             <div class="spacing">
                 <div class="boxed fitsFileSelector" dropzone>
-                    <h3 class="centered" style="margin: 0;" ng-show="!fits.properties[0]">Drop a FITS File</h3>
+                    <h3 class="centered" style="margin: 0;" ng-show="!fits.properties[0]">{{getDropText()}}</h3>
                     <div class="info" ng-show="fits.properties[0]">
                         <h4 class="centered"  style="margin: 0;">{{fits.properties[0].value}}</h4>
                         <ul class="list-unstyled">
@@ -129,7 +129,7 @@
                 <div class="overviewList" ng-show="interfaceManager.menuActive=='Overview'">
                     <ul class="list-unstyled" ng-show="interfaceManager.overviewGraph">
                         <li class="overviewItem lined" ng-dblclick="$parent.goToDetailed()" ng-click="$parent.setSpectraIndex(i.index)" ng-class="{activeSelect:interfaceManager.spectraIndex==i.index}" ng-repeat="i in spectraManager.getAll() track by i.id">
-                            <div class="topbar"><b>ID: {{i.id}}</b><p ng-show="i.templateIndex!=null">T: {{i.getFinalTemplateID()}}, z={{i.templateZ.toFixed(4)}} QOP: {{i.getQOP()}}</p></div>
+                            <div class="topbar"><b>ID: {{i.id}}</b><p ng-show="i.finalZ!=null">T: {{i.getFinalTemplateID()}}, z={{i.getFinalRedshift().toFixed(4)}} QOP: {{i.getQOP()}}</p></div>
                             <div class="graph"><canvas id="smallGraphCanvas{{$index}}" style="width:100%; height:100%;"></canvas>{{interfaceManager.renderOverview($index)}}</div>
                         </li>
                     </ul>
@@ -220,17 +220,25 @@
                 <p>Please drop in a FITs file.</p>
             </div>
             <div ng-if="!interfaceManager.waitingDrop()">
-                <div class="floatleft" ng-if="!interfaceManager.finishedAnalysis()">
-                    <p>Analysing spectra. Please wait.   {{interfaceManager.getNumAnalysed()}}/{{interfaceManager.getNumSpectra()}}</p>
+                <div ng-if="interfaceManager.analysing()">
+                    <div class="floatleft" ng-if="!interfaceManager.finishedAnalysis()">
+                        <p>Analysing spectra. Please wait.   {{interfaceManager.getNumAnalysed()}}/{{interfaceManager.getNumSpectra()}}</p>
+                    </div>
+                    <div class="floatleft" ng-if="interfaceManager.finishedAnalysis()">
+                        <p>Analysis finished. {{interfaceManager.getNumAnalysed()}}/{{interfaceManager.getNumSpectra()}}</p>
+                    </div>
                 </div>
-                <div class="floatleft" ng-if="interfaceManager.finishedAnalysis()">
-                    <p>Analysis finished. {{interfaceManager.getNumAnalysed()}}/{{interfaceManager.getNumSpectra()}}</p>
+                <div ng-if="!interfaceManager.analysing()">
+                    <div class="floatleft" ng-if="!interfaceManager.finishedProcessing()">
+                        <p>Processing spectra. Please wait.   {{interfaceManager.getNumProcessed()}}/{{interfaceManager.getNumSpectra()}}</p>
+                    </div>
                 </div>
                 <div class="floatright" style="margin-top: -8px;">
                     <button class="btn btn-small btn-primary" ng-click="downloadResults()">Download</button>
                 </div>
                 <div class="fillrest">
-                    <progressbar class="progress-striped active" max="interfaceManager.getNumSpectra()" value="interfaceManager.getNumAnalysed()" type="success"></progressbar>
+                    <progressbar ng-if="interfaceManager.analysing()" class="progress-striped active" max="interfaceManager.getNumSpectra()" value="interfaceManager.getNumAnalysed()" type="{{interfaceManager.getProgressBarType()}}"></progressbar>
+                    <progressbar ng-if="!interfaceManager.analysing()" class="progress-striped active" max="interfaceManager.getNumSpectra()" value="interfaceManager.getNumProcessed()" type="{{interfaceManager.getProgressBarType()}}"></progressbar>
                 </div>
             </div>
         </div>
@@ -241,6 +249,7 @@
     <script src="js/angular-drop.js"></script>
     <script src="js/ui-bootstrap-tpls-0.10.0.js"></script>
     <script src="js/fits.js"></script>
+    <script src="js/ResultLoader.js"></script>
     <script src="js/FileSaver.js"></script>
     <script src="js/regression.js"></script>
     <script src="js/tools.js"></script>

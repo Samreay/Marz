@@ -77,6 +77,9 @@ InterfaceManager.prototype.getNumSpectra = function () {
 InterfaceManager.prototype.getNumAnalysed = function () {
     return this.spectraManager.getAnalysed().length;
 }
+InterfaceManager.prototype.getNumProcessed = function () {
+    return this.spectraManager.getProcessed().length;
+}
 InterfaceManager.prototype.isMenuActive = function (array) {
     for (var i = 0; i < array.length; i++) {
         if (this.menuActive == array[i]) {
@@ -93,11 +96,29 @@ InterfaceManager.prototype.getProgessPercent = function () {
 }
 InterfaceManager.prototype.saveManual = function (qop) {
     var spectra = this.spectraManager.getSpectra(this.spectraIndex);
-    spectra.setManual(parseFloat(this.detailedViewZ), this.detailedViewTemplate);
-    spectra.setManualQOP(qop);
+    spectra.setManual(parseFloat(this.detailedViewZ), this.detailedViewTemplate, qop);
+    this.rerenderOverview(spectra.index);
 }
 InterfaceManager.prototype.waitingDrop = function() {
     return this.getNumSpectra() == 0;
+}
+InterfaceManager.prototype.finishedProcessing = function () {
+    if (this.getNumSpectra() == 0) {
+        return false
+    }
+    return (this.getNumSpectra() == this.getNumProcessed());
+}
+InterfaceManager.prototype.analysing = function() {
+    return this.scope.properties.processAndMatchTogether.value || this.finishedProcessing();
+}
+InterfaceManager.prototype.getProgressBarType = function() {
+    if (this.finishedAnalysis()) {
+        return "info";
+    } else if (this.analysing()) {
+        return "danger";
+    } else {
+        return "success";
+    }
 }
 InterfaceManager.prototype.finishedAnalysis = function () {
     if (this.getNumSpectra() == 0) {
@@ -154,6 +175,10 @@ InterfaceManager.prototype.renderOverview = function (index) {
         this.renderOverviewDone['' + index] = 1;
     }
     var canvas = document.getElementById("smallGraphCanvas" + index);
+    if (canvas == null) {
+        this.renderOverviewDone['' + index] = 0;
+        return;
+    }
     var width = canvas.clientWidth;
     if (v.intensity.length > 0) {
         var lambda = condenseToXPixels(v.lambda, width);

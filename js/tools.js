@@ -297,7 +297,9 @@ function plot(xs, data, colour, canvas, bounds) {
     }
     c.stroke();
 }
-
+function endsWith(str, suffix) {
+    return str.indexOf(suffix, str.length - suffix.length) !== -1;
+}
 function fastSmooth(y, num) {
     if (num == 0) {
         return y;

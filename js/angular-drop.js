@@ -18,9 +18,9 @@
                 elem.bind('dragleave', onDragEnd);
                 elem.bind('drop', function(e) {
                     onDragEnd(e)
-                    var f = e.originalEvent.dataTransfer.files[0];
+                    var f = e.originalEvent.dataTransfer.files;
                     scope.$apply(function(){
-                        scope.addfile(f);
+                        scope.addfiles(f);
                     });
                 });
             }

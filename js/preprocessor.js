@@ -195,20 +195,40 @@ function matchTemplates(lambda, intensity, variance) {
 
 self.addEventListener('message', function(e) {
     var d = e.data;
-    var lambda = linearScale(d.start_lambda, d.end_lambda, d.intensity.length);
-    processData(lambda, d.intensity, d.variance);
-    if (!shifted_temp) {
-        templateManager.shiftToMatchSpectra(lambda);
-        shifted_temp = true;
+    var match = d.match && !d.hasAutomaticMatch;
+    var lambda = d.lambda;
+    if (d.process) {
+        lambda = linearScale(d.start_lambda, d.end_lambda, d.intensity.length);
+        processData(lambda, d.intensity, d.variance);
     }
 
-    var results = matchTemplates(lambda, d.intensity, d.variance);
+    if (match) {
+        if (!shifted_temp) {
+            templateManager.shiftToMatchSpectra(lambda);
+            shifted_temp = true;
+        }
+        var results = matchTemplates(lambda, d.intensity, d.variance);
+    }
 
-    self.postMessage({'index': d.index,
-        'processedLambda': lambda,
-        'processedIntensity': d.intensity,
-        'processedVariance': d.variance,
-        'bestIndex':results[0],
-        'templateResults':results[1]})
+    if (d.process && match) {
+        self.postMessage({'index': d.index,
+            'processedLambda': lambda,
+            'processedIntensity': d.intensity,
+            'processedVariance': d.variance,
+            'bestIndex':results[0],
+            'templateResults':results[1]})
+    } else if (d.process && !match) {
+        self.postMessage({'index': d.index,
+            'processedLambda': lambda,
+            'processedIntensity': d.intensity,
+            'processedVariance': d.variance});
+    } else if (match && !d.process) {
+        self.postMessage({'index': d.index,
+            'bestIndex':results[0],
+            'templateResults':results[1]});
+    } else {
+        self.postMessage({e: 'nothing to do'});
+    }
+
 }, false);
 

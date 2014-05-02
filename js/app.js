@@ -12,18 +12,20 @@ app.filter('onlyDisplay', function () {
 });
 
 function MainController($scope, $timeout) {
-    $scope.properties = {downloadAutomatically: {label: "Download Automatically", value: false}};
+    $scope.properties = {downloadAutomatically: {label: "Download Automatically", value: false},
+                         processAndMatchTogether: {label: "Process and Match in same step", value: false},
+                         numberOfCores: {label: "Number of Cores In Computer", value: 3}};
 
 
     // Model managers
     $scope.templateManager = new TemplateManager();
     $scope.spectalLines = new SpectralLines();
-    $scope.processorManager = new ProcessorManager(1, $scope); //TODO: Core estimation
+    $scope.processorManager = new ProcessorManager($scope.properties.numberOfCores.value - 1, $scope, $scope.properties.processAndMatchTogether.value); //TODO: Core estimation
     $scope.spectraManager = new SpectraManager($scope, $scope.processorManager, $scope.templateManager);
     $scope.interfaceManager = new InterfaceManager($scope, $scope.spectraManager, $scope.templateManager, $scope.processorManager, $scope.spectalLines);
     $scope.fileManager = new FileManager();
 
-
+    $scope.results = null;
     $scope.fits = null; // Initialise new FitsFile on drop.
     $scope.goToMenu = function(menuOption) {
         if (menuOption == 'Detailed') {
@@ -43,14 +45,40 @@ function MainController($scope, $timeout) {
         this.interfaceManager.updateDetailedData(true);
 
     }
-    $scope.addfile = function (f) {
-        var rawFits = new astro.FITS(f, function () {
-            $scope.$apply(function () {
-                $scope.fileManager.setFitsFileName(f.name);
-                $scope.fits = new FitsFile(f.name, rawFits, $scope);
-//                $scope.fits = new TemplateExtractor(f.name, rawFits, $scope);
-            });
-        });
+    $scope.getDropText = function() {
+        if ($scope.results == null && $scope.fits == null) {
+            return 'Drop a FITS File or a results file. Or both together. Or a FITS file than a results file.';
+        } else if ($scope.fits == null && $scope.results != null) {
+            return 'Results file loaded. Drop in a FITs file.';
+        }
+    }
+    $scope.addfiles = function (f) {
+        var hadFits = false;
+        var hadResults = false;
+        for (var i = 0; i < f.length; i++) {
+            if (endsWith(f[i].name, '.fits')) {
+                if (!hadFits) {
+                    hadFits = true;
+                    var name = f[i].name;
+                    var rawFits = new astro.FITS(f[i], function () {
+                        $scope.$apply(function () {
+                            $scope.fileManager.setFitsFileName(name);
+                            $scope.fits = new FitsFile(name, rawFits, $scope);
+//                          $scope.fits = new TemplateExtractor(f.name, rawFits, $scope);
+                        });
+                    });
+                } else {
+                    console.warn('Already had a fits file'); //TODO: Alerts system
+                }
+            } else if (endsWith(f[i].name, '.txt')) {
+                if (!hadResults) {
+                    hadResults = true;
+                    $scope.results = new ResultsLoader(f[i], $scope);
+                    $scope.results.load();
+                }
+            }
+        }
+
     };
     $scope.updatedSpectra = function(i) {
         $scope.interfaceManager.rerenderOverview(i);
@@ -119,7 +147,7 @@ function MainController($scope, $timeout) {
         }
     }
 
-    $scope.finishedProcessing = function() {
+    $scope.finishedAnalysis = function() {
         if ($scope.properties.downloadAutomatically.value) {
             var results = this.spectraManager.getOutputResults();
             this.fileManager.saveResults(results);
@@ -174,7 +202,7 @@ function MainController($scope, $timeout) {
             result = spectra.finalZ;
         }
         if ($scope.interfaceManager.overviewSortField == 'manualQOP') {
-            result = spectra.manualQOP;
+            result = spectra.finalQOP;
         }
         if (result == null) {
             return nullRes;
