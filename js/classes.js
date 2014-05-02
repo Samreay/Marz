@@ -398,9 +398,9 @@ function Processor(manager) {
             e.data.processedVariance, e.data.bestIndex, e.data.templateResults);
         this.manager.scope.updatedSpectra(this.workingSpectra.index);
         if (e.data.bestIndex != null) {
-            this.manager.spectraManager.addToUpdated(this.workingSpectra);
+            this.manager.spectraManager.addToUpdated(this.workingSpectra.index);
         } else {
-            this.manager.spectraManager.addToProcessed(this.workingSpectra);
+            this.manager.spectraManager.addToProcessed(this.workingSpectra.index);
         }
         this.workingSpectra = null;
         this.manager.processSpectra();

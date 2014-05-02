@@ -126,56 +126,7 @@
         </div>
         <div id="central">
             <div class="spacing">
-                <div class="overviewList" ng-show="interfaceManager.menuActive=='Overview'">
-                    <ul class="list-unstyled" ng-show="interfaceManager.overviewGraph">
-                        <li class="overviewItem lined" ng-dblclick="$parent.goToDetailed()" ng-click="$parent.setSpectraIndex(i.index)" ng-class="{activeSelect:interfaceManager.spectraIndex==i.index}" ng-repeat="i in spectraManager.getAll() track by i.id">
-                            <div class="topbar"><b>ID: {{i.id}}</b><p ng-show="i.finalZ!=null">T: {{i.getFinalTemplateID()}}, z={{i.getFinalRedshift().toFixed(4)}} QOP: {{i.getQOP()}}</p></div>
-                            <div class="graph"><canvas id="smallGraphCanvas{{$index}}" style="width:100%; height:100%;"></canvas>{{interfaceManager.renderOverview($index)}}</div>
-                        </li>
-                    </ul>
-                    <div ng-show="!interfaceManager.overviewGraph">
-                        <table class="overviewTable table table-striped table-bordered table-hover table-condensed">
-                            <thead>
-                            <tr>
-                                <th>
-                                    <a href="#" ng-click="interfaceManager.overviewSortField='id'; interfaceManager.overviewReverseSort = !interfaceManager.overviewReverseSort">
-                                        ID <span ng-show="interfaceManager.overviewSortField == 'id'"><span ng-show="!interfaceManager.overviewReverseSort">^</span><span ng-show="interfaceManager.overviewReverseSort">v</span></span>
-                                    </a>
-                                </th>
-                                <th>
-                                    <a href="#" ng-click="interfaceManager.overviewSortField='finalTemplateID'; interfaceManager.overviewReverseSort = !interfaceManager.overviewReverseSort">
-                                        Template ID<span ng-show="interfaceManager.overviewSortField == 'finalTemplateID'"><span ng-show="!interfaceManager.overviewReverseSort">^</span><span ng-show="interfaceManager.overviewReverseSort">v</span></span>
-                                    </a>
-                                </th>
-                                <th>
-                                    <a href="#" ng-click="interfaceManager.overviewSortField='finalTemplateName'; interfaceManager.overviewReverseSort = !interfaceManager.overviewReverseSort">
-                                        Template<span ng-show="interfaceManager.overviewSortField == 'finalTemplateName'"><span ng-show="!interfaceManager.overviewReverseSort">^</span><span ng-show="interfaceManager.overviewReverseSort">v</span></span>
-                                    </a>
-                                </th>
-                                <th>
-                                    <a href="#" ng-click="interfaceManager.overviewSortField='finalZ'; interfaceManager.overviewReverseSort = !interfaceManager.overviewReverseSort">
-                                        Redshift <span ng-show="interfaceManager.overviewSortField == 'finalZ'"><span ng-show="!interfaceManager.overviewReverseSort">^</span><span ng-show="interfaceManager.overviewReverseSort">v</span></span>
-                                    </a>
-                                </th>
-                                <th>
-                                    <a href="#" ng-click="interfaceManager.overviewSortField='manualQOP'; interfaceManager.overviewReverseSort = !interfaceManager.overviewReverseSort">
-                                        QOP <span ng-show="interfaceManager.overviewSortField == 'manualQOP'"><span ng-show="!interfaceManager.overviewReverseSort">^</span><span ng-show="interfaceManager.overviewReverseSort">v</span></span>
-                                    </a>
-                                </th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr ng-class="{activeSelect:interfaceManager.spectraIndex==i.index}" ng-click="$parent.setSpectraIndex(i.index)" ng-dblclick="$parent.goToDetailed()" ng-repeat="i in spectraManager.getAll()|orderBy:sortOverview:interfaceManager.overviewReverseSort">
-                                <td>{{i.id}}</td>
-                                <td>{{i.finalTemplateID}}</td>
-                                <td>{{i.finalTemplateName}}</td>
-                                <td>{{i.finalZ.toFixed(4)}}</td>
-                                <td>{{i.manualQOP}}</td>
-                            </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                <ng-include src="'views/centralOverview.html'" ng-show="interfaceManager.menuActive=='Overview'"></ng-include>
                 <div class="templateList" ng-show="interfaceManager.menuActive=='Templates'">
                     <ul class="list-unstyled">
                         <li class="overviewItem lined overviewLarge" ng-repeat="t in templateManager.getAll() track by t.id">
@@ -188,29 +139,7 @@
                     <div id="big" style="z-index: 999;"><canvas id="detailedCanvas" style="height: 100%; width: 100%"></canvas></div>
                     {{interfaceManager.renderDetailedInitial()}}
                 </div>
-                <div class="usage" ng-if="interfaceManager.menuActive=='Usage'">
-                    <div class="h1group lined">
-                        <h1>Manual Usage</h1><hr/>
-                        <h2>Loading in files</h2>
-                        <p>FITS files from the AAOmega spectrograph can be loaded into this application by dragging the file over the drop of the drag region to the top left of the screen.</p>
-                        <p>For quick usage, an example FITs file courtesy of Ivan Baldry is provided:</p>
-                        <ul>
-                            <li><a href="https://github.com/Samreay/ThesisZ/releases/download/0.1.0/G15_Y1_CN1.fits">G15_Y1_CN1</a></li>
-                        </ul>
-                        <h2>Analysing Spectra</h2>
-                        <p>The application begins immediately redshifting spectra in the background, presenting the preprocessed spectrum and the analysis when complete. Upon completion of analysing all available spectra, a results file is automatically downloaded.</p>
-                    </div>
-                    <div class="h1group lined">
-                        <h1>Using the Detailed View</h1>
-                        <hr/>
-                        <p>The detailed view allows users take processed spectra and manually redshift them. This can be accomplished in two main ways, matching templates or finding spectral lines.</p>
-                        <h2>Matching Templates</h2>
-                        <p>Templates can be cycled through in the right hand panel, with the redshift and scale of each template changed.</p>
-                        <h2>Assigning spectral lines</h2>
-                        <p>If obvious emission or absorption lines can be seen in the spectra, you can assign them to specific element transitions. This can be done via clicking on the graph at the point of interest, and then selecting a spectral line on the right hand side.</p>
-                        <p>Results can be saved via pressing the 'Save Template' button.</p>
-                    </div>
-                </div>
+                <ng-include src="'views/usage.html'" ng-if="interfaceManager.menuActive=='Usage'"></ng-include>
             </div>
         </div>
     </div>
@@ -237,8 +166,8 @@
                     <button class="btn btn-small btn-primary" ng-click="downloadResults()">Download</button>
                 </div>
                 <div class="fillrest">
-                    <progressbar ng-if="interfaceManager.analysing()" class="progress-striped active" max="interfaceManager.getNumSpectra()" value="interfaceManager.getNumAnalysed()" type="{{interfaceManager.getProgressBarType()}}"></progressbar>
-                    <progressbar ng-if="!interfaceManager.analysing()" class="progress-striped active" max="interfaceManager.getNumSpectra()" value="interfaceManager.getNumProcessed()" type="{{interfaceManager.getProgressBarType()}}"></progressbar>
+                    <progressbar animate="false" ng-if="interfaceManager.analysing()" class="progress-striped active" max="interfaceManager.getNumSpectra()" value="interfaceManager.getNumAnalysed()" type="{{interfaceManager.getProgressBarType()}}"></progressbar>
+                    <progressbar animate="false" ng-if="!interfaceManager.analysing()" class="progress-striped active" max="interfaceManager.getNumSpectra()" value="interfaceManager.getNumProcessed()" type="{{interfaceManager.getProgressBarType()}}"></progressbar>
                 </div>
             </div>
         </div>
