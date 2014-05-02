@@ -1,23 +1,42 @@
 <div class="usage">
     <div class="h1group lined">
-        <h1>Manual Usage</h1><hr/>
-        <h2>Loading in files</h2>
-        <p>FITS files from the AAOmega spectrograph can be loaded into this application by dragging the file over the drop of the drag region to the top left of the screen.</p>
+        <h1>Loading Files</h1><hr/>
+        <p>Files can be loaded into the system by dragging them over the top left hand dashed box. The application will accept <code>.fits</code> files from the AAOmega spectrograph containing spectra, and <code>.txt</code> files containing saved results.</p>
+
+        <p>To start from scratch, simply drag in a fits file and let the application start analysis. If you have previously been analysing the file and saved results, you can load these results back in by dragging in the previously download results file. The order of drag and drop does not matter. The application allows dragging them both in simultaneously, or in either order. Note that if you want to analyse a different fits file or stop using results, you must refresh the page (to be updated in the future).</p>
         <p>For quick usage, an example FITs file courtesy of Ivan Baldry is provided:</p>
         <ul>
             <li><a href="https://github.com/Samreay/ThesisZ/releases/download/0.1.0/G15_Y1_CN1.fits">G15_Y1_CN1</a></li>
         </ul>
-        <h2>Analysing Spectra</h2>
-        <p>The application begins immediately redshifting spectra in the background, presenting the preprocessed spectrum and the analysis when complete. Upon completion of analysing all available spectra, a results file is automatically downloaded.</p>
+        <h2>Background Tasks</h2>
+        <p>At the moment, the application processes spectra in two ways. Firstly, it iterates through all spectra and processes the raw data, providing smoothing, removal of cosmic rays, continuum subtraction and normalisation. It then goes back over the processed spectra and analyses them to find the best fitting template at a specific redshift. Whether or not the processing and analysing are done in the same instance or one after the other will become a configurable item.</p>
+        <p>The state of the current background iteration is shown in the progress bar at the bottom of the screen. A green bar, matching the green plots, represents the progress through processing the spectra. The progress of the red bar (which comes after the green has finished) and matches the colour of the templates, represents the progress through analysing the spectra. The bar will turn blue when all spectra have been assigned a redshift.</p>
     </div>
     <div class="h1group lined">
-        <h1>Using the Detailed View</h1>
+        <h1>The Overview Screen</h1>
         <hr/>
-        <p>The detailed view allows users take processed spectra and manually redshift them. This can be accomplished in two main ways, matching templates or finding spectral lines.</p>
+        <p>The overview screen allows a high level overview of all spectra to be quickly given to the user. Through the control menu on the right hand side of the screen, users can toggle data sets on and off.</p>
+        <p>Users can also switch between a graphical overview, and a more compact table view, which allows sorting of the spectra based on ID, template, redshift or QOP. Sorting of the graphical view is coming very soon.</p>
+    </div>
+    <div class="h1group lined">
+        <h1>The Detail Screen</h1>
+        <hr/>
+        <p>The detailed view allows users take processed spectra and manually redshift them. This can be accomplished in two main ways, matching templates or finding spectral lines. Note that keyboard shortcuts are not yet implemented.</p>
         <h2>Matching Templates</h2>
-        <p>Templates can be cycled through in the right hand panel, with the redshift and scale of each template changed.</p>
+        <p>Templates can be cycled through in the right hand control panel, with the redshift and scale of each template changed. Whilst at the moment the only way to change the redshift is to move the redshift slider or type in the desired redshift, the ability to slide the template plot left and right is going to be added in.</p>
         <h2>Assigning spectral lines</h2>
-        <p>If obvious emission or absorption lines can be seen in the spectra, you can assign them to specific element transitions. This can be done via clicking on the graph at the point of interest, and then selecting a spectral line on the right hand side.</p>
-        <p>Results can be saved via pressing the 'Save Template' button.</p>
+        <p>If obvious emission or absorption lines can be seen in the spectra, you can assign them to specific element transitions. This can be done via clicking on the graph at the point of interest, and then selecting a spectral line on the right hand side. This will update the redshift of the template. It can be desirable when matching spectral lines to hide the template and raw data graphs, which is done by clicking on them on the top right hand corner, the same as in the overview page.</p>
+        <h2>Saving Results</h2>
+        <p>Results can be saved via pressing any one of the "Save this redshift with a QOP of..." buttons. A spectra that has only gone through the manual processing will have a QOP of 0 by default. Eventually automatically assigned redshifts will be given their own automatic QOP, distinct from a manually assigned one. Saved results can be downloaded by clicking the "Download" button on the bottom right hand corner of the screen.</p>
+    </div>
+    <div class="h1group lined">
+        <h1>The Templates Screen</h1>
+        <hr/>
+        <p>The templates screen for now only provides a simple graphical view of all the templates used by the application to match spectra.</p>
+    </div>
+    <div class="h1group lined">
+        <h1>The Settings Screen</h1>
+        <hr/>
+        <p>As of now, the Settings screen is empty. Eventually, this will be replaced by a form system, in which users can change the settings of the application (where changed settings are stored in cookie values). Current settings in the backend of the program include the number of CPU cores, whether or not to process and analyse spectra at the same time, and whether a results file should be downloaded automatically when the application has finished automatically matching spectra (currently false).</p>
     </div>
 </div>
