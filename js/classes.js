@@ -177,6 +177,9 @@ function Spectra(index, id, lambda, intensity, variance) {
 Spectra.prototype.getFinalTemplate = function() {
     return this.finalTemplateIndex;
 }
+Spectra.prototype.getFinalTemplateID = function() {
+    return this.finalTemplateID;
+}
 Spectra.prototype.setTemplateManager = function(templateManager) {
     this.templateManager = templateManager;
 }

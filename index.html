@@ -59,8 +59,8 @@
                         <li ng-class-even="'even'" ng-repeat="i in spectraManager.getAll() track by i.id" ng-dblclick="$parent.goToDetailed()" ng-click="$parent.setSpectraIndex(i.index)" ng-class="{activeSelect:interfaceManager.spectraIndex==i.index}" class="spectraSmall">
                             <p><b>{{i.id}}</b></p>
                             <div class="info" id="spectra{{i.id}}">
-                                <p ng-show="i.templateIndex==null">Not analysed</p>
-                                <p ng-show="i.templateIndex!=null">{{i.getFinalTemplate()}},  z={{i.getFinalRedshift().toFixed(4)}},      &Chi;<sup>2</sup>: {{i.templateChi2.toFixed(0)}}</p>
+                                <p ng-show="i.finalZ==null">Not analysed</p>
+                                <p ng-show="i.finalZ!=null">{{i.getFinalTemplateID()}},  z={{i.getFinalRedshift().toFixed(4)}},      QOP: {{i.getQOP().toFixed(0)}}</p>
                             </div>
                         </li>
                     </ul>
@@ -129,7 +129,7 @@
                 <div class="overviewList" ng-show="interfaceManager.menuActive=='Overview'">
                     <ul class="list-unstyled" ng-show="interfaceManager.overviewGraph">
                         <li class="overviewItem lined" ng-dblclick="$parent.goToDetailed()" ng-click="$parent.setSpectraIndex(i.index)" ng-class="{activeSelect:interfaceManager.spectraIndex==i.index}" ng-repeat="i in spectraManager.getAll() track by i.id">
-                            <div class="topbar"><b>ID: {{i.id}}</b><p ng-show="i.templateIndex!=null">T: {{i.getFinalTemplate()}}, z={{i.templateZ.toFixed(4)}} Chi2: {{i.templateChi2.toFixed(0)}}</p></div>
+                            <div class="topbar"><b>ID: {{i.id}}</b><p ng-show="i.templateIndex!=null">T: {{i.getFinalTemplateID()}}, z={{i.templateZ.toFixed(4)}} QOP: {{i.getQOP()}}</p></div>
                             <div class="graph"><canvas id="smallGraphCanvas{{$index}}" style="width:100%; height:100%;"></canvas>{{interfaceManager.renderOverview($index)}}</div>
                         </li>
                     </ul>
