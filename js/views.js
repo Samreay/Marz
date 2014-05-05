@@ -30,7 +30,7 @@ function InterfaceManager(scope, spectraManager, templateManager, processorManag
         matchedColour: "#AA0000",
         skyColour: "#009DFF",
         templateColour: '#8C0623'};
-
+    this.headerCollapsed = true;
     this.templateHasContinuum = 0;
     this.detailedViewTemplate = -1;
     this.detailedRecreate = false;
@@ -44,6 +44,11 @@ function InterfaceManager(scope, spectraManager, templateManager, processorManag
 
     this.renderOverviewDone = new Array();
 
+}
+InterfaceManager.prototype.getSpectralListHeight = function() {
+    var dropzone = $('.fitsFileSelector');
+    var max = $('#leftbar .spacing');
+    return (max.height() - dropzone.outerHeight() - 20) + 'px';
 }
 InterfaceManager.prototype.getInitialTemplate = function() {
     var spectra = this.spectraManager.getSpectra(this.spectraIndex);

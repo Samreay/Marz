@@ -74,7 +74,7 @@ nav, nav ul {
 
 
 div[dropzone] {
-    height: 230px;
+    /*height: 230px;*/
     border: 4px dashed #bbb;
     transition: border 0.25s;
     border-radius: 5px;
@@ -87,17 +87,17 @@ div[dropzone].dropover {
 }
 div[dropzone] ul {
     margin-top: 10px;
+    margin-bottom: 0;
 }
 div[dropzone] ul li {
-    margin-top: 3px;
+    line-height: 15px;
 }
 div[dropzone] ul li b {
-    width: 90px;
     display: inline-block;
 }
 
 .spectralList {
-    height: calc(100% - 250px);
+    /*height: calc(100% - 250px);*/
     width: 100%;
     overflow-y: auto;
     overflow-x: hidden;

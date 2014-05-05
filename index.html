@@ -46,21 +46,25 @@
         <div id="leftbar">
             <div class="spacing">
                 <div class="boxed fitsFileSelector" dropzone>
-                    <h3 class="centered" style="margin: 0;" ng-show="!fits.properties[0]">{{getDropText()}}</h3>
+                    <h4 class="centered" style="margin: 0; line-height: 1.4em" ng-show="!fits.properties[0]">{{getDropText()}}</h4>
                     <div class="info" ng-show="fits.properties[0]">
-                        <h4 class="centered"  style="margin: 0;">{{fits.properties[0].value}}</h4>
-                        <ul class="list-unstyled">
-                            <li ng-repeat="i in fits.properties | onlyDisplay"><b class="label">{{i.label}}:</b> {{i.displayValue}}</li>
-                        </ul>
+                        <!--<div class="center-block">-->
+                            <button class="btn btn-default btn-block" ng-click="interfaceManager.headerCollapsed = !interfaceManager.headerCollapsed"><b>{{fits.properties[0].value}}</b></button>
+                        <!--</div>-->
+                        <div collapse="interfaceManager.headerCollapsed">
+                            <ul class="list-unstyled">
+                                <li ng-repeat="i in fits.properties | onlyDisplay"><b class="label">{{i.label}}:</b> {{i.displayValue}}</li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
-                <div class="boxed lined spectralList">
+                <div class="boxed lined spectralList" style="height: {{interfaceManager.getSpectralListHeight()}}">
                     <ul class="list-unstyled">
                         <li ng-class-even="'even'" ng-repeat="i in spectraManager.getAll() track by i.id" ng-dblclick="$parent.goToDetailed()" ng-click="$parent.setSpectraIndex(i.index)" ng-class="{activeSelect:interfaceManager.spectraIndex==i.index}" class="spectraSmall">
                             <p><b>{{i.id}}</b></p>
                             <div class="info" id="spectra{{i.id}}">
                                 <p ng-show="i.finalZ==null">Not analysed</p>
-                                <p ng-show="i.finalZ!=null">{{i.getFinalTemplateID()}},  z={{i.getFinalRedshift().toFixed(4)}},      QOP: {{i.getQOP().toFixed(0)}}</p>
+                                <p ng-show="i.finalZ!=null">z={{i.getFinalRedshift().toFixed(4)}},  QOP: {{i.getQOP().toFixed(0)}}</p>
                             </div>
                         </li>
                     </ul>
