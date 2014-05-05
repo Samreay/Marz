@@ -88,8 +88,12 @@
                     <select style="width: 235px" ng-init="$parent.interfaceManager.detailedViewTemplate = -1" ng-change="$parent.changedTemplate()" ng-model="$parent.interfaceManager.detailedViewTemplate" data-ng-options="t.index as t.id + ' - ' + t.name for t in $parent.templateManager.getTemplatesAsJson()"></select>
 
                     <label>Scale: </label>
-                    <input style="width: 55px" type="text" ng-change="$parent.interfaceManager.detailedSettings.updateTemplateScale()" ng-model="$parent.interfaceManager.detailedSettings.templateScale">
+                    <input style="width: 55px" type="text" ng-model="$parent.interfaceManager.detailedSettings.templateScale">
                     <input style="width: 170px" type="range" min="{{$parent.interfaceManager.detailedSettings.minScale}}" max="{{$parent.interfaceManager.detailedSettings.maxScale}}"  step="0.01" ng-change="$parent.interfaceManager.detailedSettings.setTemplateScale()" ng-model="$parent.interfaceManager.detailedSettings.templateScale">
+
+                    <label>Offset: </label>
+                    <input style="width: 55px" type="text"  ng-model="$parent.interfaceManager.detailedSettings.templatePixelOffset">
+                    <input style="width: 170px" type="range" min="0" max="{{$parent.interfaceManager.detailedSettings.maxTemplatePixelOffset}}"  step="1" ng-change="$parent.interfaceManager.detailedSettings.setTemplateOffset()" ng-model="$parent.interfaceManager.detailedSettings.templatePixelOffset">
 
                     <label>Redshift: </label>
                     <input style="width: 55px" type="text" ng-change="$parent.changedTemplate()" ng-model="$parent.interfaceManager.detailedViewZ">

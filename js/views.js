@@ -308,7 +308,7 @@ InterfaceManager.prototype.getTemplateData = function () {
     if (!this.dispTemplate || this.detailedViewTemplate == -1) {
         return null;
     }
-    if (this.spectraManager.getSpectra(this.spectraIndex) == null) return;
+//    if (this.spectraManager.getSpectra(this.spectraIndex) == null) return;
     var r = this.templateManager.getShiftedLinearTemplate(this.detailedViewTemplate, this.getDetailedZ(), this.templateHasContinuum);
     this.detailedSettings.addData('template', false, this.interface.templateColour, r[0].slice(0), r[1].slice(0));
 }
@@ -344,7 +344,7 @@ function DetailedPlotSettings(interfaceManager, spectralLines) {
     this.stepColour = '#CCC';
     this.dragInteriorColour = 'rgba(38, 147, 232, 0.2)';
     this.dragOutlineColour = 'rgba(38, 147, 232, 0.6)';
-    this.spacingFactor = 1.4;
+    this.spacingFactor = 1.5;
 
     this.zoomOutWidth = 20;
     this.zoomOutHeight = 20;
@@ -371,6 +371,10 @@ function DetailedPlotSettings(interfaceManager, spectralLines) {
     this.displayingSpectralLines = false;
     this.spectralLineColour = 'rgba(0, 115, 255, 0.8)';
     this.spectralLineTextColour = '#FFFFFF';
+
+    this.maxTemplatePixelOffset = 100;
+    this.templatePixelOffset = 0;
+    this.skyStuckOnBottom = true;
 
     this.focusX = null;
     this.focusY = null;
@@ -402,6 +406,9 @@ DetailedPlotSettings.prototype.refreshSettings = function () {
 }
 DetailedPlotSettings.prototype.getCanvas = function() {
     return this.canvas;
+}
+DetailedPlotSettings.prototype.setTemplateOffset = function() {
+    this.redraw();
 }
 DetailedPlotSettings.prototype.setTemplateScale = function() {
     if (this.template == null) {
@@ -546,12 +553,20 @@ DetailedPlotSettings.prototype.renderPlots = function() {
         var xs = this.data[j].x;
         var ys = this.data[j].y;
         var disconnect = true;
+        var x = 0;
+        var y = 0;
+        var yOffset = 0;
+        if (this.data[j].id == 'template') {
+            yOffset = parseInt(this.templatePixelOffset);
+        }
         for (var i = 1; i < xs.length; i++) {
+            x = this.convertDataXToCanvasCoordinate(xs[i]);
+            y = this.convertDataYToCanvasCoordinate(ys[i]) - yOffset;
             if (disconnect == true) {
                 disconnect = false;
-                this.c.moveTo(this.convertDataXToCanvasCoordinate(xs[i]),this.convertDataYToCanvasCoordinate(ys[i]));
+                this.c.moveTo(x, y);
             } else {
-                this.c.lineTo(this.convertDataXToCanvasCoordinate(xs[i]),this.convertDataYToCanvasCoordinate(ys[i]));
+                this.c.lineTo(x, y);
             }
         }
         this.c.stroke();
