@@ -328,6 +328,7 @@ function ProcessorManager(numProcessors, scope, matchTogether) {
     this.scope = scope;
     this.processors = [];
     this.automatic = true;
+    this.activeProcessing = true;
     this.spectraManager = null;
     this.processQueue = [];
     this.processAndMatchTogether = matchTogether;
@@ -335,6 +336,13 @@ function ProcessorManager(numProcessors, scope, matchTogether) {
         this.processors.push(new Processor(this));
     }
     return this;
+}
+ProcessorManager.prototype.toggleActiveProcessing = function() {
+    this.activeProcessing = !this.activeProcessing;
+    this.processSpectra();
+}
+ProcessorManager.prototype.isPaused = function() {
+    return !this.activeProcessing;
 }
 ProcessorManager.prototype.setSpectra = function(spectraManager) {
     this.spectraManager = spectraManager;
@@ -366,7 +374,7 @@ ProcessorManager.prototype.isProcessing = function() {
     return false;
 }
 ProcessorManager.prototype.processSpectra = function() {
-    if (this.processQueue.length > 0) {
+    if (this.processQueue.length > 0 && this.activeProcessing) {
         var processor = this.getFreeProcessor();
         while (processor) {
             var d = this.processQueue.shift();

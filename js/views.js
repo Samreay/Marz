@@ -42,6 +42,13 @@ function InterfaceManager(scope, spectraManager, templateManager, processorManag
     this.renderOverviewDone = new Array();
 
 }
+InterfaceManager.prototype.getPausedText = function() {
+    if (this.processorManager.isPaused()) {
+        return "Resume";
+    } else {
+        return "Pause";
+    }
+}
 InterfaceManager.prototype.changeRawSmooth = function() {
     this.renderDetailedInitial();
 }
