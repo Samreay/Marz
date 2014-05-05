@@ -45,6 +45,14 @@ function InterfaceManager(scope, spectraManager, templateManager, processorManag
     this.renderOverviewDone = new Array();
 
 }
+InterfaceManager.prototype.getInitialTemplate = function() {
+    var spectra = this.spectraManager.getSpectra(this.spectraIndex);
+    if (spectra == null || spectra.finalTemplateIndex == null) {
+        return -1;
+    } else {
+        return this.spectra.finalTemplateIndex;
+    }
+}
 InterfaceManager.prototype.getPausedText = function() {
     if (this.processorManager.isPaused()) {
         return "Resume";
@@ -373,7 +381,7 @@ function DetailedPlotSettings(interfaceManager, spectralLines) {
     this.spectralLineColour = 'rgba(0, 115, 255, 0.8)';
     this.spectralLineTextColour = '#FFFFFF';
 
-    this.maxTemplatePixelOffset = 100;
+    this.maxTemplatePixelOffset = 200;
     this.templatePixelOffset = 0;
     this.skyPosition = 440;
     this.skyAverage = 0;
