@@ -82,13 +82,18 @@ TemplateManager.prototype.getPlottingShiftedLinearLambda = function(index, z, la
     var newLambda = this.getShiftedLinearLambda(index, z);
     return interpolate(lambda, newLambda, t.spec_linear);
 };
-TemplateManager.prototype.getShiftedLinearTemplate = function(index, z) {
+TemplateManager.prototype.getShiftedLinearTemplate = function(index, z, withContinuum) {
     if (index == null || z == null) {
         return [null, null];
     }
     var t = this.templates[index];
     var lambda = this.getShiftedLinearLambda(index, z);
-    return [lambda, t.spec_linear];
+    if (withContinuum) {
+        return [lambda, t.specWithContinuum_linear];
+
+    } else {
+        return [lambda, t.spec_linear];
+    }
 };
 TemplateManager.prototype.getShiftedLinearLambda = function(index, z) {
     var t = this.templates[index];
@@ -106,8 +111,10 @@ TemplateManager.prototype.processTemplates = function() {
             t.start_lambda = t.lambda[0];
             t.end_lambda = t.lambda[t.lambda.length - 1];
         }
+        t.specWithContinuum = t.spec.slice(0);
         subtractPolyFit(t.lambda, t.spec);
         normaliseViaArea(t.spec);
+        normaliseViaArea(t.specWithContinuum);
         t.start_lambda_linear = Math.pow(10, t.lambda[0]);
         t.end_lambda_linear = Math.pow(10, t.lambda[t.lambda.length - 1]);
         t.lambda_linear = linearScale(t.start_lambda_linear, t.end_lambda_linear, t.spec.length);
@@ -116,6 +123,7 @@ TemplateManager.prototype.processTemplates = function() {
             tempLambda.push(Math.pow(10, t.lambda[j]));
         }
         t.spec_linear = interpolate(t.lambda_linear, tempLambda, t.spec);
+        t.specWithContinuum_linear = interpolate(t.lambda_linear, tempLambda, t.specWithContinuum);
     }
 };
 TemplateManager.prototype.getName = function(i) {

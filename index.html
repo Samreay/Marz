@@ -94,6 +94,11 @@
                     <label>Redshift: </label>
                     <input style="width: 55px" type="text" ng-change="$parent.changedTemplate()" ng-model="$parent.interfaceManager.detailedViewZ">
                     <input style="width: 170px" type="range" min={{$parent.interfaceManager.getMinRedshiftForDetailedTemplate()}} max="{{$parent.interfaceManager.detailedViewZMax}}" step="0.0001" ng-change="$parent.interfaceManager.detailedUpdateRequired=true" ng-model="$parent.interfaceManager.detailedViewZ">
+
+                    <label class="checkbox" style="width: 250px">
+                        <input type="checkbox" ng-model="interfaceManager.templateHasContinuum">
+                        Display template with continuum
+                    </label>
                     <div class="clear"></div>
                 </div>
                 <div class="topspace" ng-if="interfaceManager.menuActive=='Detailed'">

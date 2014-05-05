@@ -31,6 +31,7 @@ function InterfaceManager(scope, spectraManager, templateManager, processorManag
         skyColour: "#009DFF",
         templateColour: '#8C0623'};
 
+    this.templateHasContinuum = 0;
     this.detailedViewTemplate = -1;
     this.detailedRecreate = false;
     this.detailedViewZ = 0;
@@ -152,6 +153,9 @@ InterfaceManager.prototype.getDetailedTemplate = function() {
     return this.templateManager.templates[this.detailedViewTemplate];
 }
 InterfaceManager.prototype.getMinRedshiftForDetailedTemplate = function() {
+    if (this.detailedViewTemplate == -1) {
+        return 0;
+    }
     return this.getDetailedTemplate().redshift;
 }
 InterfaceManager.prototype.renderTemplate = function (i) {
@@ -305,7 +309,7 @@ InterfaceManager.prototype.getTemplateData = function () {
         return null;
     }
     if (this.spectraManager.getSpectra(this.spectraIndex) == null) return;
-    var r = this.templateManager.getShiftedLinearTemplate(this.detailedViewTemplate, this.getDetailedZ());
+    var r = this.templateManager.getShiftedLinearTemplate(this.detailedViewTemplate, this.getDetailedZ(), this.templateHasContinuum);
     this.detailedSettings.addData('template', false, this.interface.templateColour, r[0].slice(0), r[1].slice(0));
 }
 InterfaceManager.prototype.clickSpectralLine= function(id) {
