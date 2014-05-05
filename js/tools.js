@@ -434,7 +434,20 @@ function normaliseViaAbsoluteDeviation(array, variance) {
         }
     }
 }
-
+function cropSky(array, maxValue) {
+    for (var i = 0; i < array.length; i++) {
+        if (array[i] > maxValue) {
+            array[i] = maxValue;
+        }
+    }
+}
+function getAverage(array) {
+    var sum = 0;
+    for (var i = 0; i < array.length; i++) {
+        sum += array[i];
+    }
+    return sum / array.length;
+}
 function normaliseViaArea(array, variance, val) {
     var a = val == null ? normalised_area : val;
     var area = getAreaInArray(array, 0, array.length - 1);

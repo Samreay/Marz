@@ -294,6 +294,7 @@ InterfaceManager.prototype.getStaticData = function () {
     if (this.dispRaw && spectra.intensity != null) {
         this.detailedSettings.addData('raw',true, this.interface.rawColour,
             spectra.lambda, spectra.intensity, spectra.variance);
+        this.detailedSettings.setSkyAverage(spectra.skyAverage);
     }
     if (this.dispProcessed && spectra.processedIntensity != null) {
         this.detailedSettings.addData('processed',true,this.interface.processedColour,
@@ -337,7 +338,7 @@ function DetailedPlotSettings(interfaceManager, spectralLines) {
 
     this.templateScale = '1';
     this.minScale = 0.2;
-    this.maxScale = 3;
+    this.maxScale = 4;
 
     this.axesColour = '#444';
     this.zeroLineColour = '#444';
@@ -374,7 +375,8 @@ function DetailedPlotSettings(interfaceManager, spectralLines) {
 
     this.maxTemplatePixelOffset = 100;
     this.templatePixelOffset = 0;
-    this.skyStuckOnBottom = true;
+    this.skyPosition = 440;
+    this.skyAverage = 0;
 
     this.focusX = null;
     this.focusY = null;
@@ -383,6 +385,9 @@ function DetailedPlotSettings(interfaceManager, spectralLines) {
     this.focusCosmeticColour = 'rgba(104, 0, 103, 0.9)';
     this.focusCosmeticMaxRadius = 6;
     this.waitingForSpectra = false;
+}
+DetailedPlotSettings.prototype.setSkyAverage = function(skyAverage) {
+    this.skyAverage = skyAverage
 }
 DetailedPlotSettings.prototype.toggleSpectralLines = function() {
     this.displayingSpectralLines = !this.displayingSpectralLines;
@@ -558,6 +563,9 @@ DetailedPlotSettings.prototype.renderPlots = function() {
         var yOffset = 0;
         if (this.data[j].id == 'template') {
             yOffset = parseInt(this.templatePixelOffset);
+        } else if (this.data[j].id == 'sky') {
+            var position = this.convertDataYToCanvasCoordinate(this.skyAverage);
+            yOffset = position - this.skyPosition;
         }
         for (var i = 1; i < xs.length; i++) {
             x = this.convertDataXToCanvasCoordinate(xs[i]);
