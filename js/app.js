@@ -214,4 +214,7 @@ function MainController($scope, $timeout) {
         }
     }
     $(window).on("resize",$scope.resizeEvent);
+    $(window).on('beforeunload', function(){
+        return 'Please ensure results are saved before navigating away.';
+    });
 }
