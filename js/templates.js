@@ -141,7 +141,7 @@ TemplateManager.prototype.getIndexFromID = function(id) {
     return null;
 };
 TemplateManager.prototype.getTemplatesAsJson = function() {
-    var data = [];
+    var data = [{index: -1, id: 0, name: "Select a template"}];
     for (var i = 0; i < this.templates.length; i++) {
         data.push({index: i, id: this.templates[i].id, name: this.templates[i].name});
     }

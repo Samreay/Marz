@@ -85,7 +85,7 @@
                 </div>
                 <div class="topspace" ng-if="interfaceManager.menuActive=='Detailed'">
                     <label>Template:</label>
-                    <select style="width: 235px" ng-change="$parent.changedTemplate()" ng-model="$parent.interfaceManager.detailedViewTemplate" data-ng-options="t.index as t.id + ' - ' + t.name for t in $parent.templateManager.getTemplatesAsJson()"></select>
+                    <select style="width: 235px" ng-init="$parent.interfaceManager.detailedViewTemplate = -1" ng-change="$parent.changedTemplate()" ng-model="$parent.interfaceManager.detailedViewTemplate" data-ng-options="t.index as t.id + ' - ' + t.name for t in $parent.templateManager.getTemplatesAsJson()"></select>
 
                     <label>Scale: </label>
                     <input style="width: 55px" type="text" ng-change="$parent.interfaceManager.detailedSettings.updateTemplateScale()" ng-model="$parent.interfaceManager.detailedSettings.templateScale">

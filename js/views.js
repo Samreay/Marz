@@ -31,7 +31,7 @@ function InterfaceManager(scope, spectraManager, templateManager, processorManag
         skyColour: "#009DFF",
         templateColour: '#8C0623'};
 
-    this.detailedViewTemplate = 0;
+    this.detailedViewTemplate = -1;
     this.detailedRecreate = false;
     this.detailedViewZ = 0;
     this.detailViewSmoothMax = 5;
@@ -301,7 +301,7 @@ InterfaceManager.prototype.getStaticData = function () {
     }
 }
 InterfaceManager.prototype.getTemplateData = function () {
-    if (!this.dispTemplate) {
+    if (!this.dispTemplate || this.detailedViewTemplate == -1) {
         return null;
     }
     if (this.spectraManager.getSpectra(this.spectraIndex) == null) return;
