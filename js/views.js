@@ -279,8 +279,8 @@ InterfaceManager.prototype.renderDetailedInitial = function() {
         }
         this.detailedSettings.refreshSettings();
         this.detailedSettings.clearData();
-        this.getStaticData();
         this.getTemplateData();
+        this.getStaticData();
         this.detailedSettings.redraw();
     }
 }
