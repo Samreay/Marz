@@ -166,6 +166,11 @@ InterfaceManager.prototype.getMinRedshiftForDetailedTemplate = function() {
     }
     return this.getDetailedTemplate().redshift;
 }
+InterfaceManager.prototype.renderAlltemplates = function() {
+    for (var i = 0; i < this.templateManager.getAll().length; i++) {
+        this.renderTemplate(i);
+    }
+}
 InterfaceManager.prototype.renderTemplate = function (i) {
     var canvas = document.getElementById('smallTemplateCanvas' + i);
     var arr = this.templateManager.getTemplateLambda(i);

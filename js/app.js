@@ -164,6 +164,9 @@ function MainController($scope, $timeout) {
         if ($scope.interfaceManager.detailedCanvas != null) {
             $scope.interfaceManager.detailedSettings.redraw();
         }
+        if ($scope.interfaceManager.menuActive == 'Templates') {
+            $scope.interfaceManager.renderAlltemplates();
+        }
     }
 
     $scope.changedTemplate = function() {
