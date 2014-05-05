@@ -107,8 +107,17 @@ function FitsFile(filename, fits, scope) {
     ];
 
     this.spectra = [];
-    this.getFibres(fits);
+    this.sky = [];
+    this.getSky(fits);
 
+}
+FitsFile.prototype.getSky = function(fits) {
+    fits.getDataUnit(7).getFrame(0, function(data, opt) {
+        opt.sky = Array.prototype.slice.call(data);
+        removeNaNs(opt.sky);
+        normaliseViaArea(opt.sky, null, 30000);
+        opt.getFibres(fits);
+    }, this);
 }
 FitsFile.prototype.getFibres = function(fits) {
     fits.getDataUnit(2).getColumn("TYPE", function(data, opt) {
@@ -139,7 +148,7 @@ FitsFile.prototype.getVariances = function(fits) {
         }
         var spec = [];
         for (var i = 0; i < opt.spectra.length; i++) {
-            spec.push(new Spectra(opt.spectra[i].index, opt.spectra[i].id, opt.lambda.slice(0), opt.spectra[i].intensity, opt.spectra[i].variance));
+            spec.push(new Spectra(opt.spectra[i].index, opt.spectra[i].id, opt.lambda.slice(0), opt.spectra[i].intensity, opt.spectra[i].variance, opt.sky));
         }
         opt.scope.spectraManager.setSpectra(spec);
         opt.scope.$digest();
@@ -148,10 +157,13 @@ FitsFile.prototype.getVariances = function(fits) {
 
 
 
-function Spectra(index, id, lambda, intensity, variance) {
+
+function Spectra(index, id, lambda, intensity, variance, sky) {
     //TODO: Remove index, use $index instead
     this.index = index;
     this.id = id;
+
+    this.sky = sky;
 
     this.lambda = lambda;
     this.intensity = intensity;

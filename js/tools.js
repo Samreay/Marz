@@ -300,6 +300,17 @@ function plot(xs, data, colour, canvas, bounds) {
 function endsWith(str, suffix) {
     return str.indexOf(suffix, str.length - suffix.length) !== -1;
 }
+function removeNaNs(y) {
+    for (var i = 0; i < y.length; i++) {
+        if (isNaN(y[i])) {
+            if (i == 0) {
+                y[i] = 0;
+            } else {
+                y[i] = y[i - 1];
+            }
+        }
+    }
+}
 function fastSmooth(y, num) {
     if (num == 0) {
         return y;
@@ -424,9 +435,10 @@ function normaliseViaAbsoluteDeviation(array, variance) {
     }
 }
 
-function normaliseViaArea(array, variance) {
+function normaliseViaArea(array, variance, val) {
+    var a = val == null ? normalised_area : val;
     var area = getAreaInArray(array, 0, array.length - 1);
-    var r = normalised_area / area;
+    var r = a / area;
     for (var j = 0; j < array.length; j++) {
         array[j] = array[j] * r;
         if (variance != null) {

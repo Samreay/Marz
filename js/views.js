@@ -11,6 +11,7 @@ function InterfaceManager(scope, spectraManager, templateManager, processorManag
 
     this.dispRaw = 1;
     this.dispProcessed = 1;
+    this.dispSky = 1;
     this.dispTemplate = 1;
     this.changedRaw = 1;
     this.changedProcessed = 1;
@@ -27,6 +28,7 @@ function InterfaceManager(scope, spectraManager, templateManager, processorManag
         rawColour: "#E8BA6B",
         processedColour: "#058518",
         matchedColour: "#AA0000",
+        skyColour: "#009DFF",
         templateColour: '#8C0623'};
 
     this.detailedViewTemplate = 0;
@@ -73,6 +75,13 @@ InterfaceManager.prototype.getButtonColour = function(category) {
     if (category == 'templ') {
         if (this.dispTemplate) {
             return this.interface.templateColour;
+        } else {
+            return this.interface.unselected;
+        }
+    }
+    if (category == 'sky') {
+        if (this.dispSky) {
+            return this.interface.skyColour;
         } else {
             return this.interface.unselected;
         }
@@ -285,6 +294,10 @@ InterfaceManager.prototype.getStaticData = function () {
     if (this.dispProcessed && spectra.processedIntensity != null) {
         this.detailedSettings.addData('processed',true,this.interface.processedColour,
             spectra.processedLambda, spectra.processedIntensity, spectra.processedVariance);
+    }
+    if (this.dispSky) {
+        this.detailedSettings.addData('sky', false, this.interface.skyColour,
+            spectra.lambda, spectra.sky)
     }
 }
 InterfaceManager.prototype.getTemplateData = function () {

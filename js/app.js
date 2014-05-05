@@ -137,6 +137,9 @@ function MainController($scope, $timeout) {
         } else if (category == 'templ') {
             $scope.interfaceManager.dispTemplate = 1 - $scope.interfaceManager.dispTemplate;
             $scope.interfaceManager.changedTemplate = 1;
+        } else if (category == 'sky') {
+            $scope.interfaceManager.dispSky = 1 - $scope.interfaceManager.dispSky;
+            $scope.interfaceManager.changedTemplate = 1;
         }
         //TODO: Consider making this only if the overview screen is active
         for (var i = 0; i < $scope.spectraManager.getAll().length; i++) {
