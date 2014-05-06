@@ -4,53 +4,7 @@
 </div>
 <div id="detailedControl" ng-if="interfaceManager.menuActive=='Detailed'" class="row" style="margin-right: 0;">
     <div class="col-md-7">
-        <b>Template Options:</b>
-        <div class="detailedInput">
-            <label>Template:</label>
-            <select style="width: 180px" ng-init="$parent.interfaceManager.detailedViewTemplate = $parent.interfaceManager.getInitialTemplate()" ng-change="$parent.changedTemplate()" ng-model="$parent.interfaceManager.detailedViewTemplate" data-ng-options="t.index as t.id + ' - ' + t.name for t in $parent.templateManager.getTemplatesAsJson()"></select>
-        </div>
-        <div class="detailedInput">
-            <div style="float: left; width:140px">
-                <label>Scale: </label>
-                <input style="width: 55px" type="text" ng-model="$parent.interfaceManager.detailedSettings.templateScale">
-             </div>
-            <div  style="margin-left: 140px">
-                <input type="range" min="{{$parent.interfaceManager.detailedSettings.minScale}}" max="{{$parent.interfaceManager.detailedSettings.maxScale}}"  step="0.01" ng-change="$parent.interfaceManager.detailedSettings.setTemplateScale()" ng-model="$parent.interfaceManager.detailedSettings.templateScale">
-            </div>
-            <div class="clear"></div>
-        </div>
-        <div class="detailedInput">
-            <div style="float: left; width:140px">
-                <label>Offset: </label>
-                <input style="width: 55px" type="text"  ng-model="$parent.interfaceManager.detailedSettings.templatePixelOffset">
-            </div>
-            <div  style="margin-left: 140px">
-                <input type="range" min="0" max="{{$parent.interfaceManager.detailedSettings.maxTemplatePixelOffset}}"  step="1" ng-change="$parent.interfaceManager.detailedSettings.setTemplateOffset()" ng-model="$parent.interfaceManager.detailedSettings.templatePixelOffset">
-            </div>
-            <div class="clear"></div>
-        </div>
-        <div class="detailedInput">
-            <div style="float: left; width:140px">
-                <label>Redshift: </label>
-                <input style="width: 55px" type="text" ng-change="$parent.changedTemplate()" ng-model="$parent.interfaceManager.detailedViewZ">
-            </div>
-            <div  style="margin-left: 140px">
-                <input type="range" min={{$parent.interfaceManager.getMinRedshiftForDetailedTemplate()}} max="{{$parent.interfaceManager.detailedViewZMax}}" step="0.0001" ng-change="$parent.interfaceManager.detailedUpdateRequired=true" ng-model="$parent.interfaceManager.detailedViewZ">
-            </div>
-            <div class="clear"></div>
-        </div>
-        <div class="detailedInput">
-            <div class="btn-group btn-group-justified">
-                <div class="btn-group">
-                    <button class="btn btn-sm btn-default" ng-model="interfaceManager.templateHasContinuum" btn-radio="false">Without continuum</button>
-                </div>
-                <div class="btn-group">
-                    <button class="btn btn-sm btn-default" ng-model="interfaceManager.templateHasContinuum" btn-radio="true">With continuum</button>
-                </div>
-            </div>
-        </div>
-        <div class="clear"></div>
-        <div class="topspace">
+        <div>
             <b>Save this redshift with a QOP of:</b>
             <div class="btn-group btn-group-justified">
                 <div class="btn-group">
@@ -67,6 +21,55 @@
                 </div>
             </div>
         </div>
+        <div class="topspace">
+
+            <b>Template Options:</b>
+            <div class="detailedInput">
+                <label>Template:</label>
+                <select style="width: 180px" ng-init="$parent.interfaceManager.detailedViewTemplate = $parent.interfaceManager.getInitialTemplate()" ng-change="$parent.changedTemplate()" ng-model="$parent.interfaceManager.detailedViewTemplate" data-ng-options="t.index as t.id + ' - ' + t.name for t in $parent.templateManager.getTemplatesAsJson()"></select>
+            </div>
+            <div class="detailedInput">
+                <div style="float: left; width:140px">
+                    <label>Scale: </label>
+                    <input style="width: 55px" type="text" ng-model="$parent.interfaceManager.detailedSettings.templateScale">
+                 </div>
+                <div  style="margin-left: 140px">
+                    <input type="range" min="{{$parent.interfaceManager.detailedSettings.minScale}}" max="{{$parent.interfaceManager.detailedSettings.maxScale}}"  step="0.01" ng-change="$parent.interfaceManager.detailedSettings.setTemplateScale()" ng-model="$parent.interfaceManager.detailedSettings.templateScale">
+                </div>
+                <div class="clear"></div>
+            </div>
+            <div class="detailedInput">
+                <div style="float: left; width:140px">
+                    <label>Offset: </label>
+                    <input style="width: 55px" type="text"  ng-model="$parent.interfaceManager.detailedSettings.templatePixelOffset">
+                </div>
+                <div  style="margin-left: 140px">
+                    <input type="range" min="0" max="{{$parent.interfaceManager.detailedSettings.maxTemplatePixelOffset}}"  step="1" ng-change="$parent.interfaceManager.detailedSettings.setTemplateOffset()" ng-model="$parent.interfaceManager.detailedSettings.templatePixelOffset">
+                </div>
+                <div class="clear"></div>
+            </div>
+            <div class="detailedInput">
+                <div style="float: left; width:140px">
+                    <label>Redshift: </label>
+                    <input style="width: 55px" type="text" ng-change="$parent.changedTemplate()" ng-model="$parent.interfaceManager.detailedViewZ">
+                </div>
+                <div  style="margin-left: 140px">
+                    <input type="range" min={{$parent.interfaceManager.getMinRedshiftForDetailedTemplate()}} max="{{$parent.interfaceManager.detailedViewZMax}}" step="0.0001" ng-change="$parent.interfaceManager.detailedUpdateRequired=true" ng-model="$parent.interfaceManager.detailedViewZ">
+                </div>
+                <div class="clear"></div>
+            </div>
+            <div class="detailedInput">
+                <div class="btn-group btn-group-justified">
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-default" ng-model="interfaceManager.templateHasContinuum" btn-radio="false">Without continuum</button>
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-default" ng-model="interfaceManager.templateHasContinuum" btn-radio="true">With continuum</button>
+                    </div>
+                </div>
+            </div>
+            <div class="clear"></div>
+       </div>
     </div>
     <div class="col-md-5">
         <div>
