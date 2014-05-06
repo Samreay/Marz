@@ -393,7 +393,7 @@ function DetailedPlotSettings(interfaceManager, spectralLines) {
 
     this.maxTemplatePixelOffset = 200;
     this.templatePixelOffset = 0;
-    this.skyPosition = 440;
+    this.skyPosition = 340;
     this.skyAverage = 0;
 
     this.focusX = null;
