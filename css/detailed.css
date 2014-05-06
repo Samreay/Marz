@@ -74,7 +74,7 @@ nav, nav ul {
 
 
 div[dropzone] {
-    height: 230px;
+    /*height: 230px;*/
     border: 4px dashed #bbb;
     transition: border 0.25s;
     border-radius: 5px;
@@ -87,17 +87,17 @@ div[dropzone].dropover {
 }
 div[dropzone] ul {
     margin-top: 10px;
+    margin-bottom: 0;
 }
 div[dropzone] ul li {
-    margin-top: 3px;
+    line-height: 15px;
 }
 div[dropzone] ul li b {
-    width: 90px;
     display: inline-block;
 }
 
 .spectralList {
-    height: calc(100% - 250px);
+    /*height: calc(100% - 250px);*/
     width: 100%;
     overflow-y: auto;
     overflow-x: hidden;
@@ -206,7 +206,7 @@ div[dropzone] ul li b {
 
 #big {
     width: 100%;
-    height: 500px;
+    height: 400px;
 }
 
 #detailedCanvas {
@@ -215,12 +215,12 @@ div[dropzone] ul li b {
 /************************************/
 /*    CSS FOR THE RIGHT SECTION     */
 /************************************/
-#rightbar b {
+#detailedControl b {
     display: block;
     width: 100%;
     margin-bottom: 10px;
 }
-#rightbar .button {
+#detailedControl .button {
     transition: background-color 0.25s;
     display: inline-block;
     padding: 5px 10px 5px 10px;
@@ -229,10 +229,10 @@ div[dropzone] ul li b {
     margin-right: 10px;
 }
 
-#rightbar label, #rightbar select, #rightbar input {
+#detailedControl label, #detailedControl select, #detailedControl input {
     display: inline-block;
 }
-#rightbar label {
+#detailedControl label {
     width: 70px;
     height: 20px;
     margin-bottom: 10px;

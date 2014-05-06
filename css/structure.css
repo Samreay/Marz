@@ -26,7 +26,7 @@
 #leftbar {
     float: left;
     position: relative;
-    width: 250px;
+    width: 200px;
     height: 100%;
     overflow: auto;
 }
@@ -38,7 +38,7 @@
     overflow: auto;
 }
 #rightbar.nonzero{
-    width: 350px;
+    width: 330px;
 }
 #central {
     position: relative;
@@ -53,6 +53,9 @@
     width: 100%;
     /*height: calc(100% - 20px);*/
     /*width: calc(100% - 20px);*/
+}
+#leftbar .spacing {
+    overflow: hidden;
 }
 
 /****************************************************/

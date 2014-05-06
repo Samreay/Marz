@@ -45,44 +45,64 @@
     <div class="container-fluid">
         <div id="leftbar">
             <div class="spacing">
-                <div class="boxed fitsFileSelector" dropzone>
-                    <h3 class="centered" style="margin: 0;" ng-show="!fits.properties[0]">{{getDropText()}}</h3>
-                    <div class="info" ng-show="fits.properties[0]">
-                        <h4 class="centered"  style="margin: 0;">{{fits.properties[0].value}}</h4>
-                        <ul class="list-unstyled">
-                            <li ng-repeat="i in fits.properties | onlyDisplay"><b class="label">{{i.label}}:</b> {{i.displayValue}}</li>
-                        </ul>
+                <div id="topleftbar">
+                    <div class="boxed fitsFileSelector" dropzone>
+                        <h4 class="centered" style="margin: 0; line-height: 1.4em" ng-show="!fits.properties[0]">{{getDropText()}}</h4>
+                        <div class="info" ng-show="fits.properties[0]">
+                            <!--<div class="center-block">-->
+                                <button class="btn btn-default btn-block" ng-click="interfaceManager.headerCollapsed = !interfaceManager.headerCollapsed"><b>{{fits.properties[0].value}}</b></button>
+                            <!--</div>-->
+                            <div collapse="interfaceManager.headerCollapsed">
+                                <ul class="list-unstyled">
+                                    <li ng-repeat="i in fits.properties | onlyDisplay"><b class="label">{{i.label}}:</b> {{i.displayValue}}</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div ng-if="interfaceManager.menuActive=='Overview' || interfaceManager.menuActive=='Detailed'">
+                        <div class="dataselector">
+                            <b>Data Selection:</b>
+                            <button type="button" class='btn btn-warning btn-block btn-sm' ng-click="toggleDisp('raw')">Raw</button>
+                            <button type="button" class='btn btn-success btn-block btn-sm' ng-click="toggleDisp('pro')">Processed</button>
+                            <button type="button" class='btn btn-danger btn-block btn-sm'  ng-click="toggleDisp('templ')">Template</button>
+                            <button type="button" class='btn btn-info btn-block btn-sm'  ng-click="toggleDisp('sky')">Sky</button>
+                        </div>
+                        <div class="topspace" ng-if="interfaceManager.menuActive=='Overview'">
+                            <b>Display Data As:</b>
+                            <div class="btn-group btn-group-justified">
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-default " ng-click="interfaceManager.overviewGraph=true" ng-class="{active:(interfaceManager.overviewGraph==true)}">Graph</button>
+                                </div>
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-default " ng-click="interfaceManager.overviewGraph=false" ng-class="{active:(interfaceManager.overviewGraph==false)}">Table</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="boxed lined spectralList">
+                <div class="boxed lined spectralList topspace" style="height: {{interfaceManager.getSpectralListHeight()}}">
                     <ul class="list-unstyled">
                         <li ng-class-even="'even'" ng-repeat="i in spectraManager.getAll() track by i.id" ng-dblclick="$parent.goToDetailed()" ng-click="$parent.setSpectraIndex(i.index)" ng-class="{activeSelect:interfaceManager.spectraIndex==i.index}" class="spectraSmall">
                             <p><b>{{i.id}}</b></p>
                             <div class="info" id="spectra{{i.id}}">
                                 <p ng-show="i.finalZ==null">Not analysed</p>
-                                <p ng-show="i.finalZ!=null">{{i.getFinalTemplateID()}},  z={{i.getFinalRedshift().toFixed(4)}},      QOP: {{i.getQOP().toFixed(0)}}</p>
+                                <p ng-show="i.finalZ!=null">z={{i.getFinalRedshift().toFixed(4)}},  QOP: {{i.getQOP().toFixed(0)}}</p>
                             </div>
                         </li>
                     </ul>
                 </div>
             </div>
         </div>
-        <div id="rightbar" ng-class="{nonzero:(interfaceManager.menuActive=='Overview' || interfaceManager.menuActive=='Detailed')}">
-            <div ng-class="{spacing:(interfaceManager.menuActive=='Overview' || interfaceManager.menuActive=='Detailed')}">
-                <div class="dataselector" ng-show="interfaceManager.menuActive=='Overview' || interfaceManager.menuActive=='Detailed'">
+        <div id="rightbar">
+            <!--<div class="spacing">
+                <div class="dataselector" ng-show="interfaceManager.menuActive=='Detailed'">
                     <b>Data Selection:</b>
                     <button type="button" class='btn btn-warning' ng-click="toggleDisp('raw')">Raw</button>
                     <button type="button" class='btn btn-success' ng-click="toggleDisp('pro')">Processed</button>
                     <button type="button" class='btn btn-danger'  ng-click="toggleDisp('templ')">Template</button>
                     <button type="button" class='btn btn-info'  ng-click="toggleDisp('sky')">Sky</button>
                 </div>
-                <div class="topspace" ng-if="interfaceManager.menuActive=='Overview'">
-                    <b>Display Data As:</b>
-                    <div class="btn-group">
-                        <button type="button" class="btn btn-default" ng-click="interfaceManager.overviewGraph=true" ng-class="{active:(interfaceManager.overviewGraph==true)}">Graph</button>
-                        <button type="button" class="btn btn-default" ng-click="interfaceManager.overviewGraph=false" ng-class="{active:(interfaceManager.overviewGraph==false)}">Table</button>
-                    </div>
-                </div>
+
                 <div class="topspace" ng-if="interfaceManager.menuActive=='Detailed'">
                     <label>Template:</label>
                     <select style="width: 235px" ng-init="$parent.interfaceManager.detailedViewTemplate = $parent.interfaceManager.getInitialTemplate()" ng-change="$parent.changedTemplate()" ng-model="$parent.interfaceManager.detailedViewTemplate" data-ng-options="t.index as t.id + ' - ' + t.name for t in $parent.templateManager.getTemplatesAsJson()"></select>
@@ -132,7 +152,7 @@
                     </ul>
                     <button class="btn btn-primary"  style="display: block; width: 200px; margin: 0 auto;" ng-click="$parent.interfaceManager.detailedSettings.toggleSpectralLines()">{{getSpectralLinePhrase()}}</button>
                 </div>
-            </div>
+            </div>-->
         </div>
         <div id="central">
             <div class="spacing">
@@ -145,10 +165,7 @@
                         </li>
                     </ul>
                 </div>
-                <div class="detailedView" ng-show="interfaceManager.menuActive=='Detailed'">
-                    <div id="big" style="z-index: 999;"><canvas id="detailedCanvas" style="height: 100%; width: 100%"></canvas></div>
-                    {{interfaceManager.renderDetailedInitial()}}
-                </div>
+                <ng-include src="'views/centralDetailed.html'" ng-show="interfaceManager.menuActive=='Detailed'"></ng-include>
                 <ng-include src="'views/usage.html'" ng-if="interfaceManager.menuActive=='Usage'"></ng-include>
             </div>
         </div>
