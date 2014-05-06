@@ -101,6 +101,20 @@ InterfaceManager.prototype.getButtonColour = function(category) {
         }
     }
 }
+InterfaceManager.prototype.resetToAutomatic = function() {
+    var spectra = this.spectraManager.getSpectra(this.spectraIndex);
+    if (spectra != null && spectra.templateIndex != null) {
+        this.detailedViewTemplate =  spectra.templateIndex;
+        this.detailedViewZ = spectra.templateZ;
+    }
+}
+InterfaceManager.prototype.resetToManual = function() {
+    var spectra = this.spectraManager.getSpectra(this.spectraIndex);
+    if (spectra != null && spectra.manualZ != null) {
+        this.detailedViewTemplate =  spectra.manualTemplateIndex;
+        this.detailedViewZ = spectra.manualZ;
+    }
+}
 InterfaceManager.prototype.getNumSpectra = function () {
     return this.spectraManager.getAll().length;
 }
@@ -515,7 +529,7 @@ DetailedPlotSettings.prototype.getBounds = function() {
     }
     if (c == 0) {
         this.xMin = 3000;
-        this.xMax = 7000;
+        this.xMax = 9000;
         this.yMin = -500;
         this.yMax = 1000;
     } else {

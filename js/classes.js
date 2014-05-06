@@ -200,10 +200,14 @@ Spectra.prototype.getFinalRedshift = function() {
 }
 Spectra.prototype.setManual = function(redshift, templateIndex, qop) {
     this.finalZ = redshift;
+    this.manualZ = redshift;
     if (templateIndex != null) {
         this.finalTemplateIndex = templateIndex;
-        this.finalTemplateName = this.templateManager.getName(templateIndex);
-        this.finalTemplateID = this.templateManager.getID(templateIndex);
+        this.manualTemplateIndex = templateIndex;
+        if (templateIndex != -1) {
+            this.finalTemplateName = this.templateManager.getName(templateIndex);
+            this.finalTemplateID = this.templateManager.getID(templateIndex);
+        }
     }
     this.finalQOP = qop;
 }

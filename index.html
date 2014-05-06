@@ -65,7 +65,7 @@
                             <button type="button" class='btn btn-warning btn-block btn-sm' ng-click="toggleDisp('raw')">Raw</button>
                             <button type="button" class='btn btn-success btn-block btn-sm' ng-click="toggleDisp('pro')">Processed</button>
                             <button type="button" class='btn btn-danger btn-block btn-sm'  ng-click="toggleDisp('templ')">Template</button>
-                            <button type="button" class='btn btn-info btn-block btn-sm'  ng-click="toggleDisp('sky')">Sky</button>
+                            <button ng-if="interfaceManager.menuActive=='Detailed'" type="button" class='btn btn-info btn-block btn-sm'  ng-click="toggleDisp('sky')">Sky</button>
                         </div>
                         <div class="topspace" ng-if="interfaceManager.menuActive=='Overview'">
                             <b>Display Data As:</b>
