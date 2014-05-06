@@ -548,6 +548,12 @@ function convertVacuumFromAir(lambda) {
         lambda[i] = lambda[i] * (1 + 2.735192e-4 + (131.4182/Math.pow(lambda[i], 2)) + (2.76249E8 /Math.pow(lambda[i], 4)));
     }
 }
+function convertVacuumFromAirWithLogLambda(lambda) {
+    for (var i = 0; i < lambda.length; i++) {
+        var l = Math.pow(10, lambda[i]);
+        lambda[i] = Math.log(l * (1 + 2.735192e-4 + (131.4182/Math.pow(l, 2)) + (2.76249E8 /Math.pow(l, 4))));
+    }
+}
 function convertSingleVacuumFromAir(lambda) {
     return lambda * (1 + 2.735192e-4 + (131.4182/Math.pow(lambda, 2)) + (2.76249E8 /Math.pow(lambda, 4)));
 }

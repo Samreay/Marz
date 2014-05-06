@@ -356,7 +356,7 @@ function DetailedPlotSettings(interfaceManager, spectralLines) {
 
     this.templateScale = '1';
     this.minScale = 0.2;
-    this.maxScale = 4;
+    this.maxScale = 5;
 
     this.axesColour = '#444';
     this.zeroLineColour = '#444';
