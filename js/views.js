@@ -16,7 +16,7 @@ function InterfaceManager(scope, spectraManager, templateManager, processorManag
     this.changedRaw = 1;
     this.changedProcessed = 1;
     this.changedTemplate = 1;
-    this.detailedViewZMax = 4;
+    this.detailedViewZMax = 2.5;
 
     this.overviewGraph = true;
     this.overviewSortField = 'id';
@@ -31,7 +31,7 @@ function InterfaceManager(scope, spectraManager, templateManager, processorManag
         skyColour: "#009DFF",
         templateColour: '#8C0623'};
     this.headerCollapsed = true;
-    this.templateHasContinuum = 0;
+    this.templateHasContinuum = false;
     this.detailedViewTemplate = -1;
     this.detailedRecreate = false;
     this.detailedViewZ = 0;
@@ -46,7 +46,7 @@ function InterfaceManager(scope, spectraManager, templateManager, processorManag
 
 }
 InterfaceManager.prototype.getSpectralListHeight = function() {
-    var dropzone = $('.fitsFileSelector');
+    var dropzone = $('#topleftbar');
     var max = $('#leftbar .spacing');
     return (max.height() - dropzone.outerHeight() - 20) + 'px';
 }
@@ -514,8 +514,8 @@ DetailedPlotSettings.prototype.getBounds = function() {
         }
     }
     if (c == 0) {
-        this.xMin = 4000;
-        this.xMax = 9000;
+        this.xMin = 3000;
+        this.xMax = 7000;
         this.yMin = -500;
         this.yMax = 1000;
     } else {

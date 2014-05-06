@@ -39,7 +39,7 @@ function MainController($scope, $timeout) {
             var tid = spectra.getFinalTemplate();
             var tz = spectra.getFinalRedshift();
         }
-        $scope.interfaceManager.detailedViewTemplate = tid == null ? 0 : tid;
+        $scope.interfaceManager.detailedViewTemplate = tid == null ? -1 : tid;
         $scope.interfaceManager.detailedViewZ = tz == null? 0 : tz;
         $scope.interfaceManager.menuActive = 'Detailed';
         this.interfaceManager.updateDetailedData(true);
