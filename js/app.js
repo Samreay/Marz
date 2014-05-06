@@ -161,12 +161,13 @@ function MainController($scope, $timeout) {
     }
 
     $scope.resizeEvent = function() {
-        if ($scope.interfaceManager.detailedCanvas != null) {
-            $scope.interfaceManager.detailedSettings.redraw();
-        }
-        if ($scope.interfaceManager.menuActive == 'Templates') {
-            $scope.interfaceManager.renderAlltemplates();
-        }
+//        if ($scope.interfaceManager.detailedCanvas != null) {
+//            $scope.interfaceManager.detailedSettings.redraw();
+//        }
+//        if ($scope.interfaceManager.menuActive == 'Templates') {
+//            $scope.interfaceManager.renderAlltemplates();
+//        }
+        $scope.$apply();
     }
 
     $scope.changedTemplate = function() {
