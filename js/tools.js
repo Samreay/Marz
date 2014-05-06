@@ -551,7 +551,7 @@ function convertVacuumFromAir(lambda) {
 function convertVacuumFromAirWithLogLambda(lambda) {
     for (var i = 0; i < lambda.length; i++) {
         var l = Math.pow(10, lambda[i]);
-        lambda[i] = Math.log(l * (1 + 2.735192e-4 + (131.4182/Math.pow(l, 2)) + (2.76249E8 /Math.pow(l, 4))));
+        lambda[i] = Math.log(l * (1 + 2.735192e-4 + (131.4182/Math.pow(l, 2)) + (2.76249E8 /Math.pow(l, 4))))/Math.LN10;
     }
 }
 function convertSingleVacuumFromAir(lambda) {
