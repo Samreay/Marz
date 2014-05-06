@@ -109,7 +109,6 @@ function FitsFile(filename, fits, scope) {
     this.spectra = [];
     this.sky = [];
     this.getSky(fits);
-
 }
 FitsFile.prototype.getSky = function(fits) {
     fits.getDataUnit(7).getFrame(0, function(data, opt) {
@@ -129,9 +128,60 @@ FitsFile.prototype.getFibres = function(fits) {
                 opt.spectra.push({index: ind++, id: i+1, lambda: opt.lambda.slice(0), intensity: [], variance: [], miniRendered: 0});
             }
         }
-        opt.getSpectra(fits);
+        opt.getNames(fits);
     }, this);
 };
+FitsFile.prototype.getNames = function(fits) {
+    fits.getDataUnit(2).getColumn("NAME", function(data, opt) {
+        for (var i = 0; i < opt.spectra.length; i++) {
+            var j = opt.spectra[i].index;
+            opt.spectra[i].name = data[j];
+        }
+        opt.getRA(fits);
+    }, this);
+}
+FitsFile.prototype.getRA = function(fits) {
+    fits.getDataUnit(2).getColumn("RA", function(data, opt) {
+        for (var i = 0; i < opt.spectra.length; i++) {
+            var j = opt.spectra[i].index;
+            opt.spectra[i].ra = data[j];
+        }
+        opt.getDec(fits);
+    }, this);
+}
+FitsFile.prototype.getDec = function(fits) {
+    fits.getDataUnit(2).getColumn("DEC", function(data, opt) {
+        for (var i = 0; i < opt.spectra.length; i++) {
+            var j = opt.spectra[i].index;
+            opt.spectra[i].dec = data[j];
+        }
+        opt.getMagntidues(fits);
+    }, this);
+}
+FitsFile.prototype.getMagntidues = function(fits) {
+    fits.getDataUnit(2).getColumn("MAGNITUDE", function(data, opt) {
+        for (var i = 0; i < opt.spectra.length; i++) {
+            var j = opt.spectra[i].index;
+            opt.spectra[i].magnitude = data[j];
+        }
+        opt.getComments(fits);
+    }, this);
+}
+FitsFile.prototype.getComments = function(fits) {
+    fits.getDataUnit(2).getColumn("COMMENT", function(data, opt) {
+        for (var i = 0; i < opt.spectra.length; i++) {
+            var j = opt.spectra[i].index;
+            opt.spectra[i].type = data[j].split(' ')[0];
+            if (opt.spectra[i].type == 'Parked') {
+                opt.spectra.splice(i,1);
+                for (var j = i; j < opt.spectra.length; j++) {
+                    opt.spectra[j].index--;
+                }
+            }
+        }
+        opt.getSpectra(fits);
+    }, this);
+}
 FitsFile.prototype.getSpectra = function(fits) {
 
     fits.getDataUnit(0).getFrame(0, function(data, opt) {
@@ -150,7 +200,8 @@ FitsFile.prototype.getVariances = function(fits) {
         }
         var spec = [];
         for (var i = 0; i < opt.spectra.length; i++) {
-            spec.push(new Spectra(opt.spectra[i].index, opt.spectra[i].id, opt.lambda.slice(0), opt.spectra[i].intensity, opt.spectra[i].variance, opt.sky, opt.skyAverage));
+            spec.push(new Spectra(opt.spectra[i].index, opt.spectra[i].id, opt.lambda.slice(0), opt.spectra[i].intensity, opt.spectra[i].variance,
+                opt.sky, opt.skyAverage, opt.spectra[i].name, opt.spectra[i].ra, opt.spectra[i].dec, opt.spectra[i].magnitude, opt.spectra[i].type));
         }
         opt.scope.spectraManager.setSpectra(spec);
         opt.scope.$digest();
@@ -160,10 +211,15 @@ FitsFile.prototype.getVariances = function(fits) {
 
 
 
-function Spectra(index, id, lambda, intensity, variance, sky, skyAverage) {
+function Spectra(index, id, lambda, intensity, variance, sky, skyAverage, name, ra, dec, magnitude, type) {
     //TODO: Remove index, use $index instead
     this.index = index;
     this.id = id;
+    this.name = name;
+    this.ra = ra;
+    this.dec = dec;
+    this.magnitude = magnitude;
+    this.type = type;
 
     this.sky = sky;
     this.skyAverage = skyAverage;
@@ -245,9 +301,9 @@ Spectra.prototype.setResults = function(automaticTemplateID, automaticRedshift, 
 }
 Spectra.prototype.getAsJson = function(getOriginal) {
     if (getOriginal || this.processedIntensity == null) {
-        return {'hasAutomaticMatch': this.templateZ != null, 'index':this.index, 'start_lambda':this.lambda[0], 'end_lambda':this.lambda[this.lambda.length - 1], 'intensity':this.intensity, 'variance':this.variance};
+        return {'hasAutomaticMatch': this.templateZ != null, 'index':this.index, type:this.type, 'start_lambda':this.lambda[0], 'end_lambda':this.lambda[this.lambda.length - 1], 'intensity':this.intensity, 'variance':this.variance};
     } else {
-        return {'hasAutomaticMatch': this.templateZ != null, 'index':this.index, 'lambda':this.processedLambdaRaw, 'intensity':this.processedIntensity, 'variance':this.processedVariance};
+        return {'hasAutomaticMatch': this.templateZ != null, 'index':this.index, type:this.type, 'lambda':this.processedLambdaRaw, 'intensity':this.processedIntensity, 'variance':this.processedVariance};
     }
 };
 Spectra.prototype.isProcessed = function() {
@@ -317,16 +373,21 @@ SpectraManager.prototype.getProcessed = function() {
     return this.processed;
 }
 SpectraManager.prototype.getOutputResults = function() {
-    var results = "SpectraID,AutomaticTemplateID,AutomaticRedshift,AutomaticChi2,FinalTemplateID,FinalRedshift,QOP\n"; //TODO: Replace with actual template information.
+    var results = "SpectraID,SpectraName,SpectraRA,SpectraDec,SpectraMagnitude,AutomaticTemplateID,AutomaticTemplateName,AutomaticRedshift,AutomaticChi2,FinalTemplateID,FinalTemplateName,FinalRedshift,QOP\n"; //TODO: Replace with actual template information.
     var tmp = [];
     for (var i = 0; i < this.spectraList.length; i++) {
         var s = this.spectraList[i];
         if (s.finalZ == null) continue;
-        var templateID = s.templateIndex == null ? 0 : this.templateManager.getID(s.templateIndex);
-        var templateZ = s.templateZ == null ? 0.00000 : s.templateZ.toFixed(5);
-        var templateChi2 = s.templateChi2 == null ? 0 : s.templateChi2.toFixed(0);
-        tmp.push({i: s.id, txt: s.id + "," + templateID + "," + templateZ + "," + templateChi2
-            + "," + s.getFinalTemplateID() + "," + s.getFinalRedshift().toFixed(5) + "," + s.getQOP() +  "\n"});
+        var automaticTemplate = this.templateManager.get(s.templateIndex);
+        var finalTemplate = this.templateManager.get(s.finalTemplateIndex);
+        var templateID = s.templateIndex == null ? '0' : this.templateManager.getID(s.templateIndex);
+        var templateName = automaticTemplate == null ? 'None' : automaticTemplate.name;
+        var finalTemplateName = finalTemplate == null ? 'None' : finalTemplate.name;
+        var templateZ = s.templateZ == null ? '0.00000' : s.templateZ.toFixed(5);
+        var templateChi2 = s.templateChi2 == null ? '0' : s.templateChi2.toFixed(0);
+        var finalTemplateID = finalTemplate == null ? '0' : s.getFinalTemplateID();
+        tmp.push({i: s.id, txt: s.id + "," + s.name + "," + s.ra.toFixed(6) + "," + s.dec.toFixed(6) + "," + s.magnitude.toFixed(2) +"," + templateID + "," + templateName + "," + templateZ + "," + templateChi2
+            + "," + finalTemplateID + "," + finalTemplateName + "," + s.getFinalRedshift().toFixed(5) + "," + s.getQOP() +  "\n"});
     }
     tmp.sort(function(a, b) {
         if (a.i < b.i) {

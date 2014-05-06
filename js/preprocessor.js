@@ -120,7 +120,7 @@ function processData(lambda, intensity, variance) {
     normaliseViaArea(intensity, variance);
     convertLambdaToLogLambda(lambda, intensity, variance);
 }
-function matchTemplates(lambda, intensity, variance) {
+function matchTemplates(lambda, intensity, variance, type) {
     var spacing = lambda[1] - lambda[0];
     var templateResults = [];
 
@@ -185,8 +185,11 @@ function matchTemplates(lambda, intensity, variance) {
         }
     }
     var bestIndex = 0;
+    for (var i = 0; i < templateResults.length; i++) {
+        templateResults[i].gof = templateResults[i].gof * templateManager.weights[i][''+type];
+    }
     for (var i = 1; i < templateResults.length; i++) {
-        if (templateResults[i].chi2 < templateResults[bestIndex].chi2) {
+        if (templateResults[i].gof < templateResults[bestIndex].gof) {
             bestIndex = i;
         }
     }
@@ -207,7 +210,7 @@ self.addEventListener('message', function(e) {
             templateManager.shiftToMatchSpectra(lambda);
             shifted_temp = true;
         }
-        var results = matchTemplates(lambda, d.intensity, d.variance);
+        var results = matchTemplates(lambda, d.intensity, d.variance, d.type);
     }
 
     if (d.process && match) {

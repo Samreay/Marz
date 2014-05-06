@@ -14,12 +14,12 @@ ResultsLoader.prototype.load = function() {
                 console.warn('Results do not appear to be a correct format');
             } else {
                 this.results.push({id: parseInt(columns[0]),
-                    automaticTemplateID: parseInt(columns[1]),
-                    automaticRedshift: parseFloat(columns[2]),
-                    automaticChi2: parseInt(columns[3]),
-                    finalTemplateID: parseInt(columns[4]),
-                    finalRedshift: parseFloat(columns[5]),
-                    qop: parseInt(columns[6])});
+                    automaticTemplateID: parseInt(columns[5]),
+                    automaticRedshift: parseFloat(columns[7]),
+                    automaticChi2: parseInt(columns[8]),
+                    finalTemplateID: parseInt(columns[9]),
+                    finalRedshift: parseFloat(columns[11]),
+                    qop: parseInt(columns[12])});
             }
         }
         this.setResults();

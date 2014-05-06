@@ -1,7 +1,7 @@
 <div class="overviewList">
     <ul class="list-unstyled" ng-show="interfaceManager.overviewGraph">
         <li class="overviewItem lined" ng-dblclick="$parent.goToDetailed()" ng-click="$parent.setSpectraIndex(i.index)" ng-class="{activeSelect:interfaceManager.spectraIndex==i.index}" ng-repeat="i in spectraManager.getAll() track by i.id">
-            <div class="topbar"><b>ID: {{i.id}}</b><p ng-show="i.finalZ!=null">T: {{i.getFinalTemplateID()}}, z={{i.getFinalRedshift().toFixed(4)}} QOP: {{i.getQOP()}}</p></div>
+            <div class="topbar"><b>ID: {{i.id}}</b><p ng-show="i.finalZ!=null">z={{i.getFinalRedshift().toFixed(4)}} QOP: {{i.getQOP()}}</p></div>
             <div class="graph"><canvas id="smallGraphCanvas{{$index}}" style="width:100%; height:100%;"></canvas>{{interfaceManager.renderOverview($index)}}</div>
         </li>
     </ul>
@@ -14,6 +14,11 @@
                         ID <span ng-show="interfaceManager.overviewSortField == 'id'"><span ng-show="!interfaceManager.overviewReverseSort">^</span><span ng-show="interfaceManager.overviewReverseSort">v</span></span>
                     </a>
                 </th>
+                <th>
+                <a href="#" ng-click="interfaceManager.overviewSortField='type'; interfaceManager.overviewReverseSort = !interfaceManager.overviewReverseSort">
+                    Type <span ng-show="interfaceManager.overviewSortField == 'type'"><span ng-show="!interfaceManager.overviewReverseSort">^</span><span ng-show="interfaceManager.overviewReverseSort">v</span></span>
+                </a>
+            </th>
                 <th>
                     <a href="#" ng-click="interfaceManager.overviewSortField='finalTemplateID'; interfaceManager.overviewReverseSort = !interfaceManager.overviewReverseSort">
                         Template ID<span ng-show="interfaceManager.overviewSortField == 'finalTemplateID'"><span ng-show="!interfaceManager.overviewReverseSort">^</span><span ng-show="interfaceManager.overviewReverseSort">v</span></span>
@@ -39,6 +44,7 @@
             <tbody>
             <tr ng-class="{activeSelect:interfaceManager.spectraIndex==i.index}" ng-click="$parent.setSpectraIndex(i.index)" ng-dblclick="$parent.goToDetailed()" ng-repeat="i in spectraManager.getAll()|orderBy:sortOverview:interfaceManager.overviewReverseSort">
                 <td>{{i.id}}</td>
+                <td>{{i.type}}</td>
                 <td>{{i.finalTemplateID}}</td>
                 <td>{{i.finalTemplateName}}</td>
                 <td>{{i.finalZ.toFixed(4)}}</td>

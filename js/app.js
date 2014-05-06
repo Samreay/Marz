@@ -14,7 +14,7 @@ app.filter('onlyDisplay', function () {
 function MainController($scope, $timeout) {
     $scope.properties = {downloadAutomatically: {label: "Download Automatically", value: false},
                          processAndMatchTogether: {label: "Process and Match in same step", value: false},
-                         numberOfCores: {label: "Number of Cores In Computer", value: 3}};
+                         numberOfCores: {label: "Number of Cores In Computer", value: 4}};
 
 
     // Model managers

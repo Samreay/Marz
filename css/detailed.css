@@ -203,7 +203,20 @@ div[dropzone] ul li b {
 }
 
 
-
+#detailedheader {
+    min-height: 30px;
+    height: 30px;
+    margin-bottom: 0px;
+    color: #CCC;
+    line-height: 30px;
+    vertical-align: middle;
+}
+#detailedheader p em {
+    color: #DDD;
+    font-weight: bold;
+    font-style: normal;
+    margin-left: 20px;
+}
 #big {
     width: 100%;
     height: 400px;

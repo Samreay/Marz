@@ -1,4 +1,7 @@
 <div class="detailedView">
+    <div id="detailedheader" class="navbar-inverse navbar" ng-if="interfaceManager.isSpectraActive()">
+        <p><em>ID</em> {{interfaceManager.getActiveSpectra().id}}, <em>NAME</em> {{interfaceManager.getActiveSpectra().name}}<em>RA</em> {{interfaceManager.getActiveSpectra().ra.toFixed(6)}}, <em>DEC</em> {{interfaceManager.getActiveSpectra().dec.toFixed(6)}}, <em>MAGNITUDE</em> {{interfaceManager.getActiveSpectra().magnitude.toFixed(2)}}, <em>TYPE</em> {{interfaceManager.getActiveSpectra().type}}</p>
+    </div>
     <div id="big" style="z-index: 999;"><canvas id="detailedCanvas" style="height: 100%; width: 100%"></canvas></div>
     {{interfaceManager.renderDetailedInitial()}}
 </div>
@@ -26,7 +29,7 @@
             <b>Template Options:</b>
             <div class="detailedInput">
                 <label>Template:</label>
-                <select style="width: 180px" ng-init="$parent.interfaceManager.detailedViewTemplate = $parent.interfaceManager.getInitialTemplate()" ng-change="$parent.changedTemplate()" ng-model="$parent.interfaceManager.detailedViewTemplate" data-ng-options="t.index as t.id + ' - ' + t.name for t in $parent.templateManager.getTemplatesAsJson()"></select>
+                <select style="width: 250px" ng-init="$parent.interfaceManager.detailedViewTemplate = $parent.interfaceManager.getInitialTemplate()" ng-change="$parent.changedTemplate()" ng-model="$parent.interfaceManager.detailedViewTemplate" data-ng-options="t.index as t.id + ' - ' + t.name for t in $parent.templateManager.getTemplatesAsJson()"></select>
             </div>
             <div class="detailedInput">
                 <div style="float: left; width:140px">

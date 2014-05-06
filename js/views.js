@@ -45,6 +45,12 @@ function InterfaceManager(scope, spectraManager, templateManager, processorManag
     this.renderOverviewDone = new Array();
 
 }
+InterfaceManager.prototype.isSpectraActive = function() {
+    return this.spectraManager.getSpectra(this.spectraIndex) != null;
+}
+InterfaceManager.prototype.getActiveSpectra = function() {
+    return this.spectraManager.getSpectra(this.spectraIndex);
+}
 InterfaceManager.prototype.getSpectralListHeight = function() {
     var dropzone = $('#topleftbar');
     var max = $('#leftbar .spacing');
