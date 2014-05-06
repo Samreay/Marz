@@ -785,6 +785,8 @@ DetailedPlotSettings.prototype.redraw = function() {
 
 DetailedPlotSettings.prototype.handleEvent = function(e) {
     var res = this.windowToCanvas(e);
+    e.preventDefault();
+    e.stopPropagation();
     if (e.type == 'mousedown' || e.type == "touchstart") {
         this.canvasMouseDown(res);
     } else if (e.type == 'mouseup' || e.type == 'touchend') {
