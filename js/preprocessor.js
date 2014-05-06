@@ -186,7 +186,11 @@ function matchTemplates(lambda, intensity, variance, type) {
     }
     var bestIndex = 0;
     for (var i = 0; i < templateResults.length; i++) {
-        templateResults[i].gof = templateResults[i].gof * templateManager.weights[i][''+type];
+        var w =  templateManager.weights[i][''+type];
+        if (w == 0 || w == null) {
+            w = 1;
+        }
+        templateResults[i].gof = templateResults[i].gof * w;
     }
     for (var i = 1; i < templateResults.length; i++) {
         if (templateResults[i].gof < templateResults[bestIndex].gof) {

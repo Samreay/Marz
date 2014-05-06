@@ -61,7 +61,7 @@ InterfaceManager.prototype.getInitialTemplate = function() {
     if (spectra == null || spectra.finalTemplateIndex == null) {
         return -1;
     } else {
-        return this.spectra.finalTemplateIndex;
+        return spectra.finalTemplateIndex;
     }
 }
 InterfaceManager.prototype.getPausedText = function() {

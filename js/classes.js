@@ -125,7 +125,7 @@ FitsFile.prototype.getFibres = function(fits) {
         var ind = 0;
         for (var i = 0; i < data.length; i++) {
             if (data[i] == "P") {
-                opt.spectra.push({index: ind++, id: i+1, lambda: opt.lambda.slice(0), intensity: [], variance: [], miniRendered: 0});
+                opt.spectra.push({index: ind++, fitsIndex: i, id: i+1, lambda: opt.lambda.slice(0), intensity: [], variance: [], miniRendered: 0});
             }
         }
         opt.getNames(fits);
@@ -134,7 +134,7 @@ FitsFile.prototype.getFibres = function(fits) {
 FitsFile.prototype.getNames = function(fits) {
     fits.getDataUnit(2).getColumn("NAME", function(data, opt) {
         for (var i = 0; i < opt.spectra.length; i++) {
-            var j = opt.spectra[i].index;
+            var j = opt.spectra[i].fitsIndex;
             opt.spectra[i].name = data[j];
         }
         opt.getRA(fits);
@@ -143,7 +143,7 @@ FitsFile.prototype.getNames = function(fits) {
 FitsFile.prototype.getRA = function(fits) {
     fits.getDataUnit(2).getColumn("RA", function(data, opt) {
         for (var i = 0; i < opt.spectra.length; i++) {
-            var j = opt.spectra[i].index;
+            var j = opt.spectra[i].fitsIndex;
             opt.spectra[i].ra = data[j];
         }
         opt.getDec(fits);
@@ -152,7 +152,7 @@ FitsFile.prototype.getRA = function(fits) {
 FitsFile.prototype.getDec = function(fits) {
     fits.getDataUnit(2).getColumn("DEC", function(data, opt) {
         for (var i = 0; i < opt.spectra.length; i++) {
-            var j = opt.spectra[i].index;
+            var j = opt.spectra[i].fitsIndex;
             opt.spectra[i].dec = data[j];
         }
         opt.getMagntidues(fits);
@@ -161,7 +161,7 @@ FitsFile.prototype.getDec = function(fits) {
 FitsFile.prototype.getMagntidues = function(fits) {
     fits.getDataUnit(2).getColumn("MAGNITUDE", function(data, opt) {
         for (var i = 0; i < opt.spectra.length; i++) {
-            var j = opt.spectra[i].index;
+            var j = opt.spectra[i].fitsIndex;
             opt.spectra[i].magnitude = data[j];
         }
         opt.getComments(fits);
@@ -170,8 +170,9 @@ FitsFile.prototype.getMagntidues = function(fits) {
 FitsFile.prototype.getComments = function(fits) {
     fits.getDataUnit(2).getColumn("COMMENT", function(data, opt) {
         for (var i = 0; i < opt.spectra.length; i++) {
-            var j = opt.spectra[i].index;
+            var j = opt.spectra[i].fitsIndex;
             opt.spectra[i].type = data[j].split(' ')[0];
+            console.log(opt.spectra[i].type);
             if (opt.spectra[i].type == 'Parked') {
                 opt.spectra.splice(i,1);
                 for (var j = i; j < opt.spectra.length; j++) {
