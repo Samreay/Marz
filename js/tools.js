@@ -429,6 +429,7 @@ function getAverage(array) {
 function normaliseViaArea(array, variance, val) {
     var a = val == null ? normalised_area : val;
     var area = getAreaInArray(array, 0, array.length - 1);
+    if (area == 0) return;
     var r = a / area;
     for (var j = 0; j < array.length; j++) {
         array[j] = array[j] * r;
@@ -440,6 +441,7 @@ function normaliseViaArea(array, variance, val) {
 function normaliseViaAreaSlow(array, variance, val) {
     var a = val == null ? normalised_area : val;
     var area = getAreaInArraySlow(array, 0, array.length - 1);
+    if (area == 0) return;
     var r = a / area;
     for (var j = 0; j < array.length; j++) {
         array[j] = array[j] * r;

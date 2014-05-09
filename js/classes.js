@@ -111,17 +111,7 @@ function FitsFile(filename, fits, scope) {
     this.isCoadd = fits.hdus.length < 6;
     this.skyIndex = this.isCoadd ? 2 : 7;
     this.typeIndex = this.isCoadd ? 4 : 2;
-    this.getSky(fits);
-}
-FitsFile.prototype.getSky = function(fits) {
-    fits.getDataUnit(this.skyIndex).getFrame(0, function(data, opt) {
-        opt.sky = Array.prototype.slice.call(data);
-        removeNaNs(opt.sky);
-        normaliseViaArea(opt.sky, null, 30000);
-        cropSky(opt.sky, 80);
-        opt.skyAverage = getAverage(opt.sky);
-        opt.getFibres(fits);
-    }, this);
+    this.getFibres(fits);
 }
 FitsFile.prototype.getFibres = function(fits) {
     fits.getDataUnit(this.typeIndex).getColumn("TYPE", function(data, opt) {
@@ -182,11 +172,31 @@ FitsFile.prototype.getComments = function(fits) {
                 }
             }
         }
+        opt.getSky(fits);
+    }, this);
+}
+FitsFile.prototype.getSky = function(fits) {
+    fits.getDataUnit(this.skyIndex).getFrame(0, function(data, opt) {
+        var d = Array.prototype.slice.call(data);
+        if (opt.isCoadd) {
+            for (var i = 0; i < opt.spectra.length; i++) {
+                opt.spectra[i].sky = d.slice((opt.spectra[i].id-1) * opt.numPoints, (opt.spectra[i].id ) * opt.numPoints);
+                removeNaNs(opt.spectra[i].sky);
+                normaliseViaArea(opt.spectra[i].sky, null, 30000);
+                cropSky(opt.spectra[i].sky, 80);
+                opt.spectra[i].skyAverage = getAverage(opt.spectra[i].sky);
+            }
+        } else {
+            opt.sky = d;
+            removeNaNs(opt.sky);
+            normaliseViaArea(opt.sky, null, 30000);
+            cropSky(opt.sky, 80);
+            opt.skyAverage = getAverage(opt.sky);
+        }
         opt.getSpectra(fits);
     }, this);
 }
 FitsFile.prototype.getSpectra = function(fits) {
-
     fits.getDataUnit(0).getFrame(0, function(data, opt) {
         var d = Array.prototype.slice.call(data);
         for (var i = 0; i < opt.spectra.length; i++) {
@@ -204,7 +214,7 @@ FitsFile.prototype.getVariances = function(fits) {
         var spec = [];
         for (var i = 0; i < opt.spectra.length; i++) {
             spec.push(new Spectra(opt.spectra[i].index, opt.spectra[i].id, opt.lambda.slice(0), opt.spectra[i].intensity, opt.spectra[i].variance,
-                opt.sky, opt.skyAverage, opt.spectra[i].name, opt.spectra[i].ra, opt.spectra[i].dec, opt.spectra[i].magnitude, opt.spectra[i].type));
+                opt.isCoadd ? opt.spectra[i].sky : opt.sky, opt.isCoadd ? opt.spectra[i].skyAverage : opt.skyAverage, opt.spectra[i].name, opt.spectra[i].ra, opt.spectra[i].dec, opt.spectra[i].magnitude, opt.spectra[i].type));
         }
         opt.scope.spectraManager.setSpectra(spec);
         opt.scope.$digest();
