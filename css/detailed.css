@@ -79,7 +79,7 @@ div[dropzone] {
     transition: border 0.25s;
     border-radius: 5px;
     margin-bottom: 20px;
-    padding: 15px;
+    padding: 15px 5px 15px 5px;
 }
 div[dropzone].dropover {
     color: #5E99FF;
@@ -204,6 +204,7 @@ div[dropzone] ul li b {
 
 
 #detailedheader {
+    overflow: hidden;
     min-height: 30px;
     height: 30px;
     margin-bottom: 0px;

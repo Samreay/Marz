@@ -161,7 +161,7 @@ function matchTemplates(lambda, intensity, variance, type) {
                 scale = Math.pow(Math.abs(intensity[i]),0.5);
                 templateIndex = i + start_templateIndex;
                 if (templateIndex < 0 || templateIndex >= t.interpolatedSpec.length) {
-                    localChi2 += scale * 1.2*Math.pow(intensity[i]/variance[i], 2);
+                    localChi2 += scale * 1.4*Math.pow(intensity[i]/variance[i], 2);
                 } else {
                     localChi2 += scale * Math.pow((intensity[i] - (scaleFactor*t.interpolatedSpec[templateIndex]))/variance[i], 2)
                 }

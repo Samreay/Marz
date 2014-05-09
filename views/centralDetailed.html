@@ -1,6 +1,6 @@
 <div class="detailedView">
     <div id="detailedheader" class="navbar-inverse navbar" ng-if="interfaceManager.isSpectraActive()">
-        <p><em>ID</em> {{interfaceManager.getActiveSpectra().id}}, <em>NAME</em> {{interfaceManager.getActiveSpectra().name}}<em>RA</em> {{interfaceManager.getActiveSpectra().ra.toFixed(6)}}, <em>DEC</em> {{interfaceManager.getActiveSpectra().dec.toFixed(6)}}, <em>MAGNITUDE</em> {{interfaceManager.getActiveSpectra().magnitude.toFixed(2)}}, <em>TYPE</em> {{interfaceManager.getActiveSpectra().type}}</p>
+        <p><em>ID</em> {{interfaceManager.getActiveSpectra().id}} <em>NAME</em> {{interfaceManager.getActiveSpectra().name}}<em>RA</em> {{interfaceManager.getActiveSpectra().ra.toFixed(6)}} <em>DEC</em> {{interfaceManager.getActiveSpectra().dec.toFixed(6)}} <em>MAGNITUDE</em> {{interfaceManager.getActiveSpectra().magnitude.toFixed(2)}} <em>TYPE</em> {{interfaceManager.getActiveSpectra().type}}</p>
     </div>
     <div id="big" style="z-index: 999;"><canvas id="detailedCanvas" style="height: 100%; width: 100%"></canvas></div>
     {{interfaceManager.renderDetailedInitial()}}

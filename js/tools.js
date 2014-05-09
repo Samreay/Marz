@@ -38,29 +38,7 @@ function printProfile(start, functionname) {
 function linearScaleFactor(start, end, redshift, num) {
     return linearScale(start*(1+redshift), end*(1+redshift), num);
 }
-function addValuesToDataDictionary(original, lambda, val, key, gap) {
-    var startData = original[0].lambda;
-    var startProcessed = lambda[0];
-    var offset = (startProcessed - startData) / gap;
-    var beginning = [];
-    for (var i = 0; i < lambda.length; i++) {
-        var index =  offset + i;
-        if (index < 0) {
-            var o = {lambda: lambda[i]};
-            o[key] = val[i];
-            beginning.push(o);
-        } else if (index >= original.length) {
-            var o = {lambda: lambda[i]};
-            o[key] = val[i];
-            original.push(o);
-        } else {
-            original[index][key] = val[i];
-        }
-    }
-    for (var i = beginning.length - 1; i >= 0; i--) {
-        original.unshift(beginning[i]);
-    }
-}
+
 /**
  * Converts the equispaced linear scale of the given lambda into an equispaced log scale.
  * Interpolates intensity and variance to this new scale.
@@ -459,7 +437,17 @@ function normaliseViaArea(array, variance, val) {
         }
     }
 }
-
+function normaliseViaAreaSlow(array, variance, val) {
+    var a = val == null ? normalised_area : val;
+    var area = getAreaInArraySlow(array, 0, array.length - 1);
+    var r = a / area;
+    for (var j = 0; j < array.length; j++) {
+        array[j] = array[j] * r;
+        if (variance != null) {
+            variance[j] = variance[j] * r;
+        }
+    }
+}
 function subtractPolyFit(lambda, intensity) {
     var r = polyFit(lambda, intensity);
     for (var i = 0; i < intensity.length; i++) {
@@ -502,6 +490,22 @@ function getAreaInArray(array, start, end) {
     var area = 0;
     for (var i = start; i <= end; i++) {
         area += Math.abs(array[i]);
+    }
+    return area;
+}
+/**
+ * Returns the area in an array subsection. Caters to NaNs
+ *
+ * @param array to read through
+ * @param start start index
+ * @param end INCLUSIVE end index
+ */
+function getAreaInArraySlow(array, start, end) {
+    var area = 0;
+    for (var i = start; i <= end; i++) {
+        if (!isNaN(array[i])) {
+            area += Math.abs(array[i]);
+        }
     }
     return area;
 }

@@ -69,7 +69,7 @@ function FitsFile(filename, fits, scope) {
             displayValue: tmpDate[0] + "-" + tmpDate[1] + "-" + tmpDate[2],
             display: true
         },
-        {
+        /*{
             name: 'longitude',
             label: 'Longitude',
             value: header0.get('LONG_OBS'),
@@ -89,7 +89,7 @@ function FitsFile(filename, fits, scope) {
             value: header0.get('ALT_OBS'),
             displayValue: header0.get('ALT_OBS').toFixed(1),
             display: true
-        },
+        },*/
         {
             name: 'startLambda',
             label: 'Start \u03BB',
@@ -108,10 +108,13 @@ function FitsFile(filename, fits, scope) {
 
     this.spectra = [];
     this.sky = [];
+    this.isCoadd = fits.hdus.length < 6;
+    this.skyIndex = this.isCoadd ? 2 : 7;
+    this.typeIndex = this.isCoadd ? 4 : 2;
     this.getSky(fits);
 }
 FitsFile.prototype.getSky = function(fits) {
-    fits.getDataUnit(7).getFrame(0, function(data, opt) {
+    fits.getDataUnit(this.skyIndex).getFrame(0, function(data, opt) {
         opt.sky = Array.prototype.slice.call(data);
         removeNaNs(opt.sky);
         normaliseViaArea(opt.sky, null, 30000);
@@ -121,7 +124,7 @@ FitsFile.prototype.getSky = function(fits) {
     }, this);
 }
 FitsFile.prototype.getFibres = function(fits) {
-    fits.getDataUnit(2).getColumn("TYPE", function(data, opt) {
+    fits.getDataUnit(this.typeIndex).getColumn("TYPE", function(data, opt) {
         var ind = 0;
         for (var i = 0; i < data.length; i++) {
             if (data[i] == "P") {
@@ -132,7 +135,7 @@ FitsFile.prototype.getFibres = function(fits) {
     }, this);
 };
 FitsFile.prototype.getNames = function(fits) {
-    fits.getDataUnit(2).getColumn("NAME", function(data, opt) {
+    fits.getDataUnit(this.typeIndex).getColumn("NAME", function(data, opt) {
         for (var i = 0; i < opt.spectra.length; i++) {
             var j = opt.spectra[i].fitsIndex;
             opt.spectra[i].name = data[j];
@@ -141,7 +144,7 @@ FitsFile.prototype.getNames = function(fits) {
     }, this);
 }
 FitsFile.prototype.getRA = function(fits) {
-    fits.getDataUnit(2).getColumn("RA", function(data, opt) {
+    fits.getDataUnit(this.typeIndex).getColumn("RA", function(data, opt) {
         for (var i = 0; i < opt.spectra.length; i++) {
             var j = opt.spectra[i].fitsIndex;
             opt.spectra[i].ra = data[j];
@@ -150,7 +153,7 @@ FitsFile.prototype.getRA = function(fits) {
     }, this);
 }
 FitsFile.prototype.getDec = function(fits) {
-    fits.getDataUnit(2).getColumn("DEC", function(data, opt) {
+    fits.getDataUnit(this.typeIndex).getColumn("DEC", function(data, opt) {
         for (var i = 0; i < opt.spectra.length; i++) {
             var j = opt.spectra[i].fitsIndex;
             opt.spectra[i].dec = data[j];
@@ -159,7 +162,7 @@ FitsFile.prototype.getDec = function(fits) {
     }, this);
 }
 FitsFile.prototype.getMagntidues = function(fits) {
-    fits.getDataUnit(2).getColumn("MAGNITUDE", function(data, opt) {
+    fits.getDataUnit(this.typeIndex).getColumn("MAGNITUDE", function(data, opt) {
         for (var i = 0; i < opt.spectra.length; i++) {
             var j = opt.spectra[i].fitsIndex;
             opt.spectra[i].magnitude = data[j];
@@ -168,11 +171,10 @@ FitsFile.prototype.getMagntidues = function(fits) {
     }, this);
 }
 FitsFile.prototype.getComments = function(fits) {
-    fits.getDataUnit(2).getColumn("COMMENT", function(data, opt) {
+    fits.getDataUnit(this.typeIndex).getColumn("COMMENT", function(data, opt) {
         for (var i = 0; i < opt.spectra.length; i++) {
             var j = opt.spectra[i].fitsIndex;
             opt.spectra[i].type = data[j].split(' ')[0];
-            console.log(opt.spectra[i].type);
             if (opt.spectra[i].type == 'Parked') {
                 opt.spectra.splice(i,1);
                 for (var j = i; j < opt.spectra.length; j++) {
@@ -228,6 +230,7 @@ function Spectra(index, id, lambda, intensity, variance, sky, skyAverage, name, 
     this.lambda = lambda;
     this.intensity = intensity;
     this.variance = variance;
+    normaliseViaAreaSlow(this.intensity, this.variance);
 
     this.processedLambda = null;
     this.processedIntensity = null;
