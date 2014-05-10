@@ -281,16 +281,16 @@ Spectra.prototype.setManual = function(redshift, templateIndex, qop) {
     }
     this.finalQOP = qop;
 }
-Spectra.prototype.setProcessedValues = function(pl, pi, pv, ti, tr) {
+Spectra.prototype.setProcessedValues = function(pl, pi, pv, tr) {
     if (pl != null) {
         this.processedLambdaRaw = pl;
         this.processedLambda = pl.map(function(x) {return Math.pow(10, x);});
         this.processedIntensity = pi;
         this.processedVariance = pv;
     }
-    if (ti != null) {
-        this.templateIndex = tr[ti].index;
-        this.templateZ = tr[ti].z;
+    if (tr != null) {
+        this.templateIndex = tr[0].index;
+        this.templateZ = tr[0].top[0].z;
         if (this.finalQOP == null || this.finalQOP == 0) {
             this.finalTemplateIndex = this.templateIndex;
             this.finalTemplateName = this.templateManager.getName(this.templateIndex);
@@ -298,7 +298,7 @@ Spectra.prototype.setProcessedValues = function(pl, pi, pv, ti, tr) {
             this.finalZ = this.templateZ;
             this.finalQOP = 0;
         }
-        this.templateChi2 = tr[ti].chi2;
+        this.templateChi2 = tr[0].top[0].chi2;
         this.templateResults = tr;
     }
 };
@@ -497,9 +497,9 @@ function Processor(manager) {
     this.worker = new Worker('js/preprocessor.js');
     this.worker.addEventListener('message', function(e) {
         this.workingSpectra.setProcessedValues(e.data.processedLambda, e.data.processedIntensity,
-            e.data.processedVariance, e.data.bestIndex, e.data.templateResults);
+            e.data.processedVariance, e.data.templateResults);
         this.manager.scope.updatedSpectra(this.workingSpectra.index);
-        if (e.data.bestIndex != null) {
+        if (e.data.templateResults != null) {
             this.manager.spectraManager.addToUpdated(this.workingSpectra.index);
         } else {
             this.manager.spectraManager.addToProcessed(this.workingSpectra.index);

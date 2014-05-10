@@ -120,84 +120,109 @@ function processData(lambda, intensity, variance) {
     normaliseViaArea(intensity, variance);
     convertLambdaToLogLambda(lambda, intensity, variance);
 }
+function calculateWeights(intensity) {
+    var weights = [];
+    var totalWeight = 0;
+    for (var i = 0; i < intensity.length; i++) {
+        weights.push(Math.pow(Math.abs(intensity[i]), 0.5));
+        totalWeight += weights[i];
+    }
+    return weights;
+}
 function matchTemplates(lambda, intensity, variance, type) {
-    var spacing = lambda[1] - lambda[0];
+//    var startMatch = new Date();
+
+//    Variables used for independent of template
+    var weights = calculateWeights(intensity);
+
     var templateResults = [];
-
-
-    for (var j = 0; j < templateManager.getAll().length; j++) {
-        var t = templateManager.get(j);
-
-        templateResults.push({'index':j, 'id': t.id, 'gof': 9e9, 'chi2': 9e9, 'z':0});
-        var tr = templateResults[templateResults.length - 1];
-
-        var initialTemplateOffset = (lambda[0] - t.interpolatedStart) / spacing;
-        var z = t.z_start + t.redshift;
-        var lambda_start = Math.pow(10, t.interpolatedLambda[0]) / (1 + t.redshift);
-        var offsetFromZ = Math.floor((Math.log(1 + z)/Math.LN10) / spacing);
-        var running = true;
-        var totalWeight = 0;
-        for (var i = 0; i < intensity.length; i++) {
-            totalWeight += Math.abs(intensity[i]);
-        }
-        // Want to get the area
-        normaliseViaArea(t.interpolatedSpec);
-        var area = normalised_area - t.interpolatedSpec[initialTemplateOffset];
-        while(running) {
-            var localChi2 = 0;
-            var scale = 1;
-            var templateIndex = 0;
-            var start_templateIndex = initialTemplateOffset - offsetFromZ;
-            var end_templateIndex = Math.min(t.interpolatedSpec.length - 1, start_templateIndex + lambda.length - 1);
-            if (start_templateIndex >= 0) {
-                area += t.interpolatedSpec[start_templateIndex];
-            }
-            if (end_templateIndex < t.interpolatedSpec.length - 1) {
-                area -=  t.interpolatedSpec[end_templateIndex + 1];
-            }
-            var scaleFactor = area / normalised_area;
-
-            for (var i = 0; i < lambda.length; i++) {
-                scale = Math.pow(Math.abs(intensity[i]),0.5);
-                templateIndex = i + start_templateIndex;
-                if (templateIndex < 0 || templateIndex >= t.interpolatedSpec.length) {
-                    localChi2 += scale * 1.4*Math.pow(intensity[i]/variance[i], 2);
-                } else {
-                    localChi2 += scale * Math.pow((intensity[i] - (scaleFactor*t.interpolatedSpec[templateIndex]))/variance[i], 2)
-                }
-                if (localChi2 > tr.chi2) {
-                    break;
-                }
-            }
-            // Add in weighting for the amount matched
-            var gof = localChi2;
-            if (gof < tr.gof) {
-                tr.chi2 = localChi2;
-                tr.gof = gof;
-                tr.z = z;
-            }
-            offsetFromZ++;
-            var lambda_end = Math.pow(10, t.interpolatedLambda[0] + (offsetFromZ * spacing));
-            z = (lambda_end/lambda_start) - 1;
-            if (z > t.z_end) {
-                running = false;
-            }
-        }
+    for (var i = 0; i < templateManager.getAll().length; i++) {
+//        var startTemplate = new Date();
+        templateResults.push(matchTemplate(i, templateManager.get(i), lambda, intensity, variance, weights, new FastAreaFinder(intensity)))
+//        printProfile(startTemplate, 'Matching ' + templateManager.get(i).name);
     }
-    var bestIndex = 0;
+
+    var results = coalesceResults(templateResults, type);
+
+//    printProfile(startMatch, 'match2');
+    return results;
+}
+function coalesceResults(templateResults, type) {
+    // Adjust for optional weighting
+    var coalesced = [];
     for (var i = 0; i < templateResults.length; i++) {
-        var w =  templateManager.weights[i][''+type];
+        var tr = templateResults[i];
+        var index = tr.index;
+        var w =  templateManager.weights[index][''+type];
         if (w == 0 || w == null) {
-            w = 1;
+            w = templateManager.weights[index]['blank'];
+            if (w == 0 || w == null) {
+                w = 1;
+            }
         }
-        templateResults[i].gof = templateResults[i].gof * w;
-    }
-    for (var i = 1; i < templateResults.length; i++) {
-        if (templateResults[i].gof < templateResults[bestIndex].gof) {
-            bestIndex = i;
+
+        tr.res.sort(function(a,b) { return a.gof - b.gof});
+        var tempRes = {index: tr.index, id: tr.id, top: []};
+        for (var j = 0; j < 5; j++) {
+            tr.res[j].gof = tr.res[j].gof * w;
+            tempRes.top.push(tr.res[j]);
         }
+        coalesced.push(tempRes);
     }
-    return [bestIndex, templateResults];
+    coalesced.sort(function(a,b) { return a.top[0].gof - b.top[0].gof});
+    for (var i = 0; i < coalesced.length; i++) {
+        c = coalesced[i];
+        cc = c.top[0];
+//        console.log('GOF ' + cc.gof + ' CHI2 ' + cc.chi2 + ' Z ' + cc.z + ' SCALE ' + cc.scale + ' WEIGHT ' + cc.weight + ' NAME ' + templateManager.get(c.index).name)
+    }
+    return coalesced;
+
+}
+function matchTemplate(index, template, lambda, intensity, variance, weights, intensityAreaFinder) {
+    var result = {'index': index, 'id': template.id, res: []};
+    var templateAreaFinder = new FastAreaFinder(template.interpolatedSpec);
+
+    var spacing = (lambda[1] - lambda[0]);
+    var initialTemplateOffset = (lambda[0] - template.interpolatedStart) / spacing;
+
+    var offsets = [];
+    var zs = [];
+
+    // Generate all viable redshifts to check
+    var z = template.z_start;
+    var offsetFromZ = Math.floor((Math.log(1 + z)/Math.LN10) / spacing);
+    var lambda_start = Math.pow(10, template.interpolatedLambda[0]) / (1 + template.redshift);
+    while(z < template.z_end) {
+        zs.push(z);
+        offsets.push(initialTemplateOffset-offsetFromZ);
+        offsetFromZ++;
+        z = (Math.pow(10, template.interpolatedLambda[0] + (offsetFromZ * spacing))/lambda_start) - 1;
+    }
+
+    // Get chi2 for all redshifts
+    var r = null;
+    for (var i = 0; i < zs.length; i++) {
+        r = matchTemplateAtRedshift(intensity, variance, weights, template.interpolatedSpec, offsets[i], intensityAreaFinder, templateAreaFinder);
+        result.res.push({gof: r[0]/Math.pow(r[1],2), chi2: r[0], z: zs[i], scale: r[2], weight: r[1]});
+    }
+    return result;
+}
+
+
+function matchTemplateAtRedshift(intensity, variance, weights, spec, offset, intensityAreaFinder, templateAreaFinder) {
+    var start = Math.max(0, -offset);
+    var end = Math.min(intensity.length, spec.length-offset);
+    if ((end-start)/intensity.length < 0.4) {
+        return [19e9, 1, 1];
+    }
+    var w = 0;
+    var chi2 = 0;
+    var s = Math.max(0.5, intensityAreaFinder.getArea(start,end) / (1.3*templateAreaFinder.getArea(start + offset, end + offset))); // Factors to stop zero lines and to reflect less noise in templates
+    for (var i = start; i < end; i++) {
+        chi2 += weights[i] * Math.pow((intensity[i] - s * spec[i + offset])/variance[i], 2);
+        w += weights[i];
+    }
+    return [chi2, w, s];
 }
 
 self.addEventListener('message', function(e) {
@@ -222,8 +247,7 @@ self.addEventListener('message', function(e) {
             'processedLambda': lambda,
             'processedIntensity': d.intensity,
             'processedVariance': d.variance,
-            'bestIndex':results[0],
-            'templateResults':results[1]})
+            'templateResults':results})
     } else if (d.process && !match) {
         self.postMessage({'index': d.index,
             'processedLambda': lambda,
@@ -231,8 +255,7 @@ self.addEventListener('message', function(e) {
             'processedVariance': d.variance});
     } else if (match && !d.process) {
         self.postMessage({'index': d.index,
-            'bestIndex':results[0],
-            'templateResults':results[1]});
+            'templateResults':results});
     } else {
         self.postMessage({e: 'nothing to do'});
     }

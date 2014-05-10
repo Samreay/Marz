@@ -490,6 +490,12 @@ function normaliseArray(array, max) {
  */
 function getAreaInArray(array, start, end) {
     var area = 0;
+    if (start == null || start < 0) start = 0;
+    if (end == null) {
+        end = array.length - 1;
+    } else if (end > array.length) {
+        end = array.length - 1;
+    }
     for (var i = start; i <= end; i++) {
         area += Math.abs(array[i]);
     }
@@ -566,4 +572,46 @@ function convertSingleVacuumFromAir(lambda) {
 
 function shiftWavelength(lambda, z) {
     return (1+z)*lambda;
+}
+
+
+
+function FastAreaFinder(array) {
+    this.array = array;
+    this.start = null;
+    this.end = null;
+    this.area = 0;
+}
+FastAreaFinder.prototype.getArea = function(start, end) {
+    if (start < 0) start = 0;
+    if (end > this.array.length) end = this.array.length;
+    if (this.start == null || this.end == null) {
+        this.area = 0;
+        for (var i = start; i < end; i++) {
+            this.area += Math.abs(this.array[i]);
+        }
+    } else {
+
+        if (start < this.start) {
+            for (var i = start; i < this.start; i++) {
+                this.area += Math.abs(this.array[i]);
+            }
+        } else if (start > this.start) {
+            for (var i = this.start; i < start; i++) {
+                this.area -= Math.abs(this.array[i]);
+            }
+        }
+        if (end > this.end) {
+            for (var i = this.end - 1; i < end; i++) {
+                this.area += Math.abs(this.array[i]);
+            }
+        } else if (end < this.end) {
+            for (var i = end - 1; i < this.end; i++) {
+                this.area -= Math.abs(this.array[i]);
+            }
+        }
+    }
+    this.start = start;
+    this.end = end;
+    return this.area;
 }
