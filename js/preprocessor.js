@@ -170,11 +170,11 @@ function coalesceResults(templateResults, type) {
         coalesced.push(tempRes);
     }
     coalesced.sort(function(a,b) { return a.top[0].gof - b.top[0].gof});
-    for (var i = 0; i < coalesced.length; i++) {
+    /*for (var i = 0; i < coalesced.length; i++) {
         c = coalesced[i];
         cc = c.top[0];
-//        console.log('GOF ' + cc.gof + ' CHI2 ' + cc.chi2 + ' Z ' + cc.z + ' SCALE ' + cc.scale + ' WEIGHT ' + cc.weight + ' NAME ' + templateManager.get(c.index).name)
-    }
+        console.log('GOF ' + cc.gof + ' CHI2 ' + cc.chi2 + ' Z ' + cc.z + ' SCALE ' + cc.scale + ' WEIGHT ' + cc.weight + ' NAME ' + templateManager.get(c.index).name)
+    }*/
     return coalesced;
 
 }
@@ -202,14 +202,17 @@ function matchTemplate(index, template, lambda, intensity, variance, weights, in
     // Get chi2 for all redshifts
     var r = null;
     for (var i = 0; i < zs.length; i++) {
-        r = matchTemplateAtRedshift(intensity, variance, weights, template.interpolatedSpec, offsets[i], intensityAreaFinder, templateAreaFinder);
-        result.res.push({gof: r[0]/Math.pow(r[1],2), chi2: r[0], z: zs[i], scale: r[2], weight: r[1]});
+        r = matchTemplateAtRedshift(intensity, variance, weights, template.interpolatedSpec, offsets[i], intensityAreaFinder, templateAreaFinder, zs[i]);
+        result.res.push({gof: r[0]/Math.pow(r[1],2.5), chi2: r[0], z: zs[i], scale: r[2], weight: r[1]});
+        /*if (Math.abs(zs[i]-0.262287) < 0.0001  || Math.abs(zs[i]-0.743107) < 0.0001) {
+            console.log('GOF ' + r[0]/Math.pow(r[1],2) + ' CHI2 ' + r[0] + ' Z ' + zs[i] + ' SCALE ' + r[2] + ' WEIGHT ' + r[1]);
+        }*/
     }
     return result;
 }
 
 
-function matchTemplateAtRedshift(intensity, variance, weights, spec, offset, intensityAreaFinder, templateAreaFinder) {
+function matchTemplateAtRedshift(intensity, variance, weights, spec, offset, intensityAreaFinder, templateAreaFinder, z) {
     var start = Math.max(0, -offset);
     var end = Math.min(intensity.length, spec.length-offset);
     if ((end-start)/intensity.length < 0.4) {
@@ -217,7 +220,12 @@ function matchTemplateAtRedshift(intensity, variance, weights, spec, offset, int
     }
     var w = 0;
     var chi2 = 0;
-    var s = Math.max(0.5, intensityAreaFinder.getArea(start,end) / (1.3*templateAreaFinder.getArea(start + offset, end + offset))); // Factors to stop zero lines and to reflect less noise in templates
+    var a = intensityAreaFinder.getArea(start,end);
+    var b = (1.3*templateAreaFinder.getArea(start + offset, end + offset));
+    var s = Math.max(0.5, a / b); // Factors to stop zero lines and to reflect less noise in templates
+    /*if (Math.abs(z-0.262287) < 0.0001  || Math.abs(z-0.743107) < 0.0001) {
+        console.log("Z: " + z + " A: " + a + " B: " + b + " START: " + start + " END: " + end + " OFFSET: " + offset + " L1: " + intensity.length + " L2: " + spec.length);
+    }*/
     for (var i = start; i < end; i++) {
         chi2 += weights[i] * Math.pow((intensity[i] - s * spec[i + offset])/variance[i], 2);
         w += weights[i];

@@ -43,6 +43,9 @@ function FitsFile(filename, fits, scope) {
     var CRVAL1 = header0.get('CRVAL1');
     var CRPIX1 = header0.get('CRPIX1');
     var CDELT1 = header0.get('CDELT1');
+    if (CDELT1 == null) {
+        CDELT1 = header0.get('CD1_1');
+    }
 
     this.lambda = indexgenerate(this.numPoints).map(function (x) {
         return ((x + 1 - CRPIX1) * CDELT1) + CRVAL1;
@@ -69,27 +72,6 @@ function FitsFile(filename, fits, scope) {
             displayValue: tmpDate[0] + "-" + tmpDate[1] + "-" + tmpDate[2],
             display: true
         },
-        /*{
-            name: 'longitude',
-            label: 'Longitude',
-            value: header0.get('LONG_OBS'),
-            displayValue: header0.get('LONG_OBS').toFixed(2),
-            display: true
-        },
-        {
-            name: 'latitude',
-            label: 'Latitude',
-            value: header0.get('LAT_OBS'),
-            displayValue: header0.get('LAT_OBS').toFixed(2),
-            display: true
-        },
-        {
-            name: 'altitude',
-            label: 'Altitude',
-            value: header0.get('ALT_OBS'),
-            displayValue: header0.get('ALT_OBS').toFixed(1),
-            display: true
-        },*/
         {
             name: 'startLambda',
             label: 'Start \u03BB',
@@ -108,7 +90,7 @@ function FitsFile(filename, fits, scope) {
 
     this.spectra = [];
     this.sky = [];
-    this.isCoadd = fits.hdus.length < 6;
+    this.isCoadd = header0.get('COADDVER') != null;
     this.skyIndex = this.isCoadd ? 2 : 7;
     this.typeIndex = this.isCoadd ? 4 : 2;
     this.getFibres(fits);

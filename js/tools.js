@@ -602,11 +602,11 @@ FastAreaFinder.prototype.getArea = function(start, end) {
             }
         }
         if (end > this.end) {
-            for (var i = this.end - 1; i < end; i++) {
+            for (var i = this.end; i < end; i++) {
                 this.area += Math.abs(this.array[i]);
             }
         } else if (end < this.end) {
-            for (var i = end - 1; i < this.end; i++) {
+            for (var i = end; i < this.end; i++) {
                 this.area -= Math.abs(this.array[i]);
             }
         }
