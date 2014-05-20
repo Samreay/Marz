@@ -110,7 +110,7 @@ FitsFile.prototype.getNames = function(fits) {
     fits.getDataUnit(this.typeIndex).getColumn("NAME", function(data, opt) {
         for (var i = 0; i < opt.spectra.length; i++) {
             var j = opt.spectra[i].fitsIndex;
-            opt.spectra[i].name = data[j];
+            opt.spectra[i].name = data[j].replace(/\W/g, '');
         }
         opt.getRA(fits);
     }, this);
