@@ -11,7 +11,6 @@ function TemplateExtractor(filename, fits, scope) {
     var length = header0.get('NAXIS1');
     this.name = filename.substr(0, filename.indexOf("."));
     this.redshift = 0;
-    this.transform = 0;
     this.start_lambda = lstart - li*trans;
     this.end_lambda = lstart + (length-li-1)*trans;
 
@@ -33,10 +32,7 @@ function FitsFile(filename, fits, scope) {
 
     var header0 = fits.getHDU(0).header;
 
-    this.numSpectra = fits.getHDU(0).data.height;
     this.numPoints = fits.getHDU(0).data.width;
-//        this.numSpectra = fits.getHDU(0).data.naxis[1];
-//        this.numPoints = fits.getHDU(0).data.naxis[0];
 
     var tmpDate = MJDtoYMD(header0.get('UTMJD'));
 
@@ -51,7 +47,7 @@ function FitsFile(filename, fits, scope) {
         return ((x + 1 - CRPIX1) * CDELT1) + CRVAL1;
     });
 
-    this.properties = /**/[
+    this.properties = [
         {
             name: 'filename',
             label: 'Filename',
@@ -196,7 +192,8 @@ FitsFile.prototype.getVariances = function(fits) {
         var spec = [];
         for (var i = 0; i < opt.spectra.length; i++) {
             spec.push(new Spectra(opt.spectra[i].index, opt.spectra[i].id, opt.lambda.slice(0), opt.spectra[i].intensity, opt.spectra[i].variance,
-                opt.isCoadd ? opt.spectra[i].sky : opt.sky, opt.isCoadd ? opt.spectra[i].skyAverage : opt.skyAverage, opt.spectra[i].name, opt.spectra[i].ra, opt.spectra[i].dec, opt.spectra[i].magnitude, opt.spectra[i].type));
+                opt.isCoadd ? opt.spectra[i].sky : opt.sky, opt.isCoadd ? opt.spectra[i].skyAverage : opt.skyAverage, opt.spectra[i].name, opt.spectra[i].ra, opt.spectra[i].dec,
+                opt.spectra[i].magnitude, opt.spectra[i].type, opt.properties[0].value, opt.scope));
         }
         opt.scope.spectraManager.setSpectra(spec);
         opt.scope.$digest();
@@ -206,7 +203,7 @@ FitsFile.prototype.getVariances = function(fits) {
 
 
 
-function Spectra(index, id, lambda, intensity, variance, sky, skyAverage, name, ra, dec, magnitude, type) {
+function Spectra(index, id, lambda, intensity, variance, sky, skyAverage, name, ra, dec, magnitude, type, filename, scope) {
     //TODO: Remove index, use $index instead
     this.index = index;
     this.id = id;
@@ -215,6 +212,12 @@ function Spectra(index, id, lambda, intensity, variance, sky, skyAverage, name, 
     this.dec = dec;
     this.magnitude = magnitude;
     this.type = type;
+    this.filename = filename;
+
+    this.storageManager = scope.storageManager;
+    this.templateManager = scope.templateManager;
+    this.interfaceManager = scope.interfaceManager;
+    this.spectraManager = scope.spectraManager;
 
     this.sky = sky;
     this.skyAverage = skyAverage;
@@ -228,85 +231,143 @@ function Spectra(index, id, lambda, intensity, variance, sky, skyAverage, name, 
     this.processedIntensity = null;
     this.processedVariance = null;
 
-    this.templateIndex = null;
-    this.templateZ = null;
-    this.templateChi2 = null;
+    this.automaticTemplate = null;
+    this.automaticZ = null;
+    this.automaticChi2 = null;
 
-    this.finalZ = null;
-    this.finalTemplateIndex = null;
-    this.finalTemplateName = null;
-    this.finalTemplateID = null;
-    this.finalQOP = null;
+    this.manualTemplate = null;
+    this.manualZ = null;
+    this.finalQOP = 0;
+
+    this.storageManager.loadSpectra(this);
 }
 Spectra.prototype.getFinalTemplate = function() {
-    return this.finalTemplateIndex;
-}
-Spectra.prototype.getFinalTemplateID = function() {
-    return this.finalTemplateID;
-}
-Spectra.prototype.setTemplateManager = function(templateManager) {
-    this.templateManager = templateManager;
-}
-Spectra.prototype.getFinalRedshift = function() {
-    return this.finalZ;
-}
-Spectra.prototype.setManual = function(redshift, templateIndex, qop) {
-    this.finalZ = redshift;
-    this.manualZ = redshift;
-    if (templateIndex != null) {
-        this.finalTemplateIndex = templateIndex;
-        this.manualTemplateIndex = templateIndex;
-        if (templateIndex != -1) {
-            this.finalTemplateName = this.templateManager.getName(templateIndex);
-            this.finalTemplateID = this.templateManager.getID(templateIndex);
-        }
+    if (this.manualTemplate != null) {
+        return this.manualTemplate;
+    } else {
+        return this.automaticTemplate;
     }
+};
+Spectra.prototype.getFinalTemplateName = function() {
+    if (this.manualTemplate != null) {
+        return this.manualTemplate.name;
+    } else if (this.automaticTemplate != null) {
+        return this.automaticTemplate.name;
+    } else {
+        return null;
+    }
+};
+Spectra.prototype.getFinalTemplateID = function() {
+    if (this.manualTemplate != null) {
+        return this.manualTemplate.id;
+    } else if (this.automaticTemplate != null) {
+        return this.automaticTemplate.id;
+    } else {
+        return null;
+    }
+};
+Spectra.prototype.getFinalRedshift = function() {
+    if (this.manualZ != null) {
+        return this.manualZ;
+    } else {
+        return this.automaticZ;
+    }
+};
+Spectra.prototype.setManual = function(redshift, templateIndex, qop, save) {
+    this.manualZ = redshift;
+    this.manualTemplate = this.templateManager.get(templateIndex);
     this.finalQOP = qop;
+    if (save == null || save) {
+        this.storageManager.saveSpectra(this);
+        this.interfaceManager.rerenderOverview(this.index);
+    }
 }
-Spectra.prototype.setProcessedValues = function(pl, pi, pv, tr) {
+Spectra.prototype.setProcessedValues = function(pl, pi, pv) {
     if (pl != null) {
         this.processedLambdaRaw = pl;
         this.processedLambda = pl.map(function(x) {return Math.pow(10, x);});
         this.processedIntensity = pi;
         this.processedVariance = pv;
-    }
-    if (tr != null) {
-        this.templateIndex = tr[0].index;
-        this.templateZ = tr[0].top[0].z;
-        if (this.finalQOP == null || this.finalQOP == 0) {
-            this.finalTemplateIndex = this.templateIndex;
-            this.finalTemplateName = this.templateManager.getName(this.templateIndex);
-            this.finalTemplateID = this.templateManager.getID(this.templateIndex);
-            this.finalZ = this.templateZ;
-            this.finalQOP = 0;
-        }
-        this.templateChi2 = tr[0].top[0].chi2;
-        this.templateResults = tr;
+        this.spectraManager.addToProcessed(this.index);
+        this.interfaceManager.rerenderOverview(this.index);
     }
 };
-Spectra.prototype.setResults = function(automaticTemplateID, automaticRedshift, automaticChi2, finalTemplateID, finalZ, qop) {
+Spectra.prototype.setMatched = function(tr) {
+    if (tr != null) {
+        this.automaticTemplate = this.templateManager.get(tr[0].index);
+        this.automaticZ = tr[0].top[0].z;
+        this.automaticChi2 = tr[0].top[0].chi2;
+        this.templateResults = tr;
+        this.storageManager.saveSpectra(this);
+        this.spectraManager.addToUpdated(this.index);
+        this.interfaceManager.rerenderOverview(this.index);
+    }
+}
+Spectra.prototype.setResults = function(automaticTemplateID, automaticRedshift, automaticChi2, finalTemplateID, finalZ, qop, pushToLocal) {
     var t = this.templateManager.getIndexFromID(automaticTemplateID);
     if (t != null) {
-        this.templateIndex = t;
-        this.templateZ = automaticRedshift;
-        this.templateChi2 = automaticChi2;
+        this.automaticTemplate = this.templateManager.getViaID(automaticTemplateID);
+        this.automaticZ = automaticRedshift;
+        this.automaticChi2 = automaticChi2;
+        this.spectraManager.addToUpdated(this.index);
     } else {
-        console.warn('no template found for id ' + automaticTemplateID);
+        console.warn('No template found for id ' + automaticTemplateID);
     }
-    this.setManual(finalZ, this.templateManager.getIndexFromID(finalTemplateID), qop);
+    if (qop != null && qop != 0 && !isNaN(qop)) {
+        this.setManual(finalZ, this.templateManager.getIndexFromID(finalTemplateID), qop, false);
+    }
+    if (pushToLocal) {
+        this.storageManager.saveSpectra(this);
+    }
+    this.interfaceManager.rerenderOverview(this.index);
 }
 Spectra.prototype.getAsJson = function(getOriginal) {
     if (getOriginal || this.processedIntensity == null) {
-        return {'hasAutomaticMatch': this.templateZ != null, 'index':this.index, type:this.type, 'start_lambda':this.lambda[0], 'end_lambda':this.lambda[this.lambda.length - 1], 'intensity':this.intensity, 'variance':this.variance};
+        return {'hasAutomaticMatch': this.automaticZ != null, 'index':this.index, type:this.type, 'start_lambda':this.lambda[0], 'end_lambda':this.lambda[this.lambda.length - 1], 'intensity':this.intensity, 'variance':this.variance};
     } else {
-        return {'hasAutomaticMatch': this.templateZ != null, 'index':this.index, type:this.type, 'lambda':this.processedLambdaRaw, 'intensity':this.processedIntensity, 'variance':this.processedVariance};
+        return {'hasAutomaticMatch': this.automaticZ != null, 'index':this.index, type:this.type, 'lambda':this.processedLambdaRaw, 'intensity':this.processedIntensity, 'variance':this.processedVariance};
     }
 };
+Spectra.prototype.getOutputValues = function() {
+    var result = {};
+    result.finalQOP = this.finalQOP;
+    if (this.automaticTemplate == null) {
+        result.automaticZ = null;
+        result.automaticTemplateID = null;
+        result.automaticTemplateName = null;
+        result.automaticChi2 = null;
+    } else {
+        result.automaticTemplateID = this.automaticTemplate.id;
+        result.automaticZ = this.automaticZ.toFixed(5);
+        result.automaticTemplateName = this.automaticTemplate.name;
+        result.automaticChi2 = this.automaticChi2;
+    }
+
+    if (this.manualZ == null) {
+        result.manualZ = null;
+        result.finalZ = result.automaticZ;
+    } else {
+        result.manualZ = this.manualZ.toFixed(5);
+        result.finalZ = result.manualZ;
+    }
+    if (this.manualTemplate == null) {
+        result.manualTemplateID = null;
+        result.manualTemplateName = null;
+        result.finalTemplateID = result.automaticTemplateID;
+        result.finalTemplateName = result.automaticTemplateName;
+    } else {
+        result.manualTemplateID = this.manualTemplate.id;
+        result.manualTemplateName = this.manualTemplate.name;
+        result.finalTemplateID = result.manualTemplateID;
+        result.finalTemplateName = result.manualTemplateName;
+    }
+    return result;
+}
 Spectra.prototype.isProcessed = function() {
     return this.processedIntensity != null;
 };
 Spectra.prototype.isMatched = function() {
-    return this.templateIndex != null;
+    return this.automaticZ != null;
 };
 Spectra.prototype.getQOP = function() {
     return this.finalQOP;
@@ -314,7 +375,6 @@ Spectra.prototype.getQOP = function() {
 Spectra.prototype.setQOP = function(qop) {
     this.finalQOP = qop;
 }
-
 
 function SpectraManager(scope, processorManager, templateManager) {
     this.spectraList = [];
@@ -326,9 +386,6 @@ function SpectraManager(scope, processorManager, templateManager) {
 };
 SpectraManager.prototype.setSpectra = function(spectraList) {
     this.spectraList = spectraList;
-    for (var i = 0; i < this.spectraList.length; i++) {
-        this.spectraList[i].setTemplateManager(this.templateManager);
-    }
     if (this.scope.results != null && this.scope.results.hasResults()) {
         this.scope.results.setResults();
     }
@@ -337,6 +394,24 @@ SpectraManager.prototype.setSpectra = function(spectraList) {
 SpectraManager.prototype.getAll = function() {
     return this.spectraList;
 };
+SpectraManager.prototype.getUnprocessed = function() {
+    var results = [];
+    for (var i = 0; i < this.spectraList.length; i++) {
+        if (!this.spectraList[i].isProcessed()) {
+            results.push(this.spectraList[i])
+        }
+    }
+    return results;
+}
+SpectraManager.prototype.getUnmatched = function() {
+    var results = [];
+    for (var i = 0; i < this.spectraList.length; i++) {
+        if (!this.spectraList[i].isMatched()) {
+            results.push(this.spectraList[i])
+        }
+    }
+    return results;
+}
 SpectraManager.prototype.getSpectra = function(i) {
     return this.spectraList[i];
 };
@@ -373,17 +448,18 @@ SpectraManager.prototype.getOutputResults = function() {
     var tmp = [];
     for (var i = 0; i < this.spectraList.length; i++) {
         var s = this.spectraList[i];
-        if (s.finalZ == null) continue;
-        var automaticTemplate = this.templateManager.get(s.templateIndex);
-        var finalTemplate = this.templateManager.get(s.finalTemplateIndex);
-        var templateID = s.templateIndex == null ? '0' : this.templateManager.getID(s.templateIndex);
-        var templateName = automaticTemplate == null ? 'None' : automaticTemplate.name;
-        var finalTemplateName = finalTemplate == null ? 'None' : finalTemplate.name;
-        var templateZ = s.templateZ == null ? '0.00000' : s.templateZ.toFixed(5);
-        var templateChi2 = s.templateChi2 == null ? '0' : s.templateChi2.toFixed(0);
-        var finalTemplateID = finalTemplate == null ? '0' : s.getFinalTemplateID();
-        tmp.push({i: s.id, txt: s.id + "," + s.name + "," + s.ra.toFixed(6) + "," + s.dec.toFixed(6) + "," + s.magnitude.toFixed(2) +"," + templateID + "," + templateName + "," + templateZ + "," + templateChi2
-            + "," + finalTemplateID + "," + finalTemplateName + "," + s.getFinalRedshift().toFixed(5) + "," + s.getQOP() +  "\n"});
+        if (s.getFinalRedshift() == null) continue;
+        var output = s.getOutputValues();
+        if (output.automaticTemplateID == null) output.automaticTemplateID = '0';
+        if (output.automaticTemplateName == null) output.automaticTemplateName = 'None';
+        if (output.finalTemplateID == null) output.finalTemplateID = '0';
+        if (output.finalTemplateName == null) output.finalTemplateName = 'None';
+        if (output.automaticChi2 == null) output.automaticChi2 = '0';
+        if (output.automaticZ == null) output.automaticZ = '0.00000';
+        if (output.finalZ == null) continue;
+        tmp.push({i: s.id, txt: s.id + "," + s.name + "," + s.ra.toFixed(6) + "," + s.dec.toFixed(6) + ","
+            + s.magnitude.toFixed(2) +"," + output.automaticTemplateID + "," + output.automaticTemplateName + "," + output.automaticZ + "," + output.automaticChi2
+            + "," + output.finalTemplateID + "," + output.finalTemplateName + "," + output.finalZ + "," + output.finalQOP +  "\n"});
     }
     tmp.sort(function(a, b) {
         if (a.i < b.i) {
@@ -400,14 +476,13 @@ SpectraManager.prototype.getOutputResults = function() {
     return results;
 }
 
-function ProcessorManager(numProcessors, scope, matchTogether) {
+function ProcessorManager(numProcessors, scope) {
     this.scope = scope;
     this.processors = [];
     this.automatic = true;
     this.activeProcessing = true;
     this.spectraManager = null;
     this.processQueue = [];
-    this.processAndMatchTogether = matchTogether;
     for (var i = 0; i < numProcessors; i++) {
         this.processors.push(new Processor(this));
     }
@@ -423,17 +498,11 @@ ProcessorManager.prototype.isPaused = function() {
 ProcessorManager.prototype.setSpectra = function(spectraManager) {
     this.spectraManager = spectraManager;
     if (this.automatic) {
-        if (this.processAndMatchTogether) {
-            for (var i = 0; i < spectraManager.getAll().length; i++) {
-                this.processQueue.push({process: true, match: true, index: i});
-            }
-        } else {
-            for (var i = 0; i < spectraManager.getAll().length; i++) {
-                this.processQueue.push({process: true, match: false, index: i});
-            }
-            for (var i = 0; i < spectraManager.getAll().length; i++) {
-                this.processQueue.push({process: false, match: true, index: i});
-            }
+        for (var i = 0; i < spectraManager.getUnprocessed().length; i++) {
+            this.processQueue.push({process: true, match: false, index: i});
+        }
+        for (var j = 0; j < spectraManager.getUnmatched().length; j++) {
+            this.processQueue.push({process: false, match: true, index: j});
         }
         this.processSpectra();
     }
@@ -448,7 +517,7 @@ ProcessorManager.prototype.isProcessing = function() {
         }
     }
     return false;
-}
+};
 ProcessorManager.prototype.processSpectra = function() {
     if (this.processQueue.length > 0 && this.activeProcessing) {
         var processor = this.getFreeProcessor();
@@ -478,13 +547,10 @@ function Processor(manager) {
     this.workingSpectra = null;
     this.worker = new Worker('js/preprocessor.js');
     this.worker.addEventListener('message', function(e) {
-        this.workingSpectra.setProcessedValues(e.data.processedLambda, e.data.processedIntensity,
-            e.data.processedVariance, e.data.templateResults);
-        this.manager.scope.updatedSpectra(this.workingSpectra.index);
-        if (e.data.templateResults != null) {
-            this.manager.spectraManager.addToUpdated(this.workingSpectra.index);
+        if (e.data.processedLambda != null) {
+            this.workingSpectra.setProcessedValues(e.data.processedLambda, e.data.processedIntensity, e.data.processedVariance);
         } else {
-            this.manager.spectraManager.addToProcessed(this.workingSpectra.index);
+            this.workingSpectra.setMatched(e.data.templateResults);
         }
         this.workingSpectra = null;
         this.manager.processSpectra();
@@ -507,8 +573,8 @@ function FileManager() {
 }
 FileManager.prototype.setFitsFileName = function(filename) {
     this.filename = filename.substr(0, filename.lastIndexOf('.')) + "_Results.txt";
-}
+};
 FileManager.prototype.saveResults = function(results) {
     var blob = new Blob([results], {type: 'text/html'});
     saveAs(blob, this.filename);
-}
+};

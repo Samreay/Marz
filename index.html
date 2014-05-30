@@ -85,8 +85,8 @@
                         <li ng-class-even="'even'" ng-repeat="i in spectraManager.getAll() track by i.id" ng-dblclick="$parent.goToDetailed()" ng-click="$parent.setSpectraIndex(i.index)" ng-class="{activeSelect:interfaceManager.spectraIndex==i.index}" class="spectraSmall">
                             <p><b>{{i.id}}</b></p>
                             <div class="info" id="spectra{{i.id}}">
-                                <p ng-show="i.finalZ==null">Not analysed</p>
-                                <p ng-show="i.finalZ!=null">z={{i.getFinalRedshift().toFixed(4)}},  QOP: {{i.getQOP().toFixed(0)}}</p>
+                                <p ng-show="i.getFinalRedshift()==null">Not analysed</p>
+                                <p ng-show="i.getFinalRedshift()!=null">z={{i.getFinalRedshift().toFixed(4)}},  QOP: {{i.getQOP().toFixed(0)}}</p>
                             </div>
                         </li>
                     </ul>

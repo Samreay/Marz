@@ -58,10 +58,10 @@ InterfaceManager.prototype.getSpectralListHeight = function() {
 }
 InterfaceManager.prototype.getInitialTemplate = function() {
     var spectra = this.spectraManager.getSpectra(this.spectraIndex);
-    if (spectra == null || spectra.finalTemplateIndex == null) {
+    if (spectra == null || spectra.getFinalTemplate() == null) {
         return -1;
     } else {
-        return spectra.finalTemplateIndex;
+        return spectra.getFinalTemplate().index;
     }
 }
 InterfaceManager.prototype.getPausedText = function() {
@@ -109,16 +109,18 @@ InterfaceManager.prototype.getButtonColour = function(category) {
 }
 InterfaceManager.prototype.resetToAutomatic = function() {
     var spectra = this.spectraManager.getSpectra(this.spectraIndex);
-    if (spectra != null && spectra.templateIndex != null) {
-        this.detailedViewTemplate =  spectra.templateIndex;
-        this.detailedViewZ = spectra.templateZ;
+    if (spectra != null && spectra.automaticTemplate != null) {
+        this.detailedViewTemplate = spectra.automaticTemplate.index;
+        this.detailedViewZ = spectra.automaticZ;
     }
 }
 InterfaceManager.prototype.resetToManual = function() {
     var spectra = this.spectraManager.getSpectra(this.spectraIndex);
     if (spectra != null && spectra.manualZ != null) {
-        this.detailedViewTemplate =  spectra.manualTemplateIndex;
         this.detailedViewZ = spectra.manualZ;
+        if (spectra.manualTemplate != null) {
+            this.detailedViewTemplate = spectra.manualTemplate.index;
+        }
     }
 }
 InterfaceManager.prototype.getNumSpectra = function () {
@@ -159,7 +161,7 @@ InterfaceManager.prototype.finishedProcessing = function () {
     return (this.getNumSpectra() == this.getNumProcessed());
 }
 InterfaceManager.prototype.analysing = function() {
-    return this.scope.properties.processAndMatchTogether.value || this.finishedProcessing();
+    return this.finishedProcessing();
 }
 InterfaceManager.prototype.getProgressBarType = function() {
     if (this.finishedAnalysis()) {
@@ -243,7 +245,9 @@ InterfaceManager.prototype.renderOverview = function (index) {
         var intensity = condenseToXPixels(v.intensity, width);
         var processedLambda = condenseToXPixels(v.processedLambda, width);
         var processed = condenseToXPixels(v.processedIntensity, width);
-        var r = this.templateManager.getShiftedLinearTemplate(v.getFinalTemplate(), v.getFinalRedshift())
+        var template = v.getFinalTemplate();
+        var index = template == null ? null : template.index;
+        var r = this.templateManager.getShiftedLinearTemplate(index, v.getFinalRedshift())
         if (r[0] == null || r[1] == null) {
             var tempIntensity = null;
         } else {

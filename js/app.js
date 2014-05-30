@@ -13,17 +13,18 @@ app.filter('onlyDisplay', function () {
 
 function MainController($scope, $timeout) {
     $scope.properties = {downloadAutomatically: {label: "Download Automatically", value: false},
-                         processAndMatchTogether: {label: "Process and Match in same step", value: false},
+                         //processAndMatchTogether: {label: "Process and Match in same step", value: false},
                          numberOfCores: {label: "Number of Cores In Computer", value: 4}};
 
 
     // Model managers
     $scope.templateManager = new TemplateManager();
     $scope.spectalLines = new SpectralLines();
-    $scope.processorManager = new ProcessorManager($scope.properties.numberOfCores.value - 1, $scope, $scope.properties.processAndMatchTogether.value); //TODO: Core estimation
+    $scope.processorManager = new ProcessorManager($scope.properties.numberOfCores.value - 1, $scope); //TODO: Core estimation
     $scope.spectraManager = new SpectraManager($scope, $scope.processorManager, $scope.templateManager);
     $scope.interfaceManager = new InterfaceManager($scope, $scope.spectraManager, $scope.templateManager, $scope.processorManager, $scope.spectalLines);
     $scope.fileManager = new FileManager();
+    $scope.storageManager = new StorageManager($scope.templateManager);
 
     $scope.results = null;
     $scope.fits = null; // Initialise new FitsFile on drop.
@@ -32,11 +33,11 @@ function MainController($scope, $timeout) {
             $scope.goToDetailed();
         }
         $scope.interfaceManager.menuActive = menuOption;
-    }
+    };
     $scope.goToDetailed = function() {
         var spectra =  $scope.spectraManager.getSpectra($scope.interfaceManager.spectraIndex);
         if (spectra != null) {
-            var tid = spectra.getFinalTemplate();
+            var tid = spectra.getFinalTemplate() == null ? null : spectra.getFinalTemplate().index;
             var tz = spectra.getFinalRedshift();
         }
         $scope.interfaceManager.detailedViewTemplate = tid == null ? -1 : tid;
@@ -44,14 +45,14 @@ function MainController($scope, $timeout) {
         $scope.interfaceManager.menuActive = 'Detailed';
         this.interfaceManager.updateDetailedData(true);
 
-    }
+    };
     $scope.getDropText = function() {
         if ($scope.results == null && $scope.fits == null) {
             return 'Drop a FITS File or a results file. Or both together. Or a FITS file than a results file.';
         } else if ($scope.fits == null && $scope.results != null) {
             return 'Results file loaded. Drop in a FITs file.';
         }
-    }
+    };
     $scope.addfiles = function (f) {
         var hadFits = false;
         var hadResults = false;
@@ -86,7 +87,7 @@ function MainController($scope, $timeout) {
             this.goToDetailed();
         }
         $scope.$digest();
-    }
+    };
     $scope.checkIfInView = function(element, scrollable) {
         var padding = 100;
         var docViewTop = $(scrollable).offset().top;
@@ -104,7 +105,7 @@ function MainController($scope, $timeout) {
             $(scrollable).animate({scrollTop: '+='+s}, 300);
         }
 
-    }
+    };
     $scope.setSpectraIndex = function(i) {
         $scope.interfaceManager.spectraIndex = i;
         //TODO: Remove duplicate code
@@ -148,32 +149,26 @@ function MainController($scope, $timeout) {
         if (this.interfaceManager.menuActive == 'Detailed') {
             this.interfaceManager.updateDetailedData(false);
         }
-    }
+    };
 
     $scope.finishedAnalysis = function() {
         if ($scope.properties.downloadAutomatically.value) {
             var results = this.spectraManager.getOutputResults();
             this.fileManager.saveResults(results);
         }
-    }
+    };
     $scope.downloadResults = function() {
         this.fileManager.saveResults(this.spectraManager.getOutputResults());
-    }
+    };
 
     $scope.resizeEvent = function() {
-//        if ($scope.interfaceManager.detailedCanvas != null) {
-//            $scope.interfaceManager.detailedSettings.redraw();
-//        }
-//        if ($scope.interfaceManager.menuActive == 'Templates') {
-//            $scope.interfaceManager.renderAlltemplates();
-//        }
         $scope.$apply();
-    }
+    };
 
     $scope.changedTemplate = function() {
         this.interfaceManager.changedTemplate = true;
         this.interfaceManager.updateDetailedData(false);
-    }
+    };
 
     $scope.getSpectralLinePhrase = function() {
         if (this.interfaceManager.detailedSettings.displayingSpectralLines) {
@@ -181,7 +176,7 @@ function MainController($scope, $timeout) {
         } else {
             return 'Show Spectral Lines';
         }
-    }
+    };
     $scope.sortOverview = function(spectra) {
         var result = null;
         var nullRes = 9e9 + spectra.id;
@@ -192,13 +187,13 @@ function MainController($scope, $timeout) {
             result = spectra.id;
         }
         if ($scope.interfaceManager.overviewSortField == 'finalTemplateID') {
-            result = parseInt(spectra.finalTemplateID);
-            if (isNan(result)) {
+            result = parseInt(spectra.getFinalTemplateID());
+            if (isNaN(result)) {
                 result = null;
             }
         }
         if ($scope.interfaceManager.overviewSortField == 'finalTemplateName') {
-            result = spectra.finalTemplateName;
+            result = spectra.getFinalTemplateName();
             if ($scope.interfaceManager.overviewReverseSort) {
                 nullRes = '00000000' + spectra.id;
             } else {
@@ -206,7 +201,7 @@ function MainController($scope, $timeout) {
             }
         }
         if ($scope.interfaceManager.overviewSortField == 'finalZ') {
-            result = spectra.finalZ;
+            result = spectra.getFinalRedshift();
         }
         if ($scope.interfaceManager.overviewSortField == 'manualQOP') {
             result = spectra.finalQOP;
@@ -216,7 +211,7 @@ function MainController($scope, $timeout) {
         } else {
             return result;
         }
-    }
+    };
     $(window).on("resize",$scope.resizeEvent);
     $(window).on('beforeunload', function(){
         return 'Please ensure results are saved before navigating away.';
