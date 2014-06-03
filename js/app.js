@@ -12,11 +12,18 @@ app.filter('onlyDisplay', function () {
 });
 
 function MainController($scope, $timeout) {
+    $scope.templateManager = new TemplateManager();
+    $scope.storageManager = new StorageManager($scope.templateManager);
+
     $scope.properties = {};
     $scope.processorManager = null;
     $scope.properties.downloadAutomatically = new CookieProperties('downloadAutomatically', 'Download Automatically', false,
         function(v) { return typeof(v) == "boolean"; },
         null
+    );
+    $scope.properties.saveInBackground = new CookieProperties('saveInBackground', 'Save and load past local results', true,
+        function(v) { return typeof(v) == "boolean"; },
+        function(v) { if ($scope.storageManager != null) { $scope.storageManager.setActive(v); }}
     );
     $scope.properties.numCores = new CookieProperties('numCores', 'Number of Cores In Computer', 4,
         function(v) { return (!isNaN(parseInt(v)) && v > 1 && v < 33);},
@@ -25,13 +32,11 @@ function MainController($scope, $timeout) {
 
 
     // Model managers
-    $scope.templateManager = new TemplateManager();
     $scope.spectalLines = new SpectralLines();
     $scope.processorManager = new ProcessorManager($scope.properties.numCores.getValue() - 1, $scope); //TODO: Core estimation
     $scope.spectraManager = new SpectraManager($scope, $scope.processorManager, $scope.templateManager);
     $scope.interfaceManager = new InterfaceManager($scope, $scope.spectraManager, $scope.templateManager, $scope.processorManager, $scope.spectalLines);
     $scope.fileManager = new FileManager();
-    $scope.storageManager = new StorageManager($scope.templateManager);
 
     $scope.results = null;
     $scope.fits = null; // Initialise new FitsFile on drop.
@@ -194,6 +199,7 @@ function MainController($scope, $timeout) {
     $scope.changedTemplate = function() {
         this.interfaceManager.changedTemplate = true;
         this.interfaceManager.updateDetailedData(false);
+        this.interfaceManager.updatedZToMatchedIndex();
     };
 
     $scope.getSpectralLinePhrase = function() {

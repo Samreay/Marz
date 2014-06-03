@@ -303,6 +303,17 @@ Spectra.prototype.setMatched = function(tr) {
         this.interfaceManager.rerenderOverview(this.index);
     }
 };
+Spectra.prototype.getMatchedIndex = function(templateID, index) {
+    if (this.templateResults == null) {
+        return 0;
+    }
+    for (var i = 0; i < this.templateResults.length; i++) {
+        if (this.templateResults[i].id == templateID) {
+            return this.templateResults[i].top[index].z;
+        }
+    }
+    return 0;
+}
 Spectra.prototype.setResults = function(automaticTemplateID, automaticRedshift, automaticChi2, finalTemplateID, finalZ, qop, pushToLocal) {
     var t = this.templateManager.getIndexFromID(automaticTemplateID);
     if (t != null) {
@@ -510,11 +521,13 @@ ProcessorManager.prototype.isPaused = function() {
 ProcessorManager.prototype.setSpectra = function(spectraManager) {
     this.spectraManager = spectraManager;
     if (this.automatic) {
-        for (var i = 0; i < spectraManager.getUnprocessed().length; i++) {
-            this.processQueue.push({process: true, match: false, index: i});
+        var unprocessed = spectraManager.getUnprocessed();
+        for (var i = 0; i < unprocessed.length; i++) {
+            this.processQueue.push({process: true, match: false, index: unprocessed[i].index});
         }
-        for (var j = 0; j < spectraManager.getUnmatched().length; j++) {
-            this.processQueue.push({process: false, match: true, index: j});
+        var unmatched = spectraManager.getUnmatched()
+        for (var j = 0; j < unmatched.length; j++) {
+            this.processQueue.push({process: false, match: true, index: unmatched[j].index});
         }
         this.processSpectra();
     }
@@ -606,6 +619,7 @@ function CookieProperties(id, label, value, validation, changecallback) {
     this.label = label;
     this.default = value;
     this.value = value;
+    this.temp = value;
     this.validation = validation;
     this.changecallback = changecallback;
     this.getFromCookie();
@@ -614,7 +628,8 @@ function CookieProperties(id, label, value, validation, changecallback) {
 CookieProperties.prototype.getFromCookie = function() {
     var value = getCookie(this.id);
     if (value != null) {
-        this.value = JSON.parse(value);
+        this.temp = JSON.parse(value);
+        this.updateFromTemp();
     }
 };
 CookieProperties.prototype.setToCookie = function() {

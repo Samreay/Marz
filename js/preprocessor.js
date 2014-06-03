@@ -163,18 +163,14 @@ function coalesceResults(templateResults, type) {
 
         tr.res.sort(function(a,b) { return a.gof - b.gof});
         var tempRes = {index: tr.index, id: tr.id, top: []};
-        for (var j = 0; j < 5; j++) {
+        for (var j = 0; j < 100; j++) {
             tr.res[j].gof = tr.res[j].gof * w;
             tempRes.top.push(tr.res[j]);
         }
         coalesced.push(tempRes);
     }
     coalesced.sort(function(a,b) { return a.top[0].gof - b.top[0].gof});
-    /*for (var i = 0; i < coalesced.length; i++) {
-        c = coalesced[i];
-        cc = c.top[0];
-        console.log('GOF ' + cc.gof + ' CHI2 ' + cc.chi2 + ' Z ' + cc.z + ' SCALE ' + cc.scale + ' WEIGHT ' + cc.weight + ' NAME ' + templateManager.get(c.index).name)
-    }*/
+
     return coalesced;
 
 }
@@ -204,9 +200,6 @@ function matchTemplate(index, template, lambda, intensity, variance, weights, in
     for (var i = 0; i < zs.length; i++) {
         r = matchTemplateAtRedshift(intensity, variance, weights, template.interpolatedSpec, offsets[i], intensityAreaFinder, templateAreaFinder, zs[i]);
         result.res.push({gof: r[0]/Math.pow(r[1],2.5), chi2: r[0], z: zs[i], scale: r[2], weight: r[1]});
-        /*if (Math.abs(zs[i]-0.262287) < 0.0001  || Math.abs(zs[i]-0.743107) < 0.0001) {
-            console.log('GOF ' + r[0]/Math.pow(r[1],2) + ' CHI2 ' + r[0] + ' Z ' + zs[i] + ' SCALE ' + r[2] + ' WEIGHT ' + r[1]);
-        }*/
     }
     return result;
 }

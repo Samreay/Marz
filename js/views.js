@@ -34,6 +34,9 @@ function InterfaceManager(scope, spectraManager, templateManager, processorManag
     this.templateHasContinuum = false;
     this.detailedViewTemplate = -1;
     this.detailedRecreate = false;
+    this.matchedIndex = 1;
+    this.maxMatchedIndex = 40; //Needs to be the <= as in preprocessor j loop in coalesce.
+    this.matchedComparisonActive = false;
     this.detailedViewZ = 0;
     this.detailViewSmoothMax = 5;
     this.detailViewRawSmooth = 3;
@@ -45,17 +48,36 @@ function InterfaceManager(scope, spectraManager, templateManager, processorManag
     this.renderOverviewDone = new Array();
 
 }
+InterfaceManager.prototype.matchedIndexChanged = function() {
+    this.matchedIndex = parseInt(this.matchedIndex);
+    if (this.matchedIndex == null || isNaN(this.matchedIndex)) {
+        this.matchedIndex = 1;
+    }
+    this.matchedComparisonActive = true;
+    this.updatedZToMatchedIndex();
+};
+InterfaceManager.prototype.matchingToggled = function() {
+    if (this.matchedComparisonActive) {
+        this.updatedZToMatchedIndex();
+    }
+};
+InterfaceManager.prototype.updatedZToMatchedIndex = function() {
+    if (this.isSpectraActive() && this.matchedComparisonActive) {
+        var spectra = this.getActiveSpectra();
+        this.detailedViewZ = spectra.getMatchedIndex(this.templateManager.getID(this.detailedViewTemplate), this.matchedIndex - 1);
+    }
+}
 InterfaceManager.prototype.isSpectraActive = function() {
     return this.spectraManager.getSpectra(this.spectraIndex) != null;
-}
+};
 InterfaceManager.prototype.getActiveSpectra = function() {
     return this.spectraManager.getSpectra(this.spectraIndex);
-}
+};
 InterfaceManager.prototype.getSpectralListHeight = function() {
     var dropzone = $('#topleftbar');
     var max = $('#leftbar .spacing');
     return (max.height() - dropzone.outerHeight() - 20) + 'px';
-}
+};
 InterfaceManager.prototype.getInitialTemplate = function() {
     var spectra = this.spectraManager.getSpectra(this.spectraIndex);
     if (spectra == null || spectra.getFinalTemplate() == null) {
@@ -63,20 +85,20 @@ InterfaceManager.prototype.getInitialTemplate = function() {
     } else {
         return spectra.getFinalTemplate().index;
     }
-}
+};
 InterfaceManager.prototype.getPausedText = function() {
     if (this.processorManager.isPaused()) {
         return "Resume";
     } else {
         return "Pause";
     }
-}
+};
 InterfaceManager.prototype.changeRawSmooth = function() {
     this.renderDetailedInitial();
-}
+};
 InterfaceManager.prototype.changeProcessedSmooth = function() {
     this.renderDetailedInitial();
-}
+};
 InterfaceManager.prototype.getButtonColour = function(category) {
     if (category == 'raw') {
         if (this.dispRaw) {
@@ -106,15 +128,18 @@ InterfaceManager.prototype.getButtonColour = function(category) {
             return this.interface.unselected;
         }
     }
-}
+};
 InterfaceManager.prototype.resetToAutomatic = function() {
+    this.matchedIndex = 1;
+    this.matchedComparisonActive = false;
     var spectra = this.spectraManager.getSpectra(this.spectraIndex);
     if (spectra != null && spectra.automaticTemplate != null) {
         this.detailedViewTemplate = spectra.automaticTemplate.index;
         this.detailedViewZ = spectra.automaticZ;
     }
-}
+};
 InterfaceManager.prototype.resetToManual = function() {
+    this.matchedComparisonActive = false;
     var spectra = this.spectraManager.getSpectra(this.spectraIndex);
     if (spectra != null && spectra.manualZ != null) {
         this.detailedViewZ = spectra.manualZ;
@@ -122,16 +147,16 @@ InterfaceManager.prototype.resetToManual = function() {
             this.detailedViewTemplate = spectra.manualTemplate.index;
         }
     }
-}
+};
 InterfaceManager.prototype.getNumSpectra = function () {
     return this.spectraManager.getAll().length;
-}
+};
 InterfaceManager.prototype.getNumAnalysed = function () {
     return this.spectraManager.getAnalysed().length;
-}
+};
 InterfaceManager.prototype.getNumProcessed = function () {
     return this.spectraManager.getProcessed().length;
-}
+};
 InterfaceManager.prototype.isMenuActive = function (array) {
     for (var i = 0; i < array.length; i++) {
         if (this.menuActive == array[i]) {
@@ -139,30 +164,30 @@ InterfaceManager.prototype.isMenuActive = function (array) {
         }
     }
     return false;
-}
+};
 InterfaceManager.prototype.getProgessPercent = function () {
     if (this.getNumSpectra() == 0) {
         return 0;
     }
     return Math.ceil(-0.01 + (100 * this.getNumAnalysed() / this.getNumSpectra()));
-}
+};
 InterfaceManager.prototype.saveManual = function (qop) {
     var spectra = this.spectraManager.getSpectra(this.spectraIndex);
     spectra.setManual(parseFloat(this.detailedViewZ), this.detailedViewTemplate, qop);
     this.rerenderOverview(spectra.index);
-}
+};
 InterfaceManager.prototype.waitingDrop = function() {
     return this.getNumSpectra() == 0;
-}
+};
 InterfaceManager.prototype.finishedProcessing = function () {
     if (this.getNumSpectra() == 0) {
         return false
     }
     return (this.getNumSpectra() == this.getNumProcessed());
-}
+};
 InterfaceManager.prototype.analysing = function() {
     return this.finishedProcessing();
-}
+};
 InterfaceManager.prototype.getProgressBarType = function() {
     if (this.finishedAnalysis()) {
         return "info";
@@ -171,33 +196,33 @@ InterfaceManager.prototype.getProgressBarType = function() {
     } else {
         return "success";
     }
-}
+};
 InterfaceManager.prototype.finishedAnalysis = function () {
     if (this.getNumSpectra() == 0) {
         return false
     }
     return (this.getNumSpectra() == this.getNumAnalysed());
-}
+};
 InterfaceManager.prototype.showFooter = function () {
     return (this.processorManager.isProcessing() || this.getNumAnalysed());
-}
+};
 InterfaceManager.prototype.getDetailedZ = function () {
     return parseFloat(this.detailedViewZ);
-}
+};
 InterfaceManager.prototype.getDetailedTemplate = function() {
     return this.templateManager.templates[this.detailedViewTemplate];
-}
+};
 InterfaceManager.prototype.getMinRedshiftForDetailedTemplate = function() {
     if (this.detailedViewTemplate == -1) {
         return 0;
     }
     return this.getDetailedTemplate().redshift;
-}
+};
 InterfaceManager.prototype.renderAlltemplates = function() {
     for (var i = 0; i < this.templateManager.getAll().length; i++) {
         this.renderTemplate(i);
     }
-}
+};
 InterfaceManager.prototype.renderTemplate = function (i) {
     var canvas = document.getElementById('smallTemplateCanvas' + i);
     var arr = this.templateManager.getTemplateLambda(i);
@@ -207,7 +232,7 @@ InterfaceManager.prototype.renderTemplate = function (i) {
     clearPlot(canvas);
     plot(arr, this.templateManager.get(i).spec, this.interface.templateColour, canvas, bounds);
 
-}
+};
 InterfaceManager.prototype.plotZeroLine = function (canvas, colour, bounds) {
     var c = canvas.getContext("2d");
     var h = canvas.height;
@@ -219,11 +244,11 @@ InterfaceManager.prototype.plotZeroLine = function (canvas, colour, bounds) {
     c.moveTo(0, hh);
     c.lineTo(w, hh);
     c.stroke();
-}
+};
 InterfaceManager.prototype.rerenderOverview = function (index) {
     this.renderOverviewDone['' + index] = 0;
     this.renderOverview(index);
-}
+};
 InterfaceManager.prototype.renderOverview = function (index) {
     if (this.menuActive != 'Overview' || !this.overviewGraph) {
         return
@@ -277,7 +302,7 @@ InterfaceManager.prototype.renderOverview = function (index) {
             plot(lambda, tempIntensity, this.interface.matchedColour, canvas, bounds);
         }
     }
-}
+};
 
 
 
@@ -304,7 +329,7 @@ InterfaceManager.prototype.updateDetailedData = function (changedToDetailed) {
             this.renderDetailedTemplate();
         }
     }*/
-}
+};
 InterfaceManager.prototype.renderDetailedInitial = function() {
     var c = document.getElementById ('detailedCanvas');
     if (c == null || c.clientWidth == 0) {
@@ -329,7 +354,7 @@ InterfaceManager.prototype.renderDetailedInitial = function() {
         this.getStaticData();
         this.detailedSettings.redraw();
     }
-}
+};
 InterfaceManager.prototype.getStaticData = function () {
     var spectra = this.spectraManager.getSpectra(this.spectraIndex);
     if (spectra == null) return;
@@ -346,7 +371,7 @@ InterfaceManager.prototype.getStaticData = function () {
         this.detailedSettings.addData('sky', false, this.interface.skyColour,
             spectra.lambda, spectra.sky)
     }
-}
+};
 InterfaceManager.prototype.getTemplateData = function () {
     if (!this.dispTemplate || this.detailedViewTemplate == -1) {
         return null;
@@ -354,7 +379,7 @@ InterfaceManager.prototype.getTemplateData = function () {
 //    if (this.spectraManager.getSpectra(this.spectraIndex) == null) return;
     var r = this.templateManager.getShiftedLinearTemplate(this.detailedViewTemplate, this.getDetailedZ(), this.templateHasContinuum);
     this.detailedSettings.addData('template', false, this.interface.templateColour, r[0].slice(0), r[1].slice(0));
-}
+};
 InterfaceManager.prototype.clickSpectralLine= function(id) {
     if (this.detailedSettings.waitingForSpectra) {
         var currentWavelength = this.spectralLines.getFromID(id).wavelength;
@@ -368,7 +393,7 @@ InterfaceManager.prototype.clickSpectralLine= function(id) {
     if (!this.detailedSettings.displayingSpectralLines)  {
         this.detailedSettings.toggleSpectralLines();
     }
-}
+};
 
 
 function DetailedPlotSettings(interfaceManager, spectralLines) {
@@ -430,33 +455,33 @@ function DetailedPlotSettings(interfaceManager, spectralLines) {
 }
 DetailedPlotSettings.prototype.setSkyAverage = function(skyAverage) {
     this.skyAverage = skyAverage
-}
+};
 DetailedPlotSettings.prototype.toggleSpectralLines = function() {
     this.displayingSpectralLines = !this.displayingSpectralLines;
     this.redraw()
-}
+};
 DetailedPlotSettings.prototype.unlockBounds = function() {
     this.lockedBounds = false;
-}
+};
 DetailedPlotSettings.prototype.setCanvas = function(canvas) {
     this.canvas = canvas;
     this.c = canvas.getContext("2d");
     this.c.lineWidth = 1;
     this.refreshSettings();
-}
+};
 DetailedPlotSettings.prototype.refreshSettings = function () {
     this.canvas.width = this.canvas.clientWidth;
     this.canvas.height = this.canvas.clientHeight;
     this.width = this.canvas.width - this.left - this.right;
     this.height = this.canvas.height - this.top - this.bottom;
 
-}
+};
 DetailedPlotSettings.prototype.getCanvas = function() {
     return this.canvas;
-}
+};
 DetailedPlotSettings.prototype.setTemplateOffset = function() {
     this.redraw();
-}
+};
 DetailedPlotSettings.prototype.setTemplateScale = function() {
     if (this.template == null) {
         return;
@@ -473,10 +498,10 @@ DetailedPlotSettings.prototype.setTemplateScale = function() {
         }
     }
     this.redraw();
-}
+};
 DetailedPlotSettings.prototype.clearData = function() {
     this.data = [];
-}
+};
 DetailedPlotSettings.prototype.addData = function(id, bound, colour, x, y, e) {
     var item = {id: id, bound: bound, colour: colour, x: x, y: y, e: e};
     if (id == 'template') {
@@ -495,7 +520,7 @@ DetailedPlotSettings.prototype.addData = function(id, bound, colour, x, y, e) {
         item.y = fastSmooth(item.y, parseInt(this.interfaceManager.detailViewProcessedSmooth));
     }
     this.data.push(item);
-}
+};
 DetailedPlotSettings.prototype.getBounds = function() {
     if (this.lockedBounds) return;
     var c = 0;
@@ -555,14 +580,14 @@ DetailedPlotSettings.prototype.getBounds = function() {
         }
     }
     this.recalculateFocus();
-}
+};
 DetailedPlotSettings.prototype.removeFocus = function() {
     this.focusX = null;
     this.focusY = null;
     this.focusDataX = null;
     this.focusDataY = null;
     this.waitingForSpectra = false;
-}
+};
 DetailedPlotSettings.prototype.recalculateFocus = function() {
     if (this.focusX == null || this.focusY == null) return;
     if (this.checkDataXYInRange(this.focusDataX, this.focusDataY)) {
@@ -571,28 +596,28 @@ DetailedPlotSettings.prototype.recalculateFocus = function() {
     } else {
         this.removeFocus();
     }
-}
+};
 DetailedPlotSettings.prototype.convertCanvasXCoordinateToDataPoint = function(x) {
     return this.xMin + ((x-this.left)/(this.width)) * (this.xMax - this.xMin);
-}
+};
 DetailedPlotSettings.prototype.convertCanvasYCoordinateToDataPoint = function(y) {
     return this.yMin + (1-((y-this.top)/(this.height))) * (this.yMax - this.yMin);
-}
+};
 DetailedPlotSettings.prototype.convertDataYToCanvasCoordinate = function(y) {
     return this.top  + (1-((y-this.yMin)/(this.yMax-this.yMin))) * this.height;
-}
+};
 DetailedPlotSettings.prototype.convertDataXToCanvasCoordinate = function(x) {
     return this.left + ((x-this.xMin)/(this.xMax-this.xMin)) * this.width;
-}
+};
 DetailedPlotSettings.prototype.convertDataYToCanvasCoordinate = function(y) {
     return this.top  + (1-((y-this.yMin)/(this.yMax-this.yMin))) * this.height;
-}
+};
 DetailedPlotSettings.prototype.clearPlot = function() {
     this.c.save();
     this.c.setTransform(1, 0, 0, 1, 0, 0);
     this.c.clearRect(0, 0, this.canvas.width, this.canvas.height);
     this.c.restore();
-}
+};
 DetailedPlotSettings.prototype.renderPlots = function() {
     for (var j = 0; j < this.data.length; j++) {
         this.c.beginPath();
@@ -621,13 +646,13 @@ DetailedPlotSettings.prototype.renderPlots = function() {
         }
         this.c.stroke();
     }
-}
+};
 DetailedPlotSettings.prototype.clearSurrounding = function() {
     this.c.clearRect(0, 0, this.canvas.width, this.top);
     this.c.clearRect(0, 0, this.left, this.canvas.height);
     this.c.clearRect(0, this.top + this.height, this.canvas.width, this.bottom);
     this.c.clearRect(this.left + this.width, 0, this.right, this.canvas.height);
-}
+};
 DetailedPlotSettings.prototype.plotAxes = function() {
     this.c.strokeStyle = this.axesColour;
     this.c.beginPath();
@@ -635,7 +660,7 @@ DetailedPlotSettings.prototype.plotAxes = function() {
     this.c.lineTo(this.left, this.top + this.height);
     this.c.lineTo(this.left + this.width, this.top + this.height);
     this.c.stroke();
-}
+};
 DetailedPlotSettings.prototype.plotAxesLabels = function(onlyLabels) {
     this.c.font = this.labelFont;
     this.c.strokeStyle = this.stepColour;
@@ -685,7 +710,7 @@ DetailedPlotSettings.prototype.plotAxesLabels = function(onlyLabels) {
     if (!onlyLabels) {
         this.c.stroke();
     }
-}
+};
 DetailedPlotSettings.prototype.plotZeroLine = function() {
     var y = this.convertDataYToCanvasCoordinate(0);
     if (y > (this.top + this.height) || y < this.top) {
@@ -696,12 +721,12 @@ DetailedPlotSettings.prototype.plotZeroLine = function() {
     this.c.moveTo(this.left, y + 0.5);
     this.c.lineTo(this.left + this.width, y + 0.5);
     this.c.stroke();
-}
+};
 DetailedPlotSettings.prototype.drawZoomOut = function() {
     var x = this.canvas.width - this.zoomOutWidth;
     var y = 0;
     this.c.drawImage(this.zoomOutImg, x, y);
-}
+};
 DetailedPlotSettings.prototype.plotSpectralLines = function() {
     if (!this.displayingSpectralLines) return;
     var lines = this.spectralLines.getEnabled();
@@ -732,7 +757,7 @@ DetailedPlotSettings.prototype.plotSpectralLines = function() {
             this.c.fillText(lines[i].label, x, this.top - 5);
         }
     }
-}
+};
 DetailedPlotSettings.prototype.drawFocus = function() {
     if (this.focusX == null || this.focusY == null) return;
     this.c.strokeStyle = this.focusCosmeticColour;
@@ -744,7 +769,7 @@ DetailedPlotSettings.prototype.drawFocus = function() {
     this.c.arc(this.focusX, this.focusY, this.focusCosmeticMaxRadius, 0, 2 * Math.PI, false);
     this.c.stroke();
     this.c.lineWidth = 1;
-}
+};
 DetailedPlotSettings.prototype.drawCursor = function() {
     if (this.currentMouseX == null || this.currentMouseY == null) return;
     if (!this.checkCanvasInRange(this.currentMouseX, this.currentMouseY)) return;
@@ -789,7 +814,7 @@ DetailedPlotSettings.prototype.drawCursor = function() {
     this.c.textBaseline = 'top';
     this.c.fillText(this.convertCanvasXCoordinateToDataPoint(this.currentMouseX + 0.5).toFixed(1), this.currentMouseX + 0.5, y + 5)
 
-}
+};
 DetailedPlotSettings.prototype.redraw = function() {
     this.refreshSettings();
     this.getBounds();
@@ -804,7 +829,7 @@ DetailedPlotSettings.prototype.redraw = function() {
     this.plotSpectralLines();
     this.drawFocus();
     this.drawCursor();
-}
+};
 
 
 DetailedPlotSettings.prototype.handleEvent = function(e) {
@@ -820,25 +845,25 @@ DetailedPlotSettings.prototype.handleEvent = function(e) {
     } else if (e.type == 'mouseout') {
         this.mouseOut(res);
     }
-}
+};
 DetailedPlotSettings.prototype.checkDataXInRange = function(x) {
     return x >= this.xMin && x <= this.xMax;
-}
+};
 DetailedPlotSettings.prototype.checkDataYInRange = function(y) {
     return y >= this.yMin && y <= this.yMax;
-}
+};
 DetailedPlotSettings.prototype.checkDataXYInRange = function(x,y) {
     return this.checkDataXInRange(x) && this.checkDataYInRange(y);
-}
+};
 DetailedPlotSettings.prototype.checkCanvasXInRange = function(x) {
     return x >= this.left && x <= (this.left + this.width)
-}
+};
 DetailedPlotSettings.prototype.checkCanvasYInRange = function(y) {
     return y >= this.top && y <= (this.top + this.height);
-}
+};
 DetailedPlotSettings.prototype.checkCanvasInRange = function(x,y) {
     return this.checkCanvasXInRange(x) && this.checkCanvasYInRange(y);
-}
+};
 DetailedPlotSettings.prototype.windowToCanvas = function(e) {
     var result = {};
     var rect = this.canvas.getBoundingClientRect();
@@ -851,24 +876,24 @@ DetailedPlotSettings.prototype.windowToCanvas = function(e) {
     result.inside = (result.dataX != null && result.dataY != null);
 
     return result;
-}
+};
 DetailedPlotSettings.prototype.canvasMouseDown = function(loc) {
     if (loc.inside) {
         this.lastXDown = loc.x;
         this.lastYDown = loc.y;
     }
-}
+};
 DetailedPlotSettings.prototype.selectedSpectra = function() {
     this.focusX = null;
     this.focusY = null;
     this.waitingForSpectra = false;
-}
+};
 DetailedPlotSettings.prototype.getWaiting = function() {
     return this.waitingForSpectra;
-}
+};
 DetailedPlotSettings.prototype.getFocusWavelength = function() {
     return this.convertCanvasXCoordinateToDataPoint(this.focusX);
-}
+};
 DetailedPlotSettings.prototype.canvasMouseUp = function(loc) {
     this.currentMouseX = loc.x;
     this.currentMouseY = loc.y;
@@ -903,7 +928,7 @@ DetailedPlotSettings.prototype.canvasMouseUp = function(loc) {
     this.lastYDown = null;
     //this.redraw();
     this.interfaceManager.scope.$apply();
-}
+};
 DetailedPlotSettings.prototype.canvasMouseMove = function(loc) {
     if (!loc.inside) return;
     this.redraw();
@@ -923,9 +948,9 @@ DetailedPlotSettings.prototype.canvasMouseMove = function(loc) {
         this.c.fillRect(this.lastXDown + 0.5, this.lastYDown, w, h);
         this.c.strokeRect(this.lastXDown + 0.5, this.lastYDown, w, h);
     }
-}
+};
 DetailedPlotSettings.prototype.mouseOut = function(loc) {
     this.currentMouseX = null;
     this.currentMouseY = null;
     this.redraw();
-}
+};

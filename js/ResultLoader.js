@@ -57,6 +57,9 @@ function StorageManager(templateManager) {
         this.active = false;
     }
 }
+StorageManager.prototype.setActive = function(active) {
+    this.active = active;
+}
 StorageManager.prototype.purgeOldStorage = function() {
     var ratio = decodeURIComponent(JSON.stringify(localStorage)).length / (5 * 1024 * 1024);
     if (ratio > 0.85) {

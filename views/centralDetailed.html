@@ -25,7 +25,6 @@
             </div>
         </div>
         <div class="topspace">
-
             <b>Template Options:</b>
             <div class="detailedInput">
                 <label>Template:</label>
@@ -64,19 +63,40 @@
             <div class="detailedInput">
                 <div class="btn-group "><!--btn-group-justified-->
                     <!--<div class="btn-group">-->
-                        <button class="btn btn-sm btn-default" ng-model="interfaceManager.templateHasContinuum" btn-radio="false">Without continuum</button>
+                        <button class="btn btn-sm btn-default" ng-model="interfaceManager.templateHasContinuum" btn-radio="false">No continuum</button>
                     <!--</div>-->
                     <!--<div class="btn-group">-->
-                        <button class="btn btn-sm btn-default" ng-model="interfaceManager.templateHasContinuum" btn-radio="true">With continuum</button>
+                        <button class="btn btn-sm btn-default" ng-model="interfaceManager.templateHasContinuum" btn-radio="true">Continuum</button>
                     <!--</div>-->
                 </div>
                 <div class="btn-group pull-right">
-                    <button class="btn btn-sm btn-primary" ng-click="interfaceManager.resetToAutomatic()">Reset auto</button>
+                    <button class="btn btn-sm btn-primary" ng-click="interfaceManager.resetToAutomatic()">Reset to best auto</button>
                     <button class="btn btn-sm btn-primary" ng-click="interfaceManager.resetToManual()">Reset manual</button>
                 </div>
             </div>
             <div class="clear"></div>
        </div>
+        <div class="topspace">
+            <b>Automatic Results</b>
+            <p>Change templates to cycle through the best matches for that template.</p>
+            <div class="detailedInput">
+                <div style="float: left; width:255px">
+                    <label style="width: 190px">Compare Automatic Results:</label>
+                    <input style="width: 25px; height: 25px; vertical-align: middle;" type="checkbox" ng-change="$parent.interfaceManager.matchingToggled()" ng-model="$parent.interfaceManager.matchedComparisonActive">
+                </div>
+                <div class="clear"></div>
+            </div>
+            <div class="detailedInput">
+                <div style="float: left; width:255px">
+                    <label style="width: 190px">Automatic Result Number:</label>
+                    <input style="width: 45px" min="1" max="{{$parent.interfaceManager.maxMatchedIndex}}" type="number" ng-change="$parent.interfaceManager.matchedIndexChanged()" ng-model="$parent.interfaceManager.matchedIndex">
+                </div>
+                <div  style="margin-left: 255px">
+                    <input type="range" min="1" max="{{$parent.interfaceManager.maxMatchedIndex}}" step="1" ng-change="$parent.interfaceManager.matchedIndexChanged()" ng-model="$parent.interfaceManager.matchedIndex">
+                </div>
+                <div class="clear"></div>
+            </div>
+        </div>
     </div>
     <div class="col-md-5">
         <div>

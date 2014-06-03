@@ -15,6 +15,16 @@
                                ng-change="properties.downloadAutomatically.updateFromTemp()">
                     </div>
                 </div>
+                <div class="form-group cb">
+                    <label for="saveauto"
+                           class="col-sm-3 control-label">{{properties.saveInBackground.getLabel()}}</label>
+
+                    <div class="col-sm-9">
+                        <input type="checkbox" class="form-control" id="saveauto"
+                               ng-model="properties.saveInBackground.temp" required="true"
+                               ng-change="properties.saveInBackground.updateFromTemp()">
+                    </div>
+                </div>
                 <div class="form-group">
                     <label for="cores" class="col-sm-3 control-label">{{properties.numCores.getLabel()}}</label>
 
