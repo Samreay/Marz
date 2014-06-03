@@ -2,7 +2,7 @@
  * This file is responsible for data preprocessing. Extra preprocessing functions
  * should be added to this file, and the method calls added to the processData function.
  */
-importScripts('regression.js', 'tools.js', 'templates.js')
+importScripts('../lib/regression.js', 'tools.js', 'templates.js')
 var templateManager = new TemplateManager();
 var shifted_temp = false;
 var max_error = 1e6;
