@@ -110,7 +110,7 @@ FitsFile.prototype.getNames = function(fits) {
         }
         opt.getRA(fits);
     }, this);
-}
+};
 FitsFile.prototype.getRA = function(fits) {
     fits.getDataUnit(this.typeIndex).getColumn("RA", function(data, opt) {
         for (var i = 0; i < opt.spectra.length; i++) {
@@ -119,7 +119,7 @@ FitsFile.prototype.getRA = function(fits) {
         }
         opt.getDec(fits);
     }, this);
-}
+};
 FitsFile.prototype.getDec = function(fits) {
     fits.getDataUnit(this.typeIndex).getColumn("DEC", function(data, opt) {
         for (var i = 0; i < opt.spectra.length; i++) {
@@ -128,7 +128,7 @@ FitsFile.prototype.getDec = function(fits) {
         }
         opt.getMagntidues(fits);
     }, this);
-}
+};
 FitsFile.prototype.getMagntidues = function(fits) {
     fits.getDataUnit(this.typeIndex).getColumn("MAGNITUDE", function(data, opt) {
         for (var i = 0; i < opt.spectra.length; i++) {
@@ -137,7 +137,7 @@ FitsFile.prototype.getMagntidues = function(fits) {
         }
         opt.getComments(fits);
     }, this);
-}
+};
 FitsFile.prototype.getComments = function(fits) {
     fits.getDataUnit(this.typeIndex).getColumn("COMMENT", function(data, opt) {
         for (var i = 0; i < opt.spectra.length; i++) {
@@ -152,7 +152,7 @@ FitsFile.prototype.getComments = function(fits) {
         }
         opt.getSky(fits);
     }, this);
-}
+};
 FitsFile.prototype.getSky = function(fits) {
     fits.getDataUnit(this.skyIndex).getFrame(0, function(data, opt) {
         var d = Array.prototype.slice.call(data);
@@ -281,7 +281,7 @@ Spectra.prototype.setManual = function(redshift, templateIndex, qop, save) {
         this.storageManager.saveSpectra(this);
         this.interfaceManager.rerenderOverview(this.index);
     }
-}
+};
 Spectra.prototype.setProcessedValues = function(pl, pi, pv) {
     if (pl != null) {
         this.processedLambdaRaw = pl;
@@ -302,7 +302,7 @@ Spectra.prototype.setMatched = function(tr) {
         this.spectraManager.addToUpdated(this.index);
         this.interfaceManager.rerenderOverview(this.index);
     }
-}
+};
 Spectra.prototype.setResults = function(automaticTemplateID, automaticRedshift, automaticChi2, finalTemplateID, finalZ, qop, pushToLocal) {
     var t = this.templateManager.getIndexFromID(automaticTemplateID);
     if (t != null) {
@@ -320,7 +320,7 @@ Spectra.prototype.setResults = function(automaticTemplateID, automaticRedshift, 
         this.storageManager.saveSpectra(this);
     }
     this.interfaceManager.rerenderOverview(this.index);
-}
+};
 Spectra.prototype.getAsJson = function(getOriginal) {
     if (getOriginal || this.processedIntensity == null) {
         return {'hasAutomaticMatch': this.automaticZ != null, 'index':this.index, type:this.type, 'start_lambda':this.lambda[0], 'end_lambda':this.lambda[this.lambda.length - 1], 'intensity':this.intensity, 'variance':this.variance};
@@ -362,7 +362,7 @@ Spectra.prototype.getOutputValues = function() {
         result.finalTemplateName = result.manualTemplateName;
     }
     return result;
-}
+};
 Spectra.prototype.isProcessed = function() {
     return this.processedIntensity != null;
 };
@@ -371,10 +371,10 @@ Spectra.prototype.isMatched = function() {
 };
 Spectra.prototype.getQOP = function() {
     return this.finalQOP;
-}
+};
 Spectra.prototype.setQOP = function(qop) {
     this.finalQOP = qop;
-}
+};
 
 function SpectraManager(scope, processorManager, templateManager) {
     this.spectraList = [];
@@ -383,7 +383,7 @@ function SpectraManager(scope, processorManager, templateManager) {
     this.processed = [];
     this.processorManager = processorManager;
     this.templateManager = templateManager;
-};
+}
 SpectraManager.prototype.setSpectra = function(spectraList) {
     this.spectraList = spectraList;
     if (this.scope.results != null && this.scope.results.hasResults()) {
@@ -402,7 +402,7 @@ SpectraManager.prototype.getUnprocessed = function() {
         }
     }
     return results;
-}
+};
 SpectraManager.prototype.getUnmatched = function() {
     var results = [];
     for (var i = 0; i < this.spectraList.length; i++) {
@@ -411,7 +411,7 @@ SpectraManager.prototype.getUnmatched = function() {
         }
     }
     return results;
-}
+};
 SpectraManager.prototype.getSpectra = function(i) {
     return this.spectraList[i];
 };
@@ -422,13 +422,13 @@ SpectraManager.prototype.getIndexViaID = function(id) {
         }
     }
     return null;
-}
+};
 SpectraManager.prototype.addToProcessed = function(i) {
     if (this.processed.indexOf(i) == -1) {
         this.processed.push(i);
     }
 
-}
+};
 SpectraManager.prototype.addToUpdated = function(i) {
     if (this.analysed.indexOf(i) == -1) {
         this.analysed.push(i);
@@ -436,13 +436,13 @@ SpectraManager.prototype.addToUpdated = function(i) {
     if (this.analysed.length == this.spectraList.length) {
         this.scope.finishedAnalysis();
     }
-}
+};
 SpectraManager.prototype.getAnalysed = function() {
     return this.analysed;
-}
+};
 SpectraManager.prototype.getProcessed = function() {
     return this.processed;
-}
+};
 SpectraManager.prototype.getOutputResults = function() {
     var results = "SpectraID,SpectraName,SpectraRA,SpectraDec,SpectraMagnitude,AutomaticTemplateID,AutomaticTemplateName,AutomaticRedshift,AutomaticChi2,FinalTemplateID,FinalTemplateName,FinalRedshift,QOP\n"; //TODO: Replace with actual template information.
     var tmp = [];
@@ -488,13 +488,25 @@ function ProcessorManager(numProcessors, scope) {
     }
     return this;
 }
+ProcessorManager.prototype.changeNumberOfCores = function(num) {
+    if (num  < this.processors.length) {
+        while (this.processors.length > num) {
+            this.processors[0].flagForDeletion();
+            this.processors.splice(0, 1);
+        }
+    } else if (num > this.processors.length) {
+        while (this.processors.length < num) {
+            this.processors.push(new Processor(this));
+        }
+    }
+};
 ProcessorManager.prototype.toggleActiveProcessing = function() {
     this.activeProcessing = !this.activeProcessing;
     this.processSpectra();
-}
+};
 ProcessorManager.prototype.isPaused = function() {
     return !this.activeProcessing;
-}
+};
 ProcessorManager.prototype.setSpectra = function(spectraManager) {
     this.spectraManager = spectraManager;
     if (this.automatic) {
@@ -543,6 +555,7 @@ ProcessorManager.prototype.getFreeProcessor = function () {
  * @param manager - the processor manager, used in the worker callback
  */
 function Processor(manager) {
+    this.flaggedForDeletion = false;
     this.manager = manager;
     this.workingSpectra = null;
     this.worker = new Worker('js/preprocessor.js');
@@ -554,7 +567,15 @@ function Processor(manager) {
         }
         this.workingSpectra = null;
         this.manager.processSpectra();
+        if (this.flaggedForDeletion) {
+            this.worker = null;
+            this.manager = null;
+            this.workingSpectra = null;
+        }
     }.bind(this), false);
+}
+Processor.prototype.flagForDeletion = function() {
+    this.flaggedForDeletion = true;
 }
 Processor.prototype.isIdle = function() {
     return this.workingSpectra == null;
@@ -577,4 +598,51 @@ FileManager.prototype.setFitsFileName = function(filename) {
 FileManager.prototype.saveResults = function(results) {
     var blob = new Blob([results], {type: 'text/html'});
     saveAs(blob, this.filename);
+};
+
+
+function CookieProperties(id, label, value, validation, changecallback) {
+    this.id = id;
+    this.label = label;
+    this.default = value;
+    this.value = value;
+    this.validation = validation;
+    this.changecallback = changecallback;
+    this.getFromCookie();
+    this.temp = this.value;
+}
+CookieProperties.prototype.getFromCookie = function() {
+    var value = getCookie(this.id);
+    if (value != null) {
+        this.value = JSON.parse(value);
+    }
+};
+CookieProperties.prototype.setToCookie = function() {
+    setCookie(this.id, JSON.stringify(this.value));
+};
+CookieProperties.prototype.setValue = function(v) {
+    if (this.validation(v)) {
+        var changed = this.value != v;
+        this.value = v;
+        this.setToCookie();
+        return changed;
+    }
+    return false;
+};
+CookieProperties.prototype.getLabel = function() {
+    return this.label;
+};
+CookieProperties.prototype.getValue = function() {
+    return this.value;
+};
+CookieProperties.prototype.updateFromTemp = function() {
+    if (this.setValue(this.temp)) {
+        if (this.changecallback != null) {
+            this.changecallback(this.value);
+        }
+    }
+};
+CookieProperties.prototype.resetToDefault = function() {
+    this.temp = this.default;
+    this.updateFromTemp();
 };

@@ -27,10 +27,10 @@ ResultsLoader.prototype.load = function() {
 
     reader.readAsText(this.file);
 
-}
+};
 ResultsLoader.prototype.hasResults = function() {
     return this.results.length > 0;
-}
+};
 ResultsLoader.prototype.setResults = function() {
     var spectraList = this.scope.spectraManager.getAll();
     if (spectraList != null && spectraList.length != 0) {
@@ -76,7 +76,7 @@ StorageManager.prototype.purgeOldStorage = function() {
         ratio = decodeURIComponent(JSON.stringify(localStorage)).length / (5 * 1024 * 1024);
         console.log('Pruned local storage. Currently at ' + Math.ceil(ratio*100) + '%');
     }
-}
+};
 StorageManager.prototype.supportsLocalStorage = function() {
     try {
         return 'localStorage' in window && window['localStorage'] !== null;
@@ -87,6 +87,18 @@ StorageManager.prototype.supportsLocalStorage = function() {
 };
 StorageManager.prototype.getKeyFromSpectra = function(spectra) {
     return spectra.filename + spectra.name;
+};
+StorageManager.prototype.clearFile = function(filename) {
+    for (var i = 0; i < localStorage.length; i++) {
+        var key = localStorage.key(i);
+        if (key.indexOf(filename, 0) == 0) {
+            localStorage.removeItem(key);
+            i--;
+        }
+    }
+};
+StorageManager.prototype.clearAll = function() {
+    localStorage.clear();
 };
 StorageManager.prototype.getValueFromSpectra = function(spectra) {
     if (spectra.getFinalRedshift() == null) return null;
@@ -114,4 +126,4 @@ StorageManager.prototype.loadSpectra = function(spectra) {
             spectra.setResults(val[1], parseFloat(val[2]), parseInt(val[3]), val[4], parseFloat(val[5]), parseInt(val[6]), false);
         }
     }
-}
+};

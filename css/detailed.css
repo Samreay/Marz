@@ -180,7 +180,7 @@ div[dropzone] ul li b {
 }
 .usage .h1group {
     margin-bottom: 20px;
-    padding: 30px;
+    padding: 0px 30px 30px 30px;
 }
 
 .usage hr {
@@ -226,6 +226,11 @@ div[dropzone] ul li b {
 #detailedCanvas {
     cursor: crosshair;
 }
+
+input[type="checkbox"].form-control {
+    width: 34px;
+}
+
 /************************************/
 /*    CSS FOR THE RIGHT SECTION     */
 /************************************/

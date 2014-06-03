@@ -12,15 +12,22 @@ app.filter('onlyDisplay', function () {
 });
 
 function MainController($scope, $timeout) {
-    $scope.properties = {downloadAutomatically: {label: "Download Automatically", value: false},
-                         //processAndMatchTogether: {label: "Process and Match in same step", value: false},
-                         numberOfCores: {label: "Number of Cores In Computer", value: 4}};
+    $scope.properties = {};
+    $scope.processorManager = null;
+    $scope.properties.downloadAutomatically = new CookieProperties('downloadAutomatically', 'Download Automatically', false,
+        function(v) { return typeof(v) == "boolean"; },
+        null
+    );
+    $scope.properties.numCores = new CookieProperties('numCores', 'Number of Cores In Computer', 4,
+        function(v) { return (!isNaN(parseInt(v)) && v > 1 && v < 33);},
+        function(v) { if ($scope.processorManager != null) { $scope.processorManager.changeNumberOfCores(v - 1); }}
+    );
 
 
     // Model managers
     $scope.templateManager = new TemplateManager();
     $scope.spectalLines = new SpectralLines();
-    $scope.processorManager = new ProcessorManager($scope.properties.numberOfCores.value - 1, $scope); //TODO: Core estimation
+    $scope.processorManager = new ProcessorManager($scope.properties.numCores.getValue() - 1, $scope); //TODO: Core estimation
     $scope.spectraManager = new SpectraManager($scope, $scope.processorManager, $scope.templateManager);
     $scope.interfaceManager = new InterfaceManager($scope, $scope.spectraManager, $scope.templateManager, $scope.processorManager, $scope.spectalLines);
     $scope.fileManager = new FileManager();
@@ -28,6 +35,25 @@ function MainController($scope, $timeout) {
 
     $scope.results = null;
     $scope.fits = null; // Initialise new FitsFile on drop.
+    $scope.refreshPage = function() {
+        window.location.reload();
+    }
+    $scope.resetAllProperties = function() {
+        for (var property in $scope.properties) {
+            if ($scope.properties.hasOwnProperty(property)) {
+                $scope.properties[property].resetToDefault();
+            }
+        }
+    };
+    $scope.clearCurrentFile = function() {
+        if (this.fits == null) {
+            return;
+        }
+        $scope.storageManager.clearFile(this.fits.properties[0].value);
+    };
+    $scope.clearAll = function() {
+        $scope.storageManager.clearAll();
+    }
     $scope.goToMenu = function(menuOption) {
         if (menuOption == 'Detailed') {
             $scope.goToDetailed();

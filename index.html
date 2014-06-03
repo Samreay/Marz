@@ -56,6 +56,7 @@
                                 <ul class="list-unstyled">
                                     <li ng-repeat="i in fits.properties | onlyDisplay"><b class="label">{{i.label}}:</b> {{i.displayValue}}</li>
                                 </ul>
+                                <button class="btn btn-default btn-block" ng-click="refreshPage()">Clear this file</button>
                             </div>
                         </div>
                     </div>
