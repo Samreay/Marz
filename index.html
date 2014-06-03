@@ -13,7 +13,7 @@
     <link href="css/structure.css" rel="stylesheet"/>
     <link href="css/detailed.css" rel="stylesheet"/>
     <link href="css/fancy.css" rel="stylesheet"/>
-    <script src="js/jquery-2.1.0.js"></script>
+    <script src="lib/jquery-2.1.0.js"></script>
 
 </head>
 <body ng-app="thesis" ng-controller="MainController">
@@ -107,7 +107,8 @@
                     </ul>
                 </div>
                 <ng-include src="'views/centralDetailed.html'" ng-show="interfaceManager.menuActive=='Detailed'"></ng-include>
-                <ng-include src="'views/usage.html'" ng-if="interfaceManager.menuActive=='Usage'"></ng-include>
+                <ng-include src="'views/centralUsage.html'" ng-if="interfaceManager.menuActive=='Usage'"></ng-include>
+                <ng-include src="'views/centralSettings.html'" ng-if="interfaceManager.menuActive=='Settings'"></ng-include>
             </div>
         </div>
     </div>
@@ -141,15 +142,15 @@
             </div>
         </div>
     </div>
-    <script src="js/bootstrap.js"></script>
-    <script src="js/angular.js"></script>
-    <script src="js/angular-animate.js"></script>
+    <script src="lib/bootstrap.js"></script>
+    <script src="lib/angular.js"></script>
+    <script src="lib/angular-animate.js"></script>
     <script src="js/angular-drop.js"></script>
-    <script src="js/ui-bootstrap-tpls-0.10.0.js"></script>
+    <script src="lib/ui-bootstrap-tpls-0.10.0.js"></script>
     <script src="js/fits.js"></script>
     <script src="js/ResultLoader.js"></script>
     <script src="js/FileSaver.js"></script>
-    <script src="js/regression.js"></script>
+    <script src="lib/regression.js"></script>
     <script src="js/tools.js"></script>
     <script src="js/spectralLines.js"></script>
     <script src="js/templates.js"></script>
