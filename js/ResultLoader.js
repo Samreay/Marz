@@ -110,7 +110,6 @@ StorageManager.prototype.getValueFromSpectra = function(spectra) {
 };
 StorageManager.prototype.saveSpectra = function(spectra) {
     if (!this.active) return;
-    console.log('Saving spectra');
     var key = this.getKeyFromSpectra(spectra);
     var val = this.getValueFromSpectra(spectra);
     if (val != null) {
@@ -120,7 +119,6 @@ StorageManager.prototype.saveSpectra = function(spectra) {
 };
 StorageManager.prototype.loadSpectra = function(spectra) {
     if (!this.active) return;
-    console.log('Loading spectra');
     var key = this.getKeyFromSpectra(spectra);
     var val = localStorage[key];
     if (val != null) {

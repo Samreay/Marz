@@ -228,7 +228,7 @@ function matchTemplateAtRedshift(intensity, variance, weights, spec, offset, int
 
 self.addEventListener('message', function(e) {
     var d = e.data;
-    var match = d.match && !d.hasAutomaticMatch;
+    var match = d.match;
     var lambda = d.lambda;
     if (d.process) {
         lambda = linearScale(d.start_lambda, d.end_lambda, d.intensity.length);

@@ -28,7 +28,7 @@ function TemplateManager() {
     this.weights.push({blank: 1, Transient: 1, SN_host: 0.8, WhiteDwarf: 1.3, StrongLens: 0.8, AGN_reverberation: 1.1, AGN_monitoring: 1.1, ClusterGalaxy_I: 0.9, ClusterGalaxy_II: 0.9, RadioGalaxy_I: 0.9, LRG: 0.8, ELG: 0.9, 'Photo-z': 0.9, FStar: 1.3});
     this.weights.push({blank: 1, Transient: 1, SN_host: 0.8, WhiteDwarf: 1.3, StrongLens: 0.8, AGN_reverberation: 1.1, AGN_monitoring: 1.1, ClusterGalaxy_I: 0.9, ClusterGalaxy_II: 0.9, RadioGalaxy_I: 0.9, LRG: 0.8, ELG: 0.9, 'Photo-z': 0.9, FStar: 1.3});
 
-    this.weights.push({blank: 1.4, Transient: 1.4, SN_host: 0.9, WhiteDwarf: 1.3, StrongLens: 1.1, AGN_reverberation: 0.8, AGN_monitoring: 0.8, ClusterGalaxy_I: 1.2, ClusterGalaxy_II: 1.2, RadioGalaxy_I: 1.2, LRG: 1.2, ELG: 1.2, 'Photo-z': 1, FStar: 1.3});
+    this.weights.push({blank: 1.4, Transient: 1.4, SN_host: 0.9, WhiteDwarf: 1.3, StrongLens: 1.1, AGN_reverberation: 0.9, AGN_monitoring: 0.9, ClusterGalaxy_I: 1.2, ClusterGalaxy_II: 1.2, RadioGalaxy_I: 1.2, LRG: 1.2, ELG: 1.2, 'Photo-z': 1, FStar: 1.3});
     this.processTemplates();
 }
 

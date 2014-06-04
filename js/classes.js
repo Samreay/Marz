@@ -26,7 +26,7 @@ function TemplateExtractor(filename, fits, scope) {
 
 function FitsFile(filename, fits, scope) {
     this.filename = filename;
-    this.rawfits = fits;
+//    this.rawfits = fits;
     this.scope = scope;
 
 
@@ -145,8 +145,8 @@ FitsFile.prototype.getComments = function(fits) {
             opt.spectra[i].type = data[j].split(' ')[0];
             if (opt.spectra[i].type == 'Parked') {
                 opt.spectra.splice(i,1);
-                for (var j = i; j < opt.spectra.length; j++) {
-                    opt.spectra[j].index--;
+                for (var k = i; k < opt.spectra.length; k++) {
+                    opt.spectra[k].index--;
                 }
             }
         }
@@ -173,7 +173,7 @@ FitsFile.prototype.getSky = function(fits) {
         }
         opt.getSpectra(fits);
     }, this);
-}
+};
 FitsFile.prototype.getSpectra = function(fits) {
     fits.getDataUnit(0).getFrame(0, function(data, opt) {
         var d = Array.prototype.slice.call(data);
@@ -190,10 +190,10 @@ FitsFile.prototype.getVariances = function(fits) {
             opt.spectra[i].variance = d.slice((opt.spectra[i].id-1) * opt.numPoints, (opt.spectra[i].id ) * opt.numPoints);
         }
         var spec = [];
-        for (var i = 0; i < opt.spectra.length; i++) {
-            spec.push(new Spectra(opt.spectra[i].index, opt.spectra[i].id, opt.lambda.slice(0), opt.spectra[i].intensity, opt.spectra[i].variance,
-                opt.isCoadd ? opt.spectra[i].sky : opt.sky, opt.isCoadd ? opt.spectra[i].skyAverage : opt.skyAverage, opt.spectra[i].name, opt.spectra[i].ra, opt.spectra[i].dec,
-                opt.spectra[i].magnitude, opt.spectra[i].type, opt.properties[0].value, opt.scope));
+        for (var j = 0; j < opt.spectra.length; j++) {
+            spec.push(new Spectra(opt.spectra[j].index, opt.spectra[j].id, opt.lambda.slice(0), opt.spectra[j].intensity, opt.spectra[j].variance,
+                opt.isCoadd ? opt.spectra[j].sky : opt.sky, opt.isCoadd ? opt.spectra[j].skyAverage : opt.skyAverage, opt.spectra[j].name, opt.spectra[j].ra, opt.spectra[j].dec,
+                opt.spectra[j].magnitude, opt.spectra[j].type, opt.properties[0].value, opt.scope));
         }
         opt.scope.spectraManager.setSpectra(spec);
         opt.scope.$digest();
@@ -313,7 +313,7 @@ Spectra.prototype.getMatchedIndex = function(templateID, index) {
         }
     }
     return 0;
-}
+};
 Spectra.prototype.setResults = function(automaticTemplateID, automaticRedshift, automaticChi2, finalTemplateID, finalZ, qop, pushToLocal) {
     var t = this.templateManager.getIndexFromID(automaticTemplateID);
     if (t != null) {
@@ -338,6 +338,9 @@ Spectra.prototype.getAsJson = function(getOriginal) {
     } else {
         return {'hasAutomaticMatch': this.automaticZ != null, 'index':this.index, type:this.type, 'lambda':this.processedLambdaRaw, 'intensity':this.processedIntensity, 'variance':this.processedVariance};
     }
+};
+Spectra.prototype.hasFullResults = function() {
+    return this.templateResults != null && this.templateResults.length > 0;
 };
 Spectra.prototype.getOutputValues = function() {
     var result = {};
@@ -481,8 +484,8 @@ SpectraManager.prototype.getOutputResults = function() {
             return 0;
         }
     });
-    for (var i = 0; i < tmp.length; i++) {
-        results += tmp[i].txt;
+    for (var j = 0; j < tmp.length; j++) {
+        results += tmp[j].txt;
     }
     return results;
 }
@@ -493,6 +496,7 @@ function ProcessorManager(numProcessors, scope) {
     this.automatic = true;
     this.activeProcessing = true;
     this.spectraManager = null;
+    this.quickProcess = 0;
     this.processQueue = [];
     for (var i = 0; i < numProcessors; i++) {
         this.processors.push(new Processor(this));
@@ -511,23 +515,60 @@ ProcessorManager.prototype.changeNumberOfCores = function(num) {
         }
     }
 };
+ProcessorManager.prototype.setInterface = function(interfaceManager) {
+    this.interfaceManager = interfaceManager;
+}
 ProcessorManager.prototype.toggleActiveProcessing = function() {
+    this.quickProcess = 0;
     this.activeProcessing = !this.activeProcessing;
     this.processSpectra();
 };
 ProcessorManager.prototype.isPaused = function() {
     return !this.activeProcessing;
 };
+ProcessorManager.prototype.addToFrontOfAnalysis = function(spectra) {
+    var index = spectra.index;
+    var i;
+    this.quickProcess = 0;
+
+    for (i = 0; i < this.processQueue.length; i++) {
+        var item = this.processQueue[i];
+        if (item.index == index && item.match == true) {
+            this.processQueue.splice(i,1);
+        }
+    }
+    this.processQueue.unshift({process: false, match: true, index: index, spectra: spectra});
+    if (!this.activeProcessing) {
+        this.quickProcess++;
+    }
+    if (!spectra.isProcessed()) {
+        for (i = 0; i < this.processQueue.length; i++) {
+            var item = this.processQueue[i];
+            if (item.index == index && item.process == true) {
+                this.processQueue.splice(i,1);
+            }
+        }
+        this.processQueue.unshift({process: true, match: false, index: index, spectra: spectra});
+        if (!this.activeProcessing) {
+            this.quickProcess++;
+        }
+    }
+
+    if (!this.activeProcessing) {
+        this.activeProcessing = true;
+        this.processSpectra();
+    }
+}
 ProcessorManager.prototype.setSpectra = function(spectraManager) {
     this.spectraManager = spectraManager;
     if (this.automatic) {
         var unprocessed = spectraManager.getUnprocessed();
         for (var i = 0; i < unprocessed.length; i++) {
-            this.processQueue.push({process: true, match: false, index: unprocessed[i].index});
+            this.processQueue.push({process: true, match: false, index: unprocessed[i].index, spectra: unprocessed[i]});
         }
         var unmatched = spectraManager.getUnmatched()
         for (var j = 0; j < unmatched.length; j++) {
-            this.processQueue.push({process: false, match: true, index: unmatched[j].index});
+            this.processQueue.push({process: false, match: true, index: unmatched[j].index, spectra: unmatched[j]});
         }
         this.processSpectra();
     }
@@ -545,15 +586,45 @@ ProcessorManager.prototype.isProcessing = function() {
 };
 ProcessorManager.prototype.processSpectra = function() {
     if (this.processQueue.length > 0 && this.activeProcessing) {
-        var processor = this.getFreeProcessor();
-        while (processor) {
-            var d = this.processQueue.shift();
-            processor.processSpectra(d, this.spectraManager.getSpectra(d.index));
-            processor = this.getFreeProcessor();
+        if (this.quickProcess > 0) {
+            var processor = this.getFreeProcessor();
+            if (processor) {
+                processor.processSpectra(this.processQueue.splice(0, 1)[0]);
+                this.quickProcess--;
+                if (this.quickProcess == 0) {
+                    this.activeProcessing = false;
+                }
+            }
+        } else {
+            var processor = this.getFreeProcessor();
+            while (processor) {
+                var foundAnything = false;
+                for (var i = 0; i < this.processQueue.length; i++) {
+                    var item = this.processQueue[i];
+                    if (item.match == true && item.process == false && item.spectra.isProcessed() == false) {
+                        continue;
+                    } else {
+                        processor.processSpectra(this.processQueue.splice(i, 1)[0]);
+                        foundAnything = true;
+                        break;
+                    }
+                }
+                if (!foundAnything) {
+                    processor = null;
+                } else {
+                    processor = this.getFreeProcessor();
+                }
+            }
         }
+
     }
     this.scope.$apply();
 };
+ProcessorManager.prototype.signalFinishedMatched = function(index) {
+    if (this.interfaceManager != null) {
+        this.interfaceManager.updateTemplateForSpectra(index);
+    }
+}
 ProcessorManager.prototype.getFreeProcessor = function () {
     for (var i = 0; i < this.processors.length; i++) {
         if (this.processors[i].isIdle()) {
@@ -577,6 +648,7 @@ function Processor(manager) {
             this.workingSpectra.setProcessedValues(e.data.processedLambda, e.data.processedIntensity, e.data.processedVariance);
         } else {
             this.workingSpectra.setMatched(e.data.templateResults);
+            this.manager.signalFinishedMatched(this.workingSpectra.index);
         }
         this.workingSpectra = null;
         this.manager.processSpectra();
@@ -593,9 +665,9 @@ Processor.prototype.flagForDeletion = function() {
 Processor.prototype.isIdle = function() {
     return this.workingSpectra == null;
 };
-Processor.prototype.processSpectra = function(data, spectra) {
-    this.workingSpectra = spectra;
-    var r = spectra.getAsJson(data.process);
+Processor.prototype.processSpectra = function(data) {
+    this.workingSpectra = data.spectra;
+    var r = data.spectra.getAsJson(data.process);
     r.process = data.process;
     r.match = data.match;
     this.worker.postMessage(r);

@@ -3,6 +3,7 @@ function InterfaceManager(scope, spectraManager, templateManager, processorManag
     this.spectraManager = spectraManager;
     this.templateManager = templateManager;
     this.processorManager = processorManager;
+    this.processorManager.setInterface(this);
     this.spectralLines = spectralLines;
 
     this.menuOptions = ['Overview', 'Detailed', 'Templates', 'Settings', 'Usage'];
@@ -47,6 +48,26 @@ function InterfaceManager(scope, spectraManager, templateManager, processorManag
 
     this.renderOverviewDone = new Array();
 
+}
+InterfaceManager.prototype.changedRedshift = function() {
+    this.matchedComparisonActive = false;
+    this.detailedUpdateRequired = true;
+}
+InterfaceManager.prototype.updateTemplateForSpectra = function(index) {
+    if (this.isSpectraActive()) {
+        if (this.getActiveSpectra().index == index) {
+            this.detailedViewTemplate = this.getActiveSpectra().getFinalTemplate().index;
+            this.detailedViewZ = this.getActiveSpectra().getFinalRedshift();
+        }
+    }
+}
+InterfaceManager.prototype.hasMatchingDetails = function() {
+    return (this.isSpectraActive() && this.getActiveSpectra().hasFullResults());
+}
+InterfaceManager.prototype.reanalyseSpectra = function() {
+    if (this.isSpectraActive()) {
+        this.processorManager.addToFrontOfAnalysis(this.getActiveSpectra());
+    }
 }
 InterfaceManager.prototype.matchedIndexChanged = function() {
     this.matchedIndex = parseInt(this.matchedIndex);
@@ -381,6 +402,7 @@ InterfaceManager.prototype.getTemplateData = function () {
     this.detailedSettings.addData('template', false, this.interface.templateColour, r[0].slice(0), r[1].slice(0));
 };
 InterfaceManager.prototype.clickSpectralLine= function(id) {
+    this.matchedComparisonActive = false;
     if (this.detailedSettings.waitingForSpectra) {
         var currentWavelength = this.spectralLines.getFromID(id).wavelength;
         var desiredWavelength = this.detailedSettings.getFocusWavelength();
@@ -414,8 +436,8 @@ function DetailedPlotSettings(interfaceManager, spectralLines) {
     this.dragOutlineColour = 'rgba(38, 147, 232, 0.6)';
     this.spacingFactor = 1.5;
 
-    this.zoomOutWidth = 20;
-    this.zoomOutHeight = 20;
+    this.zoomOutWidth = 40;
+    this.zoomOutHeight = 40;
     this.zoomOutImg = new Image();
     this.zoomOutImg.src = 'images/lens.png'
 
