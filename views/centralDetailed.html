@@ -46,7 +46,7 @@
                     <input style="width: 55px" type="text"  ng-model="$parent.interfaceManager.detailedSettings.templatePixelOffset">
                 </div>
                 <div  style="margin-left: 140px">
-                    <input type="range" min="0" max="{{$parent.interfaceManager.detailedSettings.maxTemplatePixelOffset}}"  step="1" ng-change="$parent.interfaceManager.detailedSettings.setTemplateOffset()" ng-model="$parent.interfaceManager.detailedSettings.templatePixelOffset">
+                    <input type="range" min="{{-$parent.interfaceManager.detailedSettings.maxTemplatePixelOffset}}" max="{{$parent.interfaceManager.detailedSettings.maxTemplatePixelOffset}}"  step="1" ng-change="$parent.interfaceManager.detailedSettings.setTemplateOffset()" ng-model="$parent.interfaceManager.detailedSettings.templatePixelOffset">
                 </div>
                 <div class="clear"></div>
             </div>

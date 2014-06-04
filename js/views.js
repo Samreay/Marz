@@ -25,7 +25,7 @@ function InterfaceManager(scope, spectraManager, templateManager, processorManag
 
     this.interface = {
         unselected: '#E8E8E8',
-        rawColour: "#F7A519",
+        rawColour: "#111111",
         processedColour: "#058518",
         matchedColour: "#AA0000",
         skyColour: "#009DFF",

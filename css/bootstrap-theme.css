@@ -125,6 +125,24 @@
   background-color: #eb9316;
   border-color: #e38d13;
 }
+.btn-darkened {
+    background-image: -webkit-linear-gradient(top, #717174 0%, #515153 100%);
+    background-image:         linear-gradient(to bottom, #717174 0%, #515153 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#717174', endColorstr='#515153', GradientType=0);
+    filter: progid:DXImageTransform.Microsoft.gradient(enabled = false);
+    background-repeat: repeat-x;
+    border-color: #606063;
+}
+.btn-darkened:hover,
+.btn-darkened:focus {
+    background-color: #535355;
+    background-position: 0 -15px;
+}
+.btn-darkened:active,
+.btn-darkened.active {
+    background-color: #656568;
+    border-color: #535355;
+}
 .btn-danger {
   background-image: -webkit-linear-gradient(top, #d9534f 0%, #c12e2a 100%);
   background-image:         linear-gradient(to bottom, #d9534f 0%, #c12e2a 100%);
