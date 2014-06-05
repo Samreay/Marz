@@ -53,7 +53,7 @@
             <div class="detailedInput">
                 <div style="float: left; width:140px">
                     <label>Redshift: </label>
-                    <input style="width: 55px" type="text" ng-change="$parent.changedTemplate()" ng-model="$parent.interfaceManager.detailedViewZ">
+                    <input style="width: 55px" id="redshiftInput" type="text" ng-change="$parent.changedTemplate()" ng-model="$parent.interfaceManager.detailedViewZ">
                 </div>
                 <div  style="margin-left: 140px">
                     <input type="range" min={{$parent.interfaceManager.getMinRedshiftForDetailedTemplate()}} max="{{$parent.interfaceManager.detailedViewZMax}}" step="0.0001" ng-change="$parent.interfaceManager.changedRedshift()" ng-model="$parent.interfaceManager.detailedViewZ">

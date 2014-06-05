@@ -49,6 +49,52 @@ function InterfaceManager(scope, spectraManager, templateManager, processorManag
     this.renderOverviewDone = new Array();
 
 }
+InterfaceManager.prototype.nextTemplate = function() {
+    var templateList = this.templateManager.getAll();
+    if (templateList == null || templateList.length < 1) return;
+    this.detailedViewTemplate = ((this.detailedViewTemplate + 2) % (templateList.length + 1)) - 1;
+    this.scope.changedTemplate();
+}
+InterfaceManager.prototype.previousTemplate = function() {
+    var templateList = this.templateManager.getAll();
+    if (templateList == null || templateList.length < 1) return;
+    if (this.detailedViewTemplate == -1) this.detailedViewTemplate = templateList.length - 1;
+    else this.detailedViewTemplate--;
+    this.scope.changedTemplate();
+}
+InterfaceManager.prototype.nextSpectra = function() {
+    var spectralList = this.spectraManager.getAll();
+    if (spectralList == null || spectralList.length < 1) return;
+    this.spectraIndex = (this.spectraIndex + 1) % spectralList.length;
+}
+InterfaceManager.prototype.previousSpectra = function() {
+    var spectralList = this.spectraManager.getAll();
+    if (spectralList == null || spectralList.length < 1) return;
+    this.spectraIndex = (this.spectraIndex + spectralList.length - 1) % spectralList.length;
+}
+InterfaceManager.prototype.incrementSmooth = function() {
+    if (this.detailViewRawSmooth < this.detailViewSmoothMax) {
+        this.detailViewRawSmooth++;
+        this.changeRawSmooth();
+    }
+    if (this.detailViewProcessedSmooth < this.detailViewSmoothMax) {
+        this.detailViewProcessedSmooth++;
+        this.changeProcessedSmooth();
+    }
+}
+InterfaceManager.prototype.decrementSmooth = function() {
+    if (this.detailViewRawSmooth > 0) {
+        this.detailViewRawSmooth--;
+        this.changeRawSmooth();
+    }
+    if (this.detailViewProcessedSmooth > 0) {
+        this.detailViewProcessedSmooth--;
+        this.changeProcessedSmooth();
+    }
+}
+InterfaceManager.prototype.setFocusToRedshift = function() {
+    $('#redshiftInput').focus().select();
+}
 InterfaceManager.prototype.changedRedshift = function() {
     this.matchedComparisonActive = false;
     this.detailedUpdateRequired = true;
@@ -186,6 +232,9 @@ InterfaceManager.prototype.isMenuActive = function (array) {
     }
     return false;
 };
+InterfaceManager.prototype.canSave = function() {
+    return this.menuActive == 'Detailed' && this.isSpectraActive();
+}
 InterfaceManager.prototype.getProgessPercent = function () {
     if (this.getNumSpectra() == 0) {
         return 0;
@@ -193,6 +242,7 @@ InterfaceManager.prototype.getProgessPercent = function () {
     return Math.ceil(-0.01 + (100 * this.getNumAnalysed() / this.getNumSpectra()));
 };
 InterfaceManager.prototype.saveManual = function (qop) {
+    if (!this.canSave()) return;
     var spectra = this.spectraManager.getSpectra(this.spectraIndex);
     spectra.setManual(parseFloat(this.detailedViewZ), this.detailedViewTemplate, qop);
     this.rerenderOverview(spectra.index);
@@ -410,7 +460,7 @@ InterfaceManager.prototype.clickSpectralLine= function(id) {
         this.detailedViewZ = z;
         //this.detailedSettings.selectedSpectra();
     } else {
-        this.spectralLines.toggle(id);
+        //this.spectralLines.toggle(id);
     }
     if (!this.detailedSettings.displayingSpectralLines)  {
         this.detailedSettings.toggleSpectralLines();

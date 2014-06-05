@@ -404,6 +404,12 @@ SpectraManager.prototype.setSpectra = function(spectraList) {
         this.scope.results.setResults();
     }
     this.processorManager.setSpectra(this);
+    for (var i = 0; i < this.spectraList.length; i++) {
+        var spectra = this.spectraList[i];
+        if (spectra.isMatched()) {
+            spectra.interfaceManager.updateTemplateForSpectra(spectra.index);
+        }
+    }
 };
 SpectraManager.prototype.getAll = function() {
     return this.spectraList;
