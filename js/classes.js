@@ -301,18 +301,44 @@ Spectra.prototype.setMatched = function(tr) {
         this.storageManager.saveSpectra(this);
         this.spectraManager.addToUpdated(this.index);
         this.interfaceManager.rerenderOverview(this.index);
+
+        this.calculateBestFits();
     }
 };
-Spectra.prototype.getMatchedIndex = function(templateID, index) {
-    if (this.templateResults == null) {
-        return 0;
-    }
-    for (var i = 0; i < this.templateResults.length; i++) {
-        if (this.templateResults[i].id == templateID) {
-            return this.templateResults[i].top[index].z;
+Spectra.prototype.calculateBestFits = function() {
+    this.best = [{templateId: this.templateResults[0].id, z: this.templateResults[0].top[0].z, gof: this.templateResults[0].top[0].gof}];
+
+    var threshold = 0.05;
+
+    var i;
+    var merged = [];
+    for (i = 0; i < this.templateResults.length; i++) {
+        var tr = this.templateResults[i];
+        for (var j = 0; j < tr.top.length; j++) {
+            var trr = tr.top[j];
+            merged.push({id: tr.id, z: trr.z, gof: trr.gof});
         }
     }
-    return 0;
+    merged.sort(function(a,b) {
+        return a.gof - b.gof;
+    });
+
+    i = 0;
+    while (this.best.length < 10) {
+        var valid = true;
+        for (var k = 0; k < this.best.length; k++) {
+            if (this.best[k].templateId == merged[i].id && Math.abs(merged[i].z - this.best[k].z) < threshold) {
+                valid = false;
+            }
+        }
+        if (valid) {
+            this.best.push({templateId: merged[i].id, z: merged[i].z, gof: merged[i].gof});
+        }
+        i++;
+    }
+};
+Spectra.prototype.getMatchedIndex = function(index) {
+    return this.best[index];
 };
 Spectra.prototype.setResults = function(automaticTemplateID, automaticRedshift, automaticChi2, finalTemplateID, finalZ, qop, pushToLocal) {
     var t = this.templateManager.getIndexFromID(automaticTemplateID);
@@ -404,6 +430,12 @@ SpectraManager.prototype.setSpectra = function(spectraList) {
         this.scope.results.setResults();
     }
     this.processorManager.setSpectra(this);
+    for (var i = 0; i < this.spectraList.length; i++) {
+        var spectra = this.spectraList[i];
+        if (spectra.isMatched()) {
+            spectra.interfaceManager.updateTemplateForSpectra(spectra.index);
+        }
+    }
 };
 SpectraManager.prototype.getAll = function() {
     return this.spectraList;
