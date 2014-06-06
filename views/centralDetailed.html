@@ -77,10 +77,10 @@
             <div class="clear"></div>
        </div>
         <div class="topspace" ng-if="interfaceManager.isSpectraActive()">
-            <b>Automatic Results</b>
+            <b>Top Automatic Results</b>
             <div ng-if="interfaceManager.hasMatchingDetails()">
-                <p>Change templates to cycle through the best matches for that template.</p>
-                <div class="detailedInput">
+                <p>Cycle through the best matches across all templates.</p>
+                <!--<div class="detailedInput">
                     <div style="float: left; width:255px">
                         <label style="width: 190px">Compare Automatic Results:</label>
                         <input style="width: 25px; height: 25px; vertical-align: middle;" type="checkbox" ng-change="$parent.interfaceManager.matchingToggled()" ng-model="$parent.interfaceManager.matchedComparisonActive">
@@ -96,11 +96,16 @@
                         <input type="range" min="1" max="{{$parent.interfaceManager.maxMatchedIndex}}" step="1" ng-change="$parent.interfaceManager.matchedIndexChanged()" ng-model="$parent.interfaceManager.matchedIndex">
                     </div>
                     <div class="clear"></div>
+                </div>-->
+                <div class="btn-group pull-left">
+                    <button class="btn btn-sm btn-default" btn-radio="$index" ng-change="interfaceManager.matchedIndexChanged()" ng-model="interfaceManager.matchedIndex" ng-repeat="i in range(interfaceManager.maxMatchedIndex) track by $index">{{$index + 1}}</button>
                 </div>
+                <p ng-show="interfaceManager.matchedActive()" class="pull-left" style="margin-left: 10px; line-height: 30px;"><strong>{{interfaceManager.getMatchedTemplateName()}}</strong> at z = <strong>{{interfaceManager.getMatchedTemplateRedshift()}}</strong></p>
+                <div class="clearfix"></div>
             </div>
             <div ng-if="!interfaceManager.hasMatchingDetails()">
-                <p>Cannot scroll through automatic results as only the best has been saved.</p>
-                <button class="btn-small btn-primary" ng-click="interfaceManager.reanalyseSpectra()">Click here to reanalyse</button>
+                <p>No results list found. Expected if not analysed, or loaded from save.</p>
+                <button class="btn btn-small btn-primary" ng-click="interfaceManager.reanalyseSpectra()">Click here to reanalyse and get full results</button>
             </div>
         </div>
     </div>

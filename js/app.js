@@ -1,4 +1,4 @@
-var app = angular.module("thesis", ["dropzone","ui.bootstrap"]);
+var app = angular.module("thesis", ["dropzone", "keybind","ui.bootstrap"]);
 app.filter('onlyDisplay', function () {
     return function (arr) {
         var result = [];
@@ -43,6 +43,9 @@ function MainController($scope, $timeout) {
     $scope.refreshPage = function() {
         window.location.reload();
     }
+    $scope.range = function(num) {
+        return indexgenerate(num);
+    }
     $scope.resetAllProperties = function() {
         for (var property in $scope.properties) {
             if ($scope.properties.hasOwnProperty(property)) {
@@ -73,6 +76,7 @@ function MainController($scope, $timeout) {
         }
         $scope.interfaceManager.detailedViewTemplate = tid == null ? -1 : tid;
         $scope.interfaceManager.detailedViewZ = tz == null? 0 : tz;
+        $scope.interfaceManager.checkIfResultIsAMatch();
         $scope.interfaceManager.menuActive = 'Detailed';
         this.interfaceManager.updateDetailedData(true);
 
@@ -197,9 +201,9 @@ function MainController($scope, $timeout) {
     };
 
     $scope.changedTemplate = function() {
+        this.interfaceManager.disableMatchedComparison();
         this.interfaceManager.changedTemplate = true;
         this.interfaceManager.updateDetailedData(false);
-        this.interfaceManager.updatedZToMatchedIndex();
     };
 
     $scope.getSpectralLinePhrase = function() {
@@ -250,103 +254,86 @@ function MainController($scope, $timeout) {
     });
 
 //    Do the keybindings
-
-    KeyboardJS.on('shift+?', function() {
-        console.log('question mark');
-       $scope.interfaceManager.menuActive = 'Usage';
-        $scope.$apply();
-    });
-
-    KeyboardJS.on('1', function() {
-        $scope.interfaceManager.saveManual(1);
-        $scope.$apply();
-    });
-    KeyboardJS.on('2', function() {
-        $scope.interfaceManager.saveManual(2);
-        $scope.$apply();
-    });
-
-    KeyboardJS.on('3', function() {
-        $scope.interfaceManager.saveManual(3);
-        $scope.$apply();
-    });
-
-    KeyboardJS.on('4', function() {
-        $scope.interfaceManager.saveManual(4);
-        $scope.$apply();
-    });
-
-    KeyboardJS.on('z', function() {
-        if ($scope.interfaceManager.menuActive == 'Detailed') {
-            $scope.interfaceManager.setFocusToRedshift();
+    $scope.keybinds = [
+        {key: 'shift+?', label: '?', description: 'Go to the Usage tab', fn: function() {
+            $scope.interfaceManager.menuActive = 'Usage';
             $scope.$apply();
-        }
-    });
+        }},
+        {key: 'n,right', label: 'n,right', description: 'Selects to the next spectra', fn: function() {
+            $scope.interfaceManager.nextSpectra();
+            $scope.$apply();
+        }},
+        {key: 'b,left', label: 'b,left', description: 'Selects to the previous spectra', fn: function() {
+            $scope.interfaceManager.previousSpectra();
+            $scope.$apply();
+        }},
+        {key: 't', label: 't', description: 'Toggle whether templates are displayed', fn: function() {
+            $scope.interfaceManager.dispTemplate = 1 - $scope.interfaceManager.dispTemplate;
+            $scope.$apply();
+        }},
+        {key: '1', label: '1', description: '[Detailed screen] Save with manual QOP of 1', fn: function() {
+            $scope.interfaceManager.saveManual(1);
+            $scope.$apply();
+        }},
+        {key: '2', label: '2', description: '[Detailed screen] Save with manual QOP of 2', fn: function() {
+            $scope.interfaceManager.saveManual(2);
+            $scope.$apply();
+        }},
+        {key: '3', label: '3', description: '[Detailed screen] Save with manual QOP of 3', fn: function() {
+            $scope.interfaceManager.saveManual(3);
+            $scope.$apply();
+        }},
+        {key: '4', label: '4', description: '[Detailed screen] Save with manual QOP of 4', fn: function() {
+            $scope.interfaceManager.saveManual(4);
+            $scope.$apply();
+        }},
+        {key: 'z', label: 'z', description: '[Detailed screen] Focus on redshift input', fn: function() {
+            if ($scope.interfaceManager.menuActive == 'Detailed') {
+                $scope.interfaceManager.setFocusToRedshift();
+                $scope.$apply();
+                return false;
+            }
+        }},
+        {key: 'm', label: 'm', description: '[Detailed screen] Set view to manually found redshift', fn: function() {
+            $scope.interfaceManager.resetToManual();
+            $scope.$apply();
+        }},
+        {key: 'shift+r', label: 'shift+r', description: '[Detailed screen] Set view to automaticly found redshift', fn: function() {
+            $scope.interfaceManager.resetToAutomatic();
+            $scope.$apply();
+        }},
+        {key: 'o', label: 'o', description: '[Detailed screen] Show the next automatic redshift result', fn: function() {
+            $scope.interfaceManager.nextMatchedDetails();
+            $scope.$apply();
+        }},
+        {key: 's', label: 's', description: '[Detailed screen] Increase smoothing level', fn: function() {
+            $scope.interfaceManager.incrementSmooth();
+            $scope.$apply();
+        }},
+        {key: 'd', label: 'd', description: '[Detailed screen] Decrease smoothing level', fn: function() {
+            $scope.interfaceManager.decrementSmooth();
+            $scope.$apply();
+        }},
+        {key: 'r', label: 'r', description: '[Detailed screen] Reset graph zoom to extents', fn: function() {
+            $scope.interfaceManager.detailedSettings.lockedBounds = false;
+            $scope.$apply();
+        }},
+        {key: 'l', label: 'l', description: '[Detailed screen] Toggles spectral lines', fn: function() {
+            $scope.interfaceManager.detailedSettings.toggleSpectralLines();
+            $scope.$apply();
+        }},
+        {key: 'down', label: 'down', description: '[Detailed screen] Selects the next template', fn: function() {
+            $scope.interfaceManager.nextTemplate();
+            $scope.$apply();
+        }},
+        {key: 'up', label: 'up', description: '[Detailed screen] Selects the previous template', fn: function() {
+            $scope.interfaceManager.previousTemplate();
+            $scope.$apply();
+        }}
+    ];
 
-    KeyboardJS.on('m', function() {
-        $scope.interfaceManager.resetToManual();
-        $scope.$apply();
-    });
-
-    KeyboardJS.on('shift+r', function() {
-        $scope.interfaceManager.resetToAutomatic();
-        $scope.$apply();
-    });
-
-    KeyboardJS.on('o', function() {
-        //TODO: Cycle between templates as well. In fact, the bottom slider should be template indpendent.
-    });
-
-    KeyboardJS.on('s', function() {
-        $scope.interfaceManager.incrementSmooth();
-        $scope.$apply();
-    });
-
-    KeyboardJS.on('d', function() {
-        $scope.interfaceManager.decrementSmooth();
-        $scope.$apply();
-    })
-
-    KeyboardJS.on('r', function() {
-        $scope.interfaceManager.detailedSettings.lockedBounds = false;
-        $scope.$apply();
-    });
-
-    KeyboardJS.on('t', function() {2
-        $scope.interfaceManager.dispTemplate = 1 - $scope.interfaceManager.dispTemplate;
-        $scope.$apply();
-    });
-
-    KeyboardJS.on('n,right', function() {
-        $scope.interfaceManager.nextSpectra();
-        $scope.$apply();
-    });
-
-    KeyboardJS.on('b', function() {
-        $scope.interfaceManager.previousSpectra();
-        $scope.$apply();
-    });
-
-    KeyboardJS.on('left', function() {
-        $scope.interfaceManager.previousSpectra();
-        $scope.$apply();
-    });
-
-    KeyboardJS.on('l', function() {
-        $scope.interfaceManager.detailedSettings.toggleSpectralLines();
-        $scope.$apply();
-    });
-
-    KeyboardJS.on('down', function() {
-        $scope.interfaceManager.nextTemplate();
-        $scope.$apply();
-    });
-    KeyboardJS.on('up', function() {
-        $scope.interfaceManager.previousTemplate();
-        $scope.$apply();
-    });
-
-
-
+    for (var i = 0; i < $scope.keybinds.length; i++) {
+        KeyboardJS.on($scope.keybinds[i].key, $scope.keybinds[i].fn);
+    }
 
 }

@@ -35,9 +35,8 @@ function InterfaceManager(scope, spectraManager, templateManager, processorManag
     this.templateHasContinuum = false;
     this.detailedViewTemplate = -1;
     this.detailedRecreate = false;
-    this.matchedIndex = 1;
-    this.maxMatchedIndex = 40; //Needs to be the <= as in preprocessor j loop in coalesce.
-    this.matchedComparisonActive = false;
+    this.matchedIndex = -1;
+    this.maxMatchedIndex = 7; //Needs to be the <= as in preprocessor j loop in coalesce.
     this.detailedViewZ = 0;
     this.detailViewSmoothMax = 5;
     this.detailViewRawSmooth = 3;
@@ -54,24 +53,24 @@ InterfaceManager.prototype.nextTemplate = function() {
     if (templateList == null || templateList.length < 1) return;
     this.detailedViewTemplate = ((this.detailedViewTemplate + 2) % (templateList.length + 1)) - 1;
     this.scope.changedTemplate();
-}
+};
 InterfaceManager.prototype.previousTemplate = function() {
     var templateList = this.templateManager.getAll();
     if (templateList == null || templateList.length < 1) return;
     if (this.detailedViewTemplate == -1) this.detailedViewTemplate = templateList.length - 1;
     else this.detailedViewTemplate--;
     this.scope.changedTemplate();
-}
+};
 InterfaceManager.prototype.nextSpectra = function() {
     var spectralList = this.spectraManager.getAll();
     if (spectralList == null || spectralList.length < 1) return;
     this.spectraIndex = (this.spectraIndex + 1) % spectralList.length;
-}
+};
 InterfaceManager.prototype.previousSpectra = function() {
     var spectralList = this.spectraManager.getAll();
     if (spectralList == null || spectralList.length < 1) return;
     this.spectraIndex = (this.spectraIndex + spectralList.length - 1) % spectralList.length;
-}
+};
 InterfaceManager.prototype.incrementSmooth = function() {
     if (this.detailViewRawSmooth < this.detailViewSmoothMax) {
         this.detailViewRawSmooth++;
@@ -81,7 +80,7 @@ InterfaceManager.prototype.incrementSmooth = function() {
         this.detailViewProcessedSmooth++;
         this.changeProcessedSmooth();
     }
-}
+};
 InterfaceManager.prototype.decrementSmooth = function() {
     if (this.detailViewRawSmooth > 0) {
         this.detailViewRawSmooth--;
@@ -91,48 +90,73 @@ InterfaceManager.prototype.decrementSmooth = function() {
         this.detailViewProcessedSmooth--;
         this.changeProcessedSmooth();
     }
-}
+};
+InterfaceManager.prototype.nextMatchedDetails = function() {
+    this.matchedIndex = (this.matchedIndex + 1) % this.maxMatchedIndex;
+    this.matchedIndexChanged();
+};
 InterfaceManager.prototype.setFocusToRedshift = function() {
     $('#redshiftInput').focus().select();
-}
+};
 InterfaceManager.prototype.changedRedshift = function() {
-    this.matchedComparisonActive = false;
-    this.detailedUpdateRequired = true;
-}
+    this.disableMatchedComparison();
+};
 InterfaceManager.prototype.updateTemplateForSpectra = function(index) {
     if (this.isSpectraActive()) {
         if (this.getActiveSpectra().index == index) {
             this.detailedViewTemplate = this.getActiveSpectra().getFinalTemplate().index;
             this.detailedViewZ = this.getActiveSpectra().getFinalRedshift();
+            this.checkIfResultIsAMatch();
         }
     }
-}
+};
 InterfaceManager.prototype.hasMatchingDetails = function() {
     return (this.isSpectraActive() && this.getActiveSpectra().hasFullResults());
-}
+};
 InterfaceManager.prototype.reanalyseSpectra = function() {
     if (this.isSpectraActive()) {
         this.processorManager.addToFrontOfAnalysis(this.getActiveSpectra());
     }
-}
+};
 InterfaceManager.prototype.matchedIndexChanged = function() {
-    this.matchedIndex = parseInt(this.matchedIndex);
-    if (this.matchedIndex == null || isNaN(this.matchedIndex)) {
-        this.matchedIndex = 1;
-    }
-    this.matchedComparisonActive = true;
     this.updatedZToMatchedIndex();
 };
-InterfaceManager.prototype.matchingToggled = function() {
-    if (this.matchedComparisonActive) {
-        this.updatedZToMatchedIndex();
+InterfaceManager.prototype.checkIfResultIsAMatch = function() {
+    if (this.isSpectraActive() && this.getActiveSpectra().isMatched()) {
+        var best = this.getActiveSpectra().getMatchedIndex(0);
+        if (this.detailedViewZ == best.z && this.detailedViewTemplate == this.templateManager.getIndexFromID(best.templateId)) {
+            this.matchedIndex = 0;
+        }
     }
-};
+}
+InterfaceManager.prototype.matchedActive = function () {
+    return this.matchedIndex != -1;
+}
 InterfaceManager.prototype.updatedZToMatchedIndex = function() {
-    if (this.isSpectraActive() && this.matchedComparisonActive) {
+    if (this.matchedActive() && this.isSpectraActive()) {
         var spectra = this.getActiveSpectra();
-        this.detailedViewZ = spectra.getMatchedIndex(this.templateManager.getID(this.detailedViewTemplate), this.matchedIndex - 1);
+        var best = spectra.getMatchedIndex(this.matchedIndex);
+        this.detailedViewZ = best.z;
+        console.log('update z');
+        this.detailedViewTemplate = this.templateManager.getIndexFromID(best.templateId);
     }
+}
+InterfaceManager.prototype.getMatchedTemplateName = function() {
+    if (!this.matchedActive()) {
+        return "";
+    } else {
+        return this.templateManager.get(this.detailedViewTemplate).name;
+    }
+}
+InterfaceManager.prototype.getMatchedTemplateRedshift = function() {
+    if (!this.matchedActive()) {
+        return "";
+    } else {
+        return this.detailedViewZ.toFixed(4);
+    }
+}
+InterfaceManager.prototype.disableMatchedComparison = function() {
+    this.matchedIndex = -1;
 }
 InterfaceManager.prototype.isSpectraActive = function() {
     return this.spectraManager.getSpectra(this.spectraIndex) != null;
@@ -197,16 +221,14 @@ InterfaceManager.prototype.getButtonColour = function(category) {
     }
 };
 InterfaceManager.prototype.resetToAutomatic = function() {
-    this.matchedIndex = 1;
-    this.matchedComparisonActive = false;
     var spectra = this.spectraManager.getSpectra(this.spectraIndex);
     if (spectra != null && spectra.automaticTemplate != null) {
         this.detailedViewTemplate = spectra.automaticTemplate.index;
         this.detailedViewZ = spectra.automaticZ;
+        this.matchedIndex = 0;
     }
 };
 InterfaceManager.prototype.resetToManual = function() {
-    this.matchedComparisonActive = false;
     var spectra = this.spectraManager.getSpectra(this.spectraIndex);
     if (spectra != null && spectra.manualZ != null) {
         this.detailedViewZ = spectra.manualZ;
@@ -985,15 +1007,15 @@ DetailedPlotSettings.prototype.canvasMouseUp = function(loc) {
         if (loc.x > (this.canvas.width - this.zoomOutWidth) && loc.y < this.zoomOutHeight) {
             this.lockedBounds = false;
         } else if (this.checkCanvasInRange(loc.x, loc.y)) {
-            if (this.focusX == null && this.focusY == null) {
+            //if (this.focusX == null && this.focusY == null) {
                 this.focusX = loc.x;
                 this.focusY = loc.y;
                 this.focusDataX = this.convertCanvasXCoordinateToDataPoint(loc.x);
                 this.focusDataY = this.convertCanvasYCoordinateToDataPoint(loc.y);
                 this.waitingForSpectra = true;
-            } else {
-                this.removeFocus();
-            }
+//            } else {
+//                this.removeFocus();
+//            }
         }
     }
     this.lastXDown = null;
