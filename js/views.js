@@ -530,7 +530,7 @@ function DetailedPlotSettings(interfaceManager, spectralLines) {
     this.lockedBounds = false;
 
     this.spectralLines = spectralLines;
-    this.displayingSpectralLines = false;
+    this.displayingSpectralLines = true;
     this.spectralLineColour = 'rgba(0, 115, 255, 0.8)';
     this.spectralLineTextColour = '#FFFFFF';
 
@@ -657,8 +657,8 @@ DetailedPlotSettings.prototype.getBounds = function() {
         }
     }
     if (c == 0) {
-        this.xMin = 3000;
-        this.xMax = 9000;
+        this.xMin = 3300;
+        this.xMax = 7200;
         this.yMin = -500;
         this.yMax = 1000;
     } else {
