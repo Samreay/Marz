@@ -259,11 +259,11 @@ function MainController($scope, $timeout) {
             $scope.interfaceManager.menuActive = 'Usage';
             $scope.$apply();
         }},
-        {key: 'n,right', label: 'n,right', description: 'Selects to the next spectra', fn: function() {
+        {key: 'n', label: 'n', description: 'Selects to the next spectra', fn: function() {
             $scope.interfaceManager.nextSpectra();
             $scope.$apply();
         }},
-        {key: 'b,left', label: 'b,left', description: 'Selects to the previous spectra', fn: function() {
+        {key: 'b', label: 'b', description: 'Selects to the previous spectra', fn: function() {
             $scope.interfaceManager.previousSpectra();
             $scope.$apply();
         }},
