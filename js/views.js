@@ -48,6 +48,12 @@ function InterfaceManager(scope, spectraManager, templateManager, processorManag
     this.renderOverviewDone = new Array();
 
 }
+InterfaceManager.prototype.toggleTemplateHasContinuum = function() {
+    this.templateHasContinuum = !this.templateHasContinuum;
+}
+InterfaceManager.prototype.getContinuumText = function() {
+    return this.templateHasContinuum ? "Continuum" : "No Continuum";
+}
 InterfaceManager.prototype.nextTemplate = function() {
     var templateList = this.templateManager.getAll();
     if (templateList == null || templateList.length < 1) return;

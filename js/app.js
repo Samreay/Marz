@@ -253,6 +253,13 @@ function MainController($scope, $timeout) {
         return 'Please ensure results are saved before navigating away.';
     });
 
+    // Bootstrap nav fix: https://github.com/twbs/bootstrap/issues/12852
+    $(document).on('click','.navbar-collapse.in',function(e) {
+        if( $(e.target).is('a') ) {
+            $(this).collapse('hide');
+        }
+    });
+
 //    Do the keybindings
     $scope.keybinds = [
         {key: 'shift+?', label: '?', description: 'Go to the Usage tab', fn: function() {

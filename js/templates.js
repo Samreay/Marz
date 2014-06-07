@@ -77,7 +77,7 @@ TemplateManager.prototype.processTemplates = function() {
         t.specWithContinuum = t.spec.slice(0);
         subtractPolyFit(t.lambda, t.spec);
         normaliseViaArea(t.spec);
-        normaliseViaArea(t.specWithContinuum);
+        normaliseViaArea(t.specWithContinuum, null, 700000);
         t.start_lambda_linear = Math.pow(10, t.lambda[0]);
         t.end_lambda_linear = Math.pow(10, t.lambda[t.lambda.length - 1]);
         t.lambda_linear = linearScale(t.start_lambda_linear, t.end_lambda_linear, t.spec.length);

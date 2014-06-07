@@ -6,7 +6,7 @@
     {{interfaceManager.renderDetailedInitial()}}
 </div>
 <div id="detailedControl" ng-if="interfaceManager.menuActive=='Detailed'" class="row" style="margin-right: 0;">
-    <div class="col-md-7">
+    <div class="col-md-8">
         <div>
             <b>Save this redshift with a QOP of:</b>
             <div class="btn-group btn-group-justified">
@@ -29,6 +29,14 @@
             <div class="detailedInput">
                 <label>Template:</label>
                 <select style="width: 250px" ng-init="$parent.interfaceManager.detailedViewTemplate = $parent.interfaceManager.getInitialTemplate()" ng-change="$parent.changedTemplate()" ng-model="$parent.interfaceManager.detailedViewTemplate" data-ng-options="t.index as t.id + ' - ' + t.name for t in $parent.templateManager.getTemplatesAsJson()"></select>
+
+                <div class="btn-group">
+                    <button class="btn btn-sm btn-default" ng-click="interfaceManager.toggleTemplateHasContinuum()">{{interfaceManager.getContinuumText()}}</button>
+                </div>
+                <div class="btn-group pull-right">
+                    <button class="btn btn-sm btn-primary" ng-click="interfaceManager.resetToAutomatic()">Reset auto</button>
+                    <button class="btn btn-sm btn-primary" ng-click="interfaceManager.resetToManual()">Reset manual</button>
+                </div>
             </div>
             <div class="detailedInput">
                 <div style="float: left; width:140px">
@@ -60,26 +68,12 @@
                 </div>
                 <div class="clear"></div>
             </div>
-            <div class="detailedInput">
-                <div class="btn-group "><!--btn-group-justified-->
-                    <!--<div class="btn-group">-->
-                        <button class="btn btn-sm btn-default" ng-model="interfaceManager.templateHasContinuum" btn-radio="false">No continuum</button>
-                    <!--</div>-->
-                    <!--<div class="btn-group">-->
-                        <button class="btn btn-sm btn-default" ng-model="interfaceManager.templateHasContinuum" btn-radio="true">Continuum</button>
-                    <!--</div>-->
-                </div>
-                <div class="btn-group pull-right">
-                    <button class="btn btn-sm btn-primary" ng-click="interfaceManager.resetToAutomatic()">Reset to best auto</button>
-                    <button class="btn btn-sm btn-primary" ng-click="interfaceManager.resetToManual()">Reset manual</button>
-                </div>
-            </div>
             <div class="clear"></div>
        </div>
         <div class="topspace" ng-if="interfaceManager.isSpectraActive()">
             <b>Top Automatic Results</b>
             <div ng-if="interfaceManager.hasMatchingDetails()">
-                <p>Cycle through the best matches across all templates.</p>
+                <!--<p>Cycle through the best matches across all templates.</p>-->
                 <!--<div class="detailedInput">
                     <div style="float: left; width:255px">
                         <label style="width: 190px">Compare Automatic Results:</label>
@@ -104,12 +98,13 @@
                 <div class="clearfix"></div>
             </div>
             <div ng-if="!interfaceManager.hasMatchingDetails()">
-                <p>No results list found. Expected if not analysed, or loaded from save.</p>
-                <button class="btn btn-small btn-primary" ng-click="interfaceManager.reanalyseSpectra()">Click here to reanalyse and get full results</button>
+                <p>No results list found. Expected if not analysed, or loaded from save.
+                    <button class="btn btn-sm btn-primary" ng-click="interfaceManager.reanalyseSpectra()">Reanalyse and get full results</button>
+                </p>
             </div>
         </div>
     </div>
-    <div class="col-md-5">
+    <div class="col-md-4">
         <div>
             <b>Data Smoothing</b>
             <div class="detailedInput">
