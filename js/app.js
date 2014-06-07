@@ -261,10 +261,12 @@ function MainController($scope, $timeout) {
         }},
         {key: 'n', label: 'n', description: 'Selects to the next spectra', fn: function() {
             $scope.interfaceManager.nextSpectra();
+            $scope.goToDetailed();
             $scope.$apply();
         }},
         {key: 'b', label: 'b', description: 'Selects to the previous spectra', fn: function() {
             $scope.interfaceManager.previousSpectra();
+            $scope.goToDetailed();
             $scope.$apply();
         }},
         {key: 't', label: 't', description: 'Toggle whether templates are displayed', fn: function() {
