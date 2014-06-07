@@ -46,6 +46,8 @@ function FitsFile(filename, fits, scope) {
     this.lambda = indexgenerate(this.numPoints).map(function (x) {
         return ((x + 1 - CRPIX1) * CDELT1) + CRVAL1;
     });
+    convertVacuumFromAir(this.lambda);
+
 
     this.properties = [
         {

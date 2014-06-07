@@ -113,7 +113,6 @@ function convertVarianceToNumber(intensity, variance) {
  */
 function processData(lambda, intensity, variance) {
     removeBlanks(intensity, variance, 3);
-    convertVacuumFromAir(lambda);
     removeCosmicRay(intensity, variance, 4, 2, 2);
     rollingPointMean(intensity, variance, 4, 0.85);
     subtractPolyFit(lambda, intensity);
