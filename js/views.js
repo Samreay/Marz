@@ -65,11 +65,13 @@ InterfaceManager.prototype.nextSpectra = function() {
     var spectralList = this.spectraManager.getAll();
     if (spectralList == null || spectralList.length < 1) return;
     this.spectraIndex = (this.spectraIndex + 1) % spectralList.length;
+    this.scope.goToDetailed();
 };
 InterfaceManager.prototype.previousSpectra = function() {
     var spectralList = this.spectraManager.getAll();
     if (spectralList == null || spectralList.length < 1) return;
     this.spectraIndex = (this.spectraIndex + spectralList.length - 1) % spectralList.length;
+    this.scope.goToDetailed();
 };
 InterfaceManager.prototype.incrementSmooth = function() {
     if (this.detailViewRawSmooth < this.detailViewSmoothMax) {
@@ -268,6 +270,7 @@ InterfaceManager.prototype.saveManual = function (qop) {
     var spectra = this.spectraManager.getSpectra(this.spectraIndex);
     spectra.setManual(parseFloat(this.detailedViewZ), this.detailedViewTemplate, qop);
     this.rerenderOverview(spectra.index);
+    this.nextSpectra();
 };
 InterfaceManager.prototype.waitingDrop = function() {
     return this.getNumSpectra() == 0;
