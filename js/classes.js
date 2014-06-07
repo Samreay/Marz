@@ -225,7 +225,10 @@ function Spectra(index, id, lambda, intensity, variance, sky, skyAverage, name, 
     this.lambda = lambda;
     this.intensity = intensity;
     this.variance = variance;
-    normaliseViaAreaSlow(this.intensity, this.variance);
+
+    this.rawIntensity = intensity.slice();
+    this.rawVariance = variance.slice();
+    normaliseViaShift(this.intensity, 0, 500, this.variance);
 
     this.processedLambda = null;
     this.processedIntensity = null;
@@ -303,6 +306,8 @@ Spectra.prototype.setMatched = function(tr) {
         this.interfaceManager.rerenderOverview(this.index);
 
         this.calculateBestFits();
+        this.interfaceManager.checkIfResultIsAMatch();
+
     }
 };
 Spectra.prototype.calculateBestFits = function() {
@@ -360,7 +365,7 @@ Spectra.prototype.setResults = function(automaticTemplateID, automaticRedshift, 
 };
 Spectra.prototype.getAsJson = function(getOriginal) {
     if (getOriginal || this.processedIntensity == null) {
-        return {'hasAutomaticMatch': this.automaticZ != null, 'index':this.index, type:this.type, 'start_lambda':this.lambda[0], 'end_lambda':this.lambda[this.lambda.length - 1], 'intensity':this.intensity, 'variance':this.variance};
+        return {'hasAutomaticMatch': this.automaticZ != null, 'index':this.index, type:this.type, 'start_lambda':this.lambda[0], 'end_lambda':this.lambda[this.lambda.length - 1], 'intensity':this.rawIntensity, 'variance':this.rawVariance};
     } else {
         return {'hasAutomaticMatch': this.automaticZ != null, 'index':this.index, type:this.type, 'lambda':this.processedLambdaRaw, 'intensity':this.processedIntensity, 'variance':this.processedVariance};
     }
@@ -406,6 +411,9 @@ Spectra.prototype.getOutputValues = function() {
 Spectra.prototype.isProcessed = function() {
     return this.processedIntensity != null;
 };
+Spectra.prototype.hasMultipleMatches = function() {
+    return this.best != null && this.best.length > 1;
+}
 Spectra.prototype.isMatched = function() {
     return this.automaticZ != null;
 };
@@ -588,8 +596,8 @@ ProcessorManager.prototype.addToFrontOfAnalysis = function(spectra) {
 
     if (!this.activeProcessing) {
         this.activeProcessing = true;
-        this.processSpectra();
     }
+    this.processSpectra();
 }
 ProcessorManager.prototype.setSpectra = function(spectraManager) {
     this.spectraManager = spectraManager;

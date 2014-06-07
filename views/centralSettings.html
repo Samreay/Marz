@@ -22,7 +22,8 @@
                     <div class="col-sm-9">
                         <input type="checkbox" class="form-control" id="saveauto"
                                ng-model="properties.saveInBackground.temp" required="true"
-                               ng-change="properties.saveInBackground.updateFromTemp()">
+                               ng-change="properties.saveInBackground.updateFromTemp()" style="display: inline;">
+                        <p style="display: inline; vertical-align: super;">Unless you have VERY good reasons, do NOT disable this.</p>
                     </div>
                 </div>
                 <div class="form-group">

@@ -38,8 +38,8 @@ function InterfaceManager(scope, spectraManager, templateManager, processorManag
     this.matchedIndex = -1;
     this.maxMatchedIndex = 7; //Needs to be the <= as in preprocessor j loop in coalesce.
     this.detailedViewZ = 0;
-    this.detailViewSmoothMax = 5;
-    this.detailViewRawSmooth = 3;
+    this.detailViewSmoothMax = 10;
+    this.detailViewRawSmooth = 5;
     this.detailViewProcessedSmooth = 0;
 
     this.detailedCanvas = null;
@@ -124,7 +124,7 @@ InterfaceManager.prototype.matchedIndexChanged = function() {
     this.updatedZToMatchedIndex();
 };
 InterfaceManager.prototype.checkIfResultIsAMatch = function() {
-    if (this.isSpectraActive() && this.getActiveSpectra().isMatched()) {
+    if (this.isSpectraActive() && this.getActiveSpectra().hasMultipleMatches()) {
         var best = this.getActiveSpectra().getMatchedIndex(0);
         if (this.detailedViewZ == best.z && this.detailedViewTemplate == this.templateManager.getIndexFromID(best.templateId)) {
             this.matchedIndex = 0;
@@ -538,7 +538,7 @@ function DetailedPlotSettings(interfaceManager, spectralLines) {
     this.spectralLineTextColour = '#FFFFFF';
 
     this.maxTemplatePixelOffset = 200;
-    this.templatePixelOffset = 0;
+    this.templatePixelOffset = 30;
     this.skyPosition = 340;
     this.skyAverage = 0;
 
