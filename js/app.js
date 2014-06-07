@@ -329,6 +329,138 @@ function MainController($scope, $timeout) {
         {key: 'up', label: 'up', description: '[Detailed screen] Selects the previous template', fn: function() {
             $scope.interfaceManager.previousTemplate();
             $scope.$apply();
+        }},
+        {key: 'shift+y', label: 'shift+y', description: '[Detailed screen] Sets the current focus to Lyb', fn: function() {
+            if ($scope.interfaceManager.menuActive == 'Detailed') {
+                $scope.interfaceManager.clickSpectralLine('Lyb');
+            }
+            $scope.$apply();
+        }},
+        {key: 'shift+l', label: 'shift+l', description: '[Detailed screen] Sets the current focus to Lya', fn: function() {
+            if ($scope.interfaceManager.menuActive == 'Detailed') {
+                $scope.interfaceManager.clickSpectralLine('Lya');
+            }
+            $scope.$apply();
+        }},
+        {key: 'shift+t', label: 'shift+t', description: '[Detailed screen] Sets the current focus to N5', fn: function() {
+            if ($scope.interfaceManager.menuActive == 'Detailed') {
+                $scope.interfaceManager.clickSpectralLine('N5');
+            }
+            $scope.$apply();
+        }},
+        {key: 'shift+s', label: 'shift+s', description: '[Detailed screen] Sets the current focus to Si4', fn: function() {
+            if ($scope.interfaceManager.menuActive == 'Detailed') {
+                $scope.interfaceManager.clickSpectralLine('Si4');
+            }
+            $scope.$apply();
+        }},
+        {key: 'shift+c', label: 'shift+c', description: '[Detailed screen] Sets the current focus to CIV', fn: function() {
+            if ($scope.interfaceManager.menuActive == 'Detailed') {
+                $scope.interfaceManager.clickSpectralLine('C4');
+            }
+            $scope.$apply();
+        }},
+        {key: 'shift+v', label: 'shift+v', description: '[Detailed screen] Sets the current focus to CIII', fn: function() {
+            if ($scope.interfaceManager.menuActive == 'Detailed') {
+                $scope.interfaceManager.clickSpectralLine('C3');
+            }
+            $scope.$apply();
+        }},
+        {key: 'shift+m', label: 'shift+m', description: '[Detailed screen] Sets the current focus to MgII', fn: function() {
+            if ($scope.interfaceManager.menuActive == 'Detailed') {
+                $scope.interfaceManager.clickSpectralLine('Mg2');
+            }
+            $scope.$apply();
+        }},
+        {key: 'shift+o', label: 'shift+o', description: '[Detailed screen] Sets the current focus to [OII]', fn: function() {
+            if ($scope.interfaceManager.menuActive == 'Detailed') {
+                $scope.interfaceManager.clickSpectralLine('O2');
+            }
+            $scope.$apply();
+        }},
+        {key: 'shift+k', label: 'shift+k', description: '[Detailed screen] Sets the current focus to K', fn: function() {
+            if ($scope.interfaceManager.menuActive == 'Detailed') {
+                $scope.interfaceManager.clickSpectralLine('K');
+            }
+            $scope.$apply();
+        }},
+        {key: 'shift+h', label: 'shift+h', description: '[Detailed screen] Sets the current focus to H', fn: function() {
+            if ($scope.interfaceManager.menuActive == 'Detailed') {
+                $scope.interfaceManager.clickSpectralLine('H');
+            }
+            $scope.$apply();
+        }},
+        {key: 'shift+d', label: 'shift+d', description: '[Detailed screen] Sets the current focus to D', fn: function() {
+            if ($scope.interfaceManager.menuActive == 'Detailed') {
+                $scope.interfaceManager.clickSpectralLine('D');
+            }
+            $scope.$apply();
+        }},
+        {key: 'shift+g', label: 'shift+g', description: '[Detailed screen] Sets the current focus to G', fn: function() {
+            if ($scope.interfaceManager.menuActive == 'Detailed') {
+                $scope.interfaceManager.clickSpectralLine('G');
+            }
+            $scope.$apply();
+        }},
+        {key: 'shift+f', label: 'shift+f', description: '[Detailed screen] Sets the current focus to Hg', fn: function() {
+            if ($scope.interfaceManager.menuActive == 'Detailed') {
+                $scope.interfaceManager.clickSpectralLine('Hg');
+            }
+            $scope.$apply();
+        }},
+        {key: 'shift+b', label: 'shift+b', description: '[Detailed screen] Sets the current focus to Hb', fn: function() {
+            if ($scope.interfaceManager.menuActive == 'Detailed') {
+                $scope.interfaceManager.clickSpectralLine('Hb');
+            }
+            $scope.$apply();
+        }},
+        {key: 'shift+u', label: 'shift+u', description: '[Detailed screen] Sets the current focus to first [OIII]', fn: function() {
+            if ($scope.interfaceManager.menuActive == 'Detailed') {
+                $scope.interfaceManager.clickSpectralLine('O3');
+            }
+            $scope.$apply();
+        }},
+        {key: 'shift+i', label: 'shift+i', description: '[Detailed screen] Sets the current focus to second [OIII]', fn: function() {
+            if ($scope.interfaceManager.menuActive == 'Detailed') {
+                $scope.interfaceManager.clickSpectralLine('O3d');
+            }
+            $scope.$apply();
+        }},
+        {key: 'shift+j', label: 'shift+j', description: '[Detailed screen] Sets the current focus to Mg', fn: function() {
+            if ($scope.interfaceManager.menuActive == 'Detailed') {
+                $scope.interfaceManager.clickSpectralLine('Mg');
+            }
+            $scope.$apply();
+        }},
+        {key: 'shift+n', label: 'shift+n', description: '[Detailed screen] Sets the current focus to Na', fn: function() {
+            if ($scope.interfaceManager.menuActive == 'Detailed') {
+                $scope.interfaceManager.clickSpectralLine('Na');
+            }
+            $scope.$apply();
+        }},
+        {key: 'shift+a', label: 'shift+a', description: '[Detailed screen] Sets the current focus to Ha', fn: function() {
+            if ($scope.interfaceManager.menuActive == 'Detailed') {
+                $scope.interfaceManager.clickSpectralLine('Ha');
+            }
+            $scope.$apply();
+        }},
+        {key: 'shift+w', label: 'shift+w', description: '[Detailed screen] Sets the current focus to N2', fn: function() {
+            if ($scope.interfaceManager.menuActive == 'Detailed') {
+                $scope.interfaceManager.clickSpectralLine('N2');
+            }
+            $scope.$apply();
+        }},
+        {key: 'shift+z', label: 'shift+z', description: '[Detailed screen] Sets the current focus to S2', fn: function() {
+            if ($scope.interfaceManager.menuActive == 'Detailed') {
+                $scope.interfaceManager.clickSpectralLine('S2');
+            }
+            $scope.$apply();
+        }},
+        {key: 'shift+x', label: 'shift+x', description: '[Detailed screen] Sets the current focus to S2 doublet', fn: function() {
+            if ($scope.interfaceManager.menuActive == 'Detailed') {
+                $scope.interfaceManager.clickSpectralLine('S2d');
+            }
+            $scope.$apply();
         }}
     ];
 
