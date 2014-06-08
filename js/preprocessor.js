@@ -198,7 +198,7 @@ function matchTemplate(index, template, lambda, intensity, variance, weights, in
     var r = null;
     for (var i = 0; i < zs.length; i++) {
         r = matchTemplateAtRedshift(intensity, variance, weights, template.interpolatedSpec, offsets[i], intensityAreaFinder, templateAreaFinder, zs[i]);
-        result.res.push({gof: r[0]/Math.pow(r[1],2.5), chi2: r[0], z: zs[i], scale: r[2], weight: r[1]});
+        result.res.push({gof: r[0]/Math.pow(r[1],2.5), chi2: r[0], z: parseFloat(zs[i].toFixed(5)), scale: r[2], weight: r[1]});
     }
     return result;
 }

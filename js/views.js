@@ -483,7 +483,7 @@ InterfaceManager.prototype.getTemplateData = function () {
     this.detailedSettings.addData('template', false, this.interface.templateColour, r[0].slice(0), r[1].slice(0));
 };
 InterfaceManager.prototype.clickSpectralLine= function(id) {
-    this.matchedComparisonActive = false;
+    this.disableMatchedComparison();
     if (this.detailedSettings.waitingForSpectra) {
         var currentWavelength = this.spectralLines.getFromID(id).wavelength;
         var desiredWavelength = this.detailedSettings.getFocusWavelength();
