@@ -65,6 +65,8 @@ function MainController($scope, $timeout) {
     $scope.goToMenu = function(menuOption) {
         if (menuOption == 'Detailed') {
             $scope.goToDetailed();
+        } else if (menuOption == 'Overview') {
+            $scope.ensureInView(false);
         }
         $scope.interfaceManager.menuActive = menuOption;
     };
@@ -123,8 +125,9 @@ function MainController($scope, $timeout) {
         }
         $scope.$digest();
     };
-    $scope.checkIfInView = function(element, scrollable) {
+    $scope.checkIfInView = function(element, scrollable, animate) {
         var padding = 100;
+        var time = animate == false ? 0 : 300;
         var docViewTop = $(scrollable).offset().top;
         var docViewBottom = docViewTop + $(scrollable).height();
 
@@ -133,11 +136,11 @@ function MainController($scope, $timeout) {
         var s = 0;
         if (elemTop < docViewTop) {
             s = docViewTop - elemTop + padding;
-            $(scrollable).animate({scrollTop: '-='+s}, 300);
+            $(scrollable).animate({scrollTop: '-='+s}, time);
 
         } else if (elemBottom > docViewBottom) {
             s = elemBottom - docViewBottom + padding;
-            $(scrollable).animate({scrollTop: '+='+s}, 300);
+            $(scrollable).animate({scrollTop: '+='+s}, time);
         }
 
     };
@@ -148,15 +151,18 @@ function MainController($scope, $timeout) {
             $scope.interfaceManager.detailedSettings.unlockBounds(); // So that it can zoom out. Need to rework events. Sigh.
             $scope.goToDetailed();
         }
+        $scope.ensureInView(true);
+    };
+    $scope.ensureInView = function(animate) {
         $timeout(function() {
             if ($scope.interfaceManager.overviewGraph) {
-                $scope.checkIfInView('.overviewList .activeSelect', '#central');
+                $scope.checkIfInView('.overviewList .activeSelect', '#central', animate);
             } else {
-                $scope.checkIfInView('.overviewTable .activeSelect', '#central');
+                $scope.checkIfInView('.overviewTable .activeSelect', '#central', animate);
             }
-            $scope.checkIfInView('.spectralList .activeSelect', '.spectralList');
+            $scope.checkIfInView('.spectralList .activeSelect', '.spectralList', animate);
         }, 0, false);
-    };
+    }
     $scope.toggleDisp = function(category) {
         if (category == 'raw') {
             $scope.interfaceManager.dispRaw = 1 - $scope.interfaceManager.dispRaw;
