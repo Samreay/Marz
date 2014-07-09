@@ -543,7 +543,7 @@ function DetailedPlotSettings(interfaceManager, spectralLines) {
     this.spectralLineColour = 'rgba(0, 115, 255, 0.8)';
     this.spectralLineTextColour = '#FFFFFF';
 
-    this.maxTemplatePixelOffset = 200;
+    this.maxTemplatePixelOffset = 300;
     this.templatePixelOffset = 30;
     this.skyPosition = 340;
     this.skyAverage = 0;
