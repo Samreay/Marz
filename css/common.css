@@ -37,6 +37,7 @@ p.fill-height {
 }
 .lined {
     border: 1px solid #AAA;
+    background-color: #E8E8E8;
 }
 .lined.active {
     border-color: #5E99FF;

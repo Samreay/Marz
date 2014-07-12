@@ -272,6 +272,7 @@ angular.module('servicesZ', [])
         var self = this;
         var ui = global.ui;
         self.drawOverviewOnCanvas = function(spectra, canvas) {
+            console.log("rendering all of ", spectra.id);
             var width = canvas.clientWidth;
             if (spectra.intensity.length > 0) {
                 var lambda = self.condenseToXPixels(spectra.lambda, width);
