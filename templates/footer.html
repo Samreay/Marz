@@ -1,0 +1,11 @@
+<div class="navbar-inverse filler grey-text" ng-controller="FooterController">
+    <div class="spacing vcenter">
+        <div ng-if="isWaitingDrop()">
+            <p class="fill-height">Please drop in a FITS file from the AAOmega spectrograph</p>
+        </div>
+        <div ng-if="!isWaitingDrop()">
+            <p class="fill-height" ng-if="isProcessing()">Processing spectra {{getNumberProcessed()}}/{{getNumberTotal()}}</p>
+            <p class="fill-height" ng-if="!isProcessing()">Matching spectra {{getNumberProcessed()}}/{{getNumberTotal()}}</p>
+        </div>
+    </div>
+</div>

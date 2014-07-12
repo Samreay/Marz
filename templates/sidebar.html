@@ -1,0 +1,39 @@
+<div class="filler light-grey-background" ng-controller="SidebarController">
+    <div class="spacing">
+        <div id="sidebar-wrapper">
+            <div dropzone>
+                <div ng-if="isWaitingDrop()">
+                    <h4>Drop a FITS File or a results file. Or both together. Or a FITS file than a results file.</h4>
+                </div>
+                <div ng-if="!isWaitingDrop()" class="capitalise">
+                    <h4>{{getTitle()}}</h4>
+                </div>
+            </div>
+            <div class="top-spacing" ng-if="showTabular()">
+                <b>Display Data As:</b>
+                <div class="btn-group btn-group-justified">
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-default " ng-click="ui.graphicalLayout=true"
+                                ng-class="{active:ui.graphicalLayout}">Graph</button>
+                    </div>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-default " ng-click="ui.graphicalLayout=false"
+                                ng-class="{active:!ui.graphicalLayout}">Table</button>
+                    </div>
+                </div>
+            </div>
+            <div ng-if="ui.graphicalLayout" class="top-spacing">
+                <b>Data Selection:</b>
+                <button type="button" class='btn btn-darkened btn-block btn-sm' ng-click="toggledRaw()">Raw</button>
+                <button type="button" class='btn btn-success btn-block btn-sm' ng-click="toggledProcessed()">Processed</button>
+                <button type="button" class='btn btn-danger btn-block btn-sm'  ng-click="toggleMatched()">Template</button>
+                <button ng-if="showSky()" type="button" class='btn btn-info btn-block btn-sm'  ng-click="toggleSky()">Sky</button>
+            </div>
+        </div>
+        <div class="top-spacing lined scroll-y" style="height: {{getListHeight()}};">
+            <div ng-repeat="spectra in data.spectra" class="left-padding-small spectra-list-item" ng-class-even="'darker'">
+                <p><strong class="right-padding-small">{{spectra.id}}</strong>{{getAnalysedText(spectra)}}</p>
+            </div>
+        </div>
+    </div>
+</div>

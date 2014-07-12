@@ -1,0 +1,66 @@
+.right-padding-medium {
+    padding-right: 25px;
+}
+.right-padding-small {
+    padding-right: 10px;
+}
+.text-increase-small {
+    font-size: 1.1em;
+}
+.capitalise {
+    text-transform: capitalize;
+}
+.grey-text {
+    color: #AAAAAA;
+}
+.light-grey-background {
+    background-color: #E0E0E0;
+}
+.top-spacing {
+    margin-top: 15px;
+}
+.vcenter {
+    display: inline-block;
+    vertical-align: middle;
+    float: none;
+}
+p.fill-height {
+    height: 100%;
+    line-height: 100%;
+    vertical-align: middle;
+}
+.scroll-y {
+    overflow-y: auto;
+}
+.darker {
+    background-color: rgba(0,0,0,0.04);
+}
+.lined {
+    border: 1px solid #AAA;
+}
+.lined.active {
+    border-color: #5E99FF;
+}
+.left-padding-small {
+    padding-left: 10px;
+}
+.spectra-list-item {
+    height: 30px;
+    line-height: 30px;
+    vertical-align: middle;
+    margin: 0px;
+}
+.top-bar {
+    height: 30px;
+    line-height: 30px;
+    vertical-align: middle;
+    width: 100%;
+    padding: 0 10px;
+    background-color: #CCC;
+    background: linear-gradient(to bottom, #DDD 0%,#CCC 100%);
+    overflow: hidden;
+}
+.under-bar {
+    width: 100%;
+    height: calc(100% - 30px);
+}

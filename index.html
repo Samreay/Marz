@@ -5,161 +5,56 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>InterfaceZ: Return of the Z-iffying</title>
+    <title>InterfaceZ</title>
     <link rel="shortcut icon" href="images/favicon.ico" />
-    <link href="css/bootstrap.css" rel="stylesheet">
-    <link href="css/bootstrap-theme.css" rel="stylesheet">
-    <link href="css/sticky-footer-navbar.css" rel="stylesheet">
-    <link href="css/structure.css" rel="stylesheet"/>
-    <link href="css/detailed.css" rel="stylesheet"/>
-    <link href="css/fancy.css" rel="stylesheet"/>
-    <script src="lib/jquery-2.1.0.js"></script>
+    <link href="css/loader.css" rel="stylesheet">
+    <link href="css/structure.css" rel="stylesheet">
+    <link href="css/common.css" rel="stylesheet">
+    <link href="css/layout.css" rel="stylesheet">
 
 </head>
-<body ng-app="thesis" ng-controller="MainController">
-    <div id="header">
-        <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-            <div class="container-fluid">
-                <!-- Brand and toggle get grouped for better mobile display -->
-                <div class="navbar-header">
-                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
-                        <span class="sr-only">Toggle navigation</span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                    </button>
-                    <a class="navbar-brand" href="#">InterfaceZ</a>
-                </div>
-
-                <!-- Collect the nav links, forms, and other content for toggling -->
-                <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-                    <ul class="nav navbar-nav">
-                        <li ng-repeat="i in interfaceManager.menuOptions" ng-click="$parent.goToMenu(i)" ng-class="{active:i==interfaceManager.menuActive}">
-                            <a href="#">{{i}}</a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </nav>
+<body ng-app="interfaceZ">
+    <div class="splash">
+        <div class="spinner"></div>
     </div>
-    <div class="container-fluid">
-        <div id="leftbar">
-            <div class="spacing">
-                <div id="topleftbar">
-                    <div class="boxed fitsFileSelector" dropzone>
-                        <h4 class="centered" style="margin: 0; line-height: 1.4em" ng-show="!fits.properties[0]">{{getDropText()}}</h4>
-                        <div class="info" ng-show="fits.properties[0]">
-                            <!--<div class="center-block">-->
-                                <button class="btn btn-default btn-block" ng-click="interfaceManager.headerCollapsed = !interfaceManager.headerCollapsed"><b>{{fits.properties[0].value}}</b></button>
-                            <!--</div>-->
-                            <div collapse="interfaceManager.headerCollapsed">
-                                <ul class="list-unstyled">
-                                    <li ng-repeat="i in fits.properties | onlyDisplay"><b class="label">{{i.label}}:</b> {{i.displayValue}}</li>
-                                </ul>
-                                <button class="btn btn-default btn-block" ng-click="refreshPage()">Clear this file</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div ng-if="interfaceManager.menuActive=='Overview' || interfaceManager.menuActive=='Detailed'">
-                        <div class="dataselector">
-                            <b>Data Selection:</b>
-                            <button type="button" class='btn btn-darkened btn-block btn-sm' ng-click="toggleDisp('raw')">Raw</button>
-                            <button type="button" class='btn btn-success btn-block btn-sm' ng-click="toggleDisp('pro')">Processed</button>
-                            <button type="button" class='btn btn-danger btn-block btn-sm'  ng-click="toggleDisp('templ')">Template</button>
-                            <button ng-if="interfaceManager.menuActive=='Detailed'" type="button" class='btn btn-info btn-block btn-sm'  ng-click="toggleDisp('sky')">Sky</button>
-                        </div>
-                        <div class="topspace" ng-if="interfaceManager.menuActive=='Overview'">
-                            <b>Display Data As:</b>
-                            <div class="btn-group btn-group-justified">
-                                <div class="btn-group">
-                                    <button type="button" class="btn btn-default " ng-click="interfaceManager.overviewGraph=true" ng-class="{active:(interfaceManager.overviewGraph==true)}">Graph</button>
-                                </div>
-                                <div class="btn-group">
-                                    <button type="button" class="btn btn-default " ng-click="interfaceManager.overviewGraph=false" ng-class="{active:(interfaceManager.overviewGraph==false)}">Table</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="boxed lined spectralList topspace" style="height: {{interfaceManager.getSpectralListHeight()}}">
-                    <ul class="list-unstyled">
-                        <li ng-class-even="'even'" ng-repeat="i in spectraManager.getAll() track by i.id" ng-dblclick="$parent.goToDetailed()" ng-click="$parent.setSpectraIndex(i.index)" ng-class="{activeSelect:interfaceManager.spectraIndex==i.index}" class="spectraSmall">
-                            <p><b>{{i.id}}</b></p>
-                            <div class="info" id="spectra{{i.id}}">
-                                <p ng-show="i.getFinalRedshift()==null">Not analysed</p>
-                                <p ng-show="i.getFinalRedshift()!=null">z={{i.getFinalRedshift().toFixed(4)}},  QOP: {{i.getQOP().toFixed(0)}}</p>
-                            </div>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-        <div id="rightbar">
-        </div>
-        <div id="central">
-            <div class="spacing">
-                <ng-include src="'views/centralOverview.html'" ng-show="interfaceManager.menuActive=='Overview'"></ng-include>
-                <div class="templateList" ng-show="interfaceManager.menuActive=='Templates'">
-                    <ul class="list-unstyled">
-                        <li class="overviewItem lined overviewLarge" ng-repeat="t in templateManager.getAll() track by t.id">
-                            <div class="topbar"><b>Template ID: {{t.id}}</b><p>{{t.name}},  &Aring;: {{t.start_lambda_linear.toFixed(1)}} &rarr; {{t.end_lambda_linear.toFixed(1)}}</p></div>
-                            <div class="graph"><canvas id="smallTemplateCanvas{{$index}}" style="width:100%; height:100%;"></canvas>{{interfaceManager.renderTemplate($index)}}</div>
-                        </li>
-                    </ul>
-                </div>
-                <ng-include src="'views/centralDetailed.html'" ng-show="interfaceManager.menuActive=='Detailed'"></ng-include>
-                <ng-include src="'views/centralUsage.html'" ng-if="interfaceManager.menuActive=='Usage'"></ng-include>
-                <ng-include src="'views/centralSettings.html'" ng-if="interfaceManager.menuActive=='Settings'"></ng-include>
-            </div>
-        </div>
-    </div>
-    <div id="footer" class="navbar-inverse">
-        <div class="container-fluid">
-            <div ng-if="interfaceManager.waitingDrop()">
-                <p>Please drop in a FITs file.</p>
-            </div>
-            <div ng-if="!interfaceManager.waitingDrop()">
-                <div ng-if="interfaceManager.analysing()">
-                    <div class="floatleft" ng-if="!interfaceManager.finishedAnalysis()">
-                        <p>Analysing spectra. Please wait.   {{interfaceManager.getNumAnalysed()}}/{{interfaceManager.getNumSpectra()}}</p>
-                    </div>
-                    <div class="floatleft" ng-if="interfaceManager.finishedAnalysis()">
-                        <p>Analysis finished. {{interfaceManager.getNumAnalysed()}}/{{interfaceManager.getNumSpectra()}}</p>
-                    </div>
-                </div>
-                <div ng-if="!interfaceManager.analysing()">
-                    <div class="floatleft" ng-if="!interfaceManager.finishedProcessing()">
-                        <p>Processing spectra. Please wait.   {{interfaceManager.getNumProcessed()}}/{{interfaceManager.getNumSpectra()}}</p>
-                    </div>
-                </div>
-                <div class="floatright" style="margin-top: -8px;">
-                    <button class="btn btn-small btn-info" ng-click="processorManager.toggleActiveProcessing()">{{interfaceManager.getPausedText()}}</button>
-                    <button class="btn btn-small btn-primary" ng-click="downloadResults()">Download</button>
-                </div>
-                <div class="fillrest">
-                    <progressbar animate="false" ng-if="interfaceManager.analysing()" class="progress-striped active" max="interfaceManager.getNumSpectra()" value="interfaceManager.getNumAnalysed()" type="{{interfaceManager.getProgressBarType()}}"></progressbar>
-                    <progressbar animate="false" ng-if="!interfaceManager.analysing()" class="progress-striped active" max="interfaceManager.getNumSpectra()" value="interfaceManager.getNumProcessed()" type="{{interfaceManager.getProgressBarType()}}"></progressbar>
-                </div>
-            </div>
-        </div>
-    </div>
-    <script src="lib/bootstrap.js"></script>
-    <script src="lib/angular.js"></script>
-    <script src="lib/angular-animate.js"></script>
-    <script src="lib/angular-sanitize.js"></script>
-    <script src="js/angular-drop.js"></script>
-    <script src="js/keyboard.js"></script>
-    <script src="js/directive-keybind.js"></script>
-    <script src="lib/ui-bootstrap-tpls-0.10.0.js"></script>
-    <script src="js/fits.js"></script>
-    <script src="js/ResultLoader.js"></script>
-    <script src="js/FileSaver.js"></script>
-    <script src="lib/regression.js"></script>
+    <script src="lib/jquery-2.1.1.js"></script>
     <script src="js/tools.js"></script>
-    <script src="js/spectralLines.js"></script>
-    <script src="js/templates.js"></script>
-    <script src="js/views.js"></script>
+    <script src="js/methods.js"></script>
     <script src="js/classes.js"></script>
+    <script src="lib/fits.js"></script>
+
+    <script src="lib/angular.min.js"></script>
+    <script src="lib/angular-animate.min.js"></script>
+    <script src="lib/angular-sanitize.min.js"></script>
+    <script src="lib/angular-ui-router.min.js"></script>
+    <script src="lib/ui-bootstrap-tpls-0.11.0.js"></script>
+
+    <link href="css/bootstrap.css" rel="stylesheet">
+    <link href="css/bootstrap-theme.css" rel="stylesheet">
+    <script src="lib/bootstrap.js"></script>
+
+
+    <script src="js/services.js"></script>
+    <script src="js/directives.js"></script>
+    <script src="js/controllers.js"></script>
+    <script src="js/router.js"></script>
     <script src="js/app.js"></script>
+
+    <div class="filler" ng-controller="MainController">
+        <ng-include src="'templates/navbar.html'"></ng-include>
+        <div id="underNavContainer">
+            <div id="sidebar">
+                <ng-include src="'templates/sidebar.html'"></ng-include>
+            </div>
+            <div id="afterSideBarContainer">
+                <div class="spacing">
+                    <div id="content" ui-view></div>
+                </div>
+            </div>
+        </div>
+        <div id="footer">
+            <ng-include src="'templates/footer.html'"></ng-include>
+        </div>
+    </div>
 </body>
 </html>
