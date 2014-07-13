@@ -14,14 +14,16 @@
 
 </head>
 <body ng-app="interfaceZ">
-    <div class="splash">
+    <div class="splash" ng-cloak>
         <div class="spinner"></div>
     </div>
     <script src="lib/jquery-2.1.1.js"></script>
+    <script src="lib/regression.js"></script>
     <script src="js/tools.js"></script>
     <script src="js/methods.js"></script>
     <script src="js/classes.js"></script>
     <script src="lib/fits.js"></script>
+    <script src="js/templates.js"></script>
 
     <script src="lib/angular.min.js"></script>
     <script src="lib/angular-animate.min.js"></script>
@@ -40,7 +42,7 @@
     <script src="js/router.js"></script>
     <script src="js/app.js"></script>
 
-    <div class="filler" ng-controller="MainController">
+    <div class="filler" ng-cloak ng-controller="MainController">
         <ng-include src="'templates/navbar.html'"></ng-include>
         <div id="underNavContainer">
             <div id="sidebar">
@@ -48,7 +50,7 @@
             </div>
             <div id="afterSideBarContainer">
                 <div class="spacing">
-                    <div id="content" ui-view></div>
+                    <div id="content" autoscroll="false" ui-view></div>
                 </div>
             </div>
         </div>

@@ -1,1 +1,7 @@
-TEMPLATES
+<div class="lined bottom-spacing" ng-repeat="t in templates track by t.id">
+    <div class="top-bar">
+        <strong>Template ID: {{t.id}}</strong>
+        <p>{{t.name}},  &Aring;: {{t.start_lambda_linear.toFixed(1)}} &rarr; {{t.end_lambda_linear.toFixed(1)}}</p>
+    </div>
+    <canvas class="under-bar unselectable" template-item="t" render-on-resize="true"></canvas>
+</div>

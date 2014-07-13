@@ -3,7 +3,9 @@ String.prototype.endsWith = function(suffix) {
 };
 
 
-
+String.prototype.pad = function(size) {
+    return ('000000000' + this).substr(-size)
+}
 // SOURCED FROM http://www.csgnetwork.com/julianmodifdateconv.html
 /**
  *

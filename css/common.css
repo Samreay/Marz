@@ -19,6 +19,9 @@
 .top-spacing {
     margin-top: 15px;
 }
+.bottom-spacing {
+    margin-bottom: 15px;
+}
 .vcenter {
     display: inline-block;
     vertical-align: middle;
@@ -61,7 +64,17 @@ p.fill-height {
     background: linear-gradient(to bottom, #DDD 0%,#CCC 100%);
     overflow: hidden;
 }
+.top-bar p {
+    display: inline-block;
+    margin: 0 0 0 15px;
+}
 .under-bar {
     width: 100%;
     height: calc(100% - 30px);
+}
+.unselectable {
+    -moz-user-select: none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+    -o-user-select: none;
 }

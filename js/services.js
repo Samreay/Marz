@@ -2,6 +2,7 @@ angular.module('servicesZ', [])
     .provider('global', function() {
         var dataStore = {
             ui: {
+                active: null,
                 graphicalLayout: true,
                 dataSelection: {
                     raw: true,
@@ -83,7 +84,19 @@ angular.module('servicesZ', [])
 
     }])
 
+    .service('templatesService', [function() {
+        var self = this;
 
+        var templates = new TemplateManager();
+
+        self.getTemplateAtRedshift = function(templateId, redshift, withContinuum) {
+            return templates.getTemplate(templateId, redshift, withContinuum);
+        };
+        self.getTemplates = function() {
+            return templates.getAll();
+        };
+
+    }])
     .service('fitsFile', ['$q', 'spectraManager', function($q, spectraManager) {
         var self = this;
 
@@ -271,8 +284,15 @@ angular.module('servicesZ', [])
     .service('drawingService', ['global', function(global) {
         var self = this;
         var ui = global.ui;
+        self.drawTemplateOnCanvas = function(template, canvas) {
+            var arr = template.lambda;
+            var bounds = self.getMaxes([
+                [arr, template.spec]
+            ]);
+            self.clearPlot(canvas);
+            self.plot(arr, template.spec, ui.colours.template, canvas, bounds);
+        };
         self.drawOverviewOnCanvas = function(spectra, canvas) {
-            console.log("rendering all of ", spectra.id);
             var width = canvas.clientWidth;
             if (spectra.intensity.length > 0) {
                 var lambda = self.condenseToXPixels(spectra.lambda, width);

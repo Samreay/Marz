@@ -20,6 +20,10 @@ function Spectra(id, lambda, intensity, variance, sky, skyAverage, name, ra, dec
 
     this.automaticRedshift = null;
     this.manualRedshift = null;
+    this.automaticTemplateID = null;
+    this.manualTemplateID = null;
+    this.automaticTemplateName = null;
+    this.manualTemplateName = null;
 
     this.qop = 0;
 
@@ -37,5 +41,19 @@ Spectra.prototype.getFinalRedshift = function() {
         return this.automaticRedshift;
     } else {
         return null;
+    }
+};
+Spectra.prototype.getFinalTemplateID = function() {
+  if (this.manualRedshift) {
+      return this.manualTemplateID;
+  }  else {
+      return this.automaticTemplateID;
+  }
+};
+Spectra.prototype.getFinalTemplateName = function() {
+    if (this.manualRedshift) {
+        return this.manualTemplateName;
+    }  else {
+        return this.automaticTemplateName;
     }
 };

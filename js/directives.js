@@ -19,7 +19,7 @@ angular.module('directivesZ', ['servicesZ'])
                     onDragEnd(e);
                     var f = e.originalEvent.dataTransfer.files;
                     scope.$apply(function(){
-                        scope.addfiles(f);
+                        scope.addFiles(f);
                     });
                 });
             }
@@ -33,6 +33,42 @@ angular.module('directivesZ', ['servicesZ'])
             },
             link: function($scope, $element, $attr) {
                 drawingService.drawOverviewOnCanvas($scope.overviewItem, $element[0]);
+            }
+        }
+    }])
+    .directive('templateItem', ['$window', '$timeout', 'drawingService', function($window, $timeout, drawingService) {
+        return {
+            restrict: "A",
+            scope: {
+                templateItem: "=",
+                renderOnResize: "="
+            },
+            link: function($scope, $element) {
+                var render = function() {
+                    drawingService.drawTemplateOnCanvas($scope.templateItem, $element[0]);
+                };
+                if ($scope.renderOnResize) {
+                    angular.element($window).on('resize', function() {
+                        render();
+                    });
+                }
+                $timeout(render);
+            }
+        }
+    }])
+    .directive('resize', ['$window', '$timeout', function($window, $timeout) {
+        return {
+            restrict: "A",
+            scope: {
+                resize: "="
+            },
+            link: function($scope, $element) {
+                angular.element($window).on('resize', function() {
+                    $scope.resize($element);
+                });
+                $timeout(function() {
+                    $scope.resize($element);
+                });
             }
         }
     }]);

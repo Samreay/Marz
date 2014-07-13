@@ -39,7 +39,9 @@
     100%{transform:rotate(360deg);}
 }
 
-
+[ng\:cloak], [ng-cloak], .ng-cloak {
+    display: none;
+}
 
 .splash {
     display: none;

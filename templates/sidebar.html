@@ -30,7 +30,7 @@
                 <button ng-if="showSky()" type="button" class='btn btn-info btn-block btn-sm'  ng-click="toggleSky()">Sky</button>
             </div>
         </div>
-        <div class="top-spacing lined scroll-y" style="height: {{getListHeight()}};">
+        <div class="top-spacing lined scroll-y" resize="windowResized" ng-style="listStyle()">
             <div ng-repeat="spectra in data.spectra" class="left-padding-small spectra-list-item" ng-class-even="'darker'">
                 <p><strong class="right-padding-small">{{spectra.id}}</strong>{{getAnalysedText(spectra)}}</p>
             </div>
