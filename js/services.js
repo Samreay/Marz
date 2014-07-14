@@ -77,7 +77,7 @@ angular.module('servicesZ', [])
         self.getSpectra = function(id) {
             if (id == null) return data.spectra;
             return data.spectraHash[id];
-        }
+        };
     }])
 
     .service('resultsLoader', [function() {
