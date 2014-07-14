@@ -13,10 +13,13 @@ function Spectra(id, lambda, intensity, variance, sky, skyAverage, name, ra, dec
     this.skyAverage = skyAverage;
 
     this.isProcessed = false;
+    this.isProcessing = false;
     this.isMatched = false;
+    this.isMatching = false;
 
+    this.processedLambda = null;
     this.processedIntensity = null;
-    this.processedLambda = null; //TODO: Should not have a processed lambda. Vacuum shift already being done.
+    this.processedVariance = null
 
     this.automaticRedshift = null;
     this.manualRedshift = null;
@@ -56,4 +59,59 @@ Spectra.prototype.getFinalTemplateName = function() {
     }  else {
         return this.automaticTemplateName;
     }
+};
+Spectra.prototype.getProcessMessage = function() {
+    return {
+        processing: true,
+        id: this.id,
+        lambda: this.lambda,
+        intensity: this.intensity,
+        variance: this.variance
+    };
+};
+Spectra.prototype.getMatchMessage = function() {
+    return {
+        processing: false,
+        id: this.id,
+        type: this.type,
+        lambda: this.processedLambda,
+        intensity: this.processedIntensity,
+        variance: this.processedVariance
+    };
+};
+
+
+
+
+
+
+/**
+ * The processor is responsible for hosting the worker and communicating with it.
+ * @param $q - the angular promise creation object
+ */
+function Processor($q) {
+    this.flaggedForDeletion = false;
+    this.workingData = null;
+    this.$q = $q;
+    this.worker = new Worker('js/worker.js');
+    this.worker.addEventListener('message', function(e) {
+        this.workingData = null;
+        this.promise.resolve(e);
+        this.promise = null;
+        if (this.flaggedForDeletion) {
+            this.worker = null;
+        }
+    }.bind(this), false);
+}
+Processor.prototype.flagForDeletion = function() {
+    this.flaggedForDeletion = true;
+}
+Processor.prototype.isIdle = function() {
+    return this.workingData == null;
+};
+Processor.prototype.workOnSpectra = function(data) {
+    this.workingData = data;
+    this.promise = this.$q.defer();
+    this.worker.postMessage(data);
+    return this.promise.promise;
 };

@@ -84,6 +84,108 @@ angular.module('servicesZ', [])
 
     }])
 
+    .service('processorService', ['$q', function($q) {
+        var self = this;
+
+        var numProcessors = 3;
+        var processors = [];
+        var priorityJobs = [];
+        var processing = true;
+        var jobs = [];
+        console.log("Adding", numProcessors, "workers");
+        for (var i = 0; i < numProcessors; i++) {
+            processors.push(new Processor($q));
+        }
+
+        self.toggleProcessing = function() {
+            processing = !processing;
+        };
+        self.processSpectra = function(spectra) {
+            console.log('Process spectra', spectra);
+            var processor = self.getIdleProcessor();
+            processor.workOnSpectra(spectra).then(function(result) {
+                self.processJobs();
+            }, function(reason) {
+                console.warn(reason);
+            });
+        };
+
+        self.getIdleProcessor = function() {
+            for (i = 0; i < processors.length; i++) {
+                if (processors[i].isIdle()) {
+                    return processors[i];
+                }
+            }
+            return null;
+        };
+
+        self.addSpectraListToQueue = function(spectraList) {
+            console.log('Adding to queue');
+            for (i = 0; i < spectraList.length; i++) {
+                jobs.push(spectraList[i]);
+            }
+            self.processJobs();
+        };
+
+        self.addToPriorityQueue = function(spectra) {
+            priorityJobs.push(spectra);
+        };
+        self.hasIdleProcessor = function() {
+            return self.getIdleProcessor() != null;
+        };
+        self.shouldProcess = function(spectra) {
+            return !spectra.isProcessing && !spectra.isProcessed;
+        };
+        self.shouldMatch = function(spectra) {
+            return spectra.isProcessed && !spectra.isMatching && !spectra.isMatched;
+        };
+
+        /**
+         * Processes priority jobs processing then matching, and then normal
+         * jobs processing and matching if processing is enabled.
+         */
+        self.processJobs = function() {
+            console.log('Processing jobs');
+            var findingJobs = true;
+            while (findingJobs && self.hasIdleProcessor()) {
+                findingJobs = self.processAJob();
+            }
+        };
+        self.processAJob = function() {
+            for (i = 0; i < priorityJobs.length; i++) {
+                if (self.shouldProcess(priorityJobs[i])) {
+                    self.processSpectra(priorityJobs[i].getProcessMessage());
+                    return true;
+                }
+            }
+            for (i = 0; i < priorityJobs.length; i++) {
+                if (self.shouldMatch(priorityJobs[i])) {
+                    self.processSpectra(priorityJobs[i].getMatchMessage());
+                    return true;
+                }
+            }
+            if (processing) {
+                for (i = 0; i < jobs.length; i++) {
+                    if (self.shouldProcess(jobs[i])) {
+                        self.processSpectra(jobs[i].getProcessMessage());
+                        return true;
+                    }
+                }
+                for (i = 0; i < jobs.length; i++) {
+                    if (self.shouldMatch(jobs[i])) {
+                        self.processSpectra(jobs[i].getMatchMessage());
+                        return true;
+                    }
+                }
+            }
+            return false;
+        };
+
+        //TODO: Add and remove number processors
+
+
+    }])
+
     .service('templatesService', [function() {
         var self = this;
 
@@ -97,7 +199,7 @@ angular.module('servicesZ', [])
         };
 
     }])
-    .service('fitsFile', ['$q', 'spectraManager', function($q, spectraManager) {
+    .service('fitsFile', ['$q', 'spectraManager', 'processorService', function($q, spectraManager, processorService) {
         var self = this;
 
         var hasFitsFile = false;
@@ -276,6 +378,7 @@ angular.module('servicesZ', [])
             }
             isLoading = false;
             spectraManager.setSpectra(spectraList);
+            processorService.addSpectraListToQueue(spectraList);
             q.resolve();
         }
 
