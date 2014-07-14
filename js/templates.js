@@ -192,7 +192,7 @@ TemplateManager.prototype.processTemplates = function () {
             }
         }
         if (!t.log_linear) {
-            convertLambdaToLogLambda(t.lambda, t.spec);
+            convertLambdaToLogLambda(t.lambda, t.spec, t.variance);
             t.start_lambda = t.lambda[0];
             t.end_lambda = t.lambda[t.lambda.length - 1];
         }
@@ -267,4 +267,4 @@ TemplateManager.prototype.shiftToMatchSpectra = function (logLambda) {
         }
 
     }
-}
+};
