@@ -140,10 +140,6 @@ angular.module('servicesZ', [])
             return spectra.isProcessed && !spectra.isMatching && !spectra.isMatched;
         };
 
-        /**
-         * Processes priority jobs processing then matching, and then normal
-         * jobs processing and matching if processing is enabled.
-         */
         self.processJobs = function() {
             console.log('Processing jobs');
             var findingJobs = true;
@@ -151,6 +147,11 @@ angular.module('servicesZ', [])
                 findingJobs = self.processAJob();
             }
         };
+
+        /**
+         * Processes priority jobs processing then matching, and then normal
+         * jobs processing and matching if processing is enabled.
+         */
         self.processAJob = function() {
             for (i = 0; i < priorityJobs.length; i++) {
                 if (self.shouldProcess(priorityJobs[i])) {
