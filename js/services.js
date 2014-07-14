@@ -93,7 +93,7 @@ angular.module('servicesZ', [])
             return templates.getTemplate(templateId, redshift, withContinuum);
         };
         self.getTemplates = function() {
-            return templates.getAll();
+            return templates.templates;
         };
 
     }])
