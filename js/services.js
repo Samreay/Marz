@@ -95,10 +95,42 @@ angular.module('servicesZ', [])
         };
         self.setMatchedResults = function(results) {
             var spectra = data.spectraHash[results.id];
-
+            spectra.automaticResults = results.results;
+            spectra.automaticBestResults = self.getBestResults(results.results);
             spectra.isMatching = false;
             spectra.isMatched = true;
         };
+        self.getBestResults = function(resultsList) {
+            var best = [{templateId: resultsList[0].id, z: resultsList[0].top[0].z, gof: resultsList[0].top[0].gof}];
+            var threshold = 0.05;
+            var i;
+            var merged = [];
+            for (i = 0; i < resultsList.length; i++) {
+                var tr = resultsList[i];
+                for (var j = 0; j < tr.top.length; j++) {
+                    var trr = tr.top[j];
+                    merged.push({id: tr.id, z: trr.z, gof: trr.gof});
+                }
+            }
+            merged.sort(function(a,b) {
+                return a.gof - b.gof;
+            });
+
+            i = 0;
+            while (best.length < 10) {
+                var valid = true;
+                for (var k = 0; k < best.length; k++) {
+                    if (best[k].templateId == merged[i].id && Math.abs(merged[i].z - best[k].z) < threshold) {
+                        valid = false;
+                    }
+                }
+                if (valid) {
+                    best.push({templateId: merged[i].id, z: merged[i].z, gof: merged[i].gof});
+                }
+                i++;
+            }
+            return best;
+        }
     }])
 
     .service('resultsLoader', [function() {
@@ -423,7 +455,7 @@ angular.module('servicesZ', [])
 
     }])
 
-    .service('drawingService', ['global', function(global) {
+    .service('drawingService', ['global', 'templatesService', function(global, templatesService) {
         var self = this;
         var ui = global.ui;
         self.drawTemplateOnCanvas = function(template, canvas) {
@@ -441,15 +473,15 @@ angular.module('servicesZ', [])
                 var intensity = self.condenseToXPixels(spectra.intensityPlot, width);
                 var processedLambda = self.condenseToXPixels(spectra.processedLambdaPlot, width);
                 var processedIntensity = self.condenseToXPixels(spectra.processedIntensity, width);
-                var tempIntensity = null; //TODO: REMOVE THIS LINE. DO THIS WHOLE SECTION BETTER
-//                var template = v.getFinalTemplate();
-//                var index = template == null ? null : template.index;
-//                var r = this.templateManager.getShiftedLinearTemplate(index, v.getFinalRedshift())
-//                if (r[0] == null || r[1] == null) {
-//                    var tempIntensity = null;
-//                } else {
-//                    var tempIntensity = condenseToXPixels(interpolate(v.lambda, r[0], r[1]), width);
-//                }
+                var r = null;
+                if (spectra.getFinalTemplateID() != null) {
+                    r = templatesService.getTemplateAtRedshift(spectra.getFinalTemplateID(), spectra.getFinalRedshift(), false);
+                }
+                if (r == null || r[0] == null || r[1] == null) {
+                    var tempIntensity = null;
+                } else {
+                    var tempIntensity = self.condenseToXPixels(interpolate(spectra.lambda, r[0], r[1]), width);
+                }
                 self.clearPlot(canvas);
                 var toBound = [];
                 if (ui.dataSelection.raw) {

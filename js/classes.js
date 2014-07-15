@@ -26,27 +26,25 @@ function Spectra(id, lambda, intensity, variance, sky, skyAverage, name, ra, dec
     this.processedIntensity = null;
     this.processedVariance = null
 
-    this.automaticRedshift = null;
+    this.automaticResults = null;
+    this.automaticBestResults = null;
     this.manualRedshift = null;
-    this.automaticTemplateID = null;
     this.manualTemplateID = null;
-    this.automaticTemplateName = null;
-    this.manualTemplateName = null;
 
     this.qop = 0;
 
     this.getHash = function() {
-        return "" + this.id + this.automaticRedshift + this.manualRedshift + this.isProcessed + this.isMatched;
+        return "" + this.id + this.getFinalRedshift() + this.getFinalTemplateID() + this.isProcessed + this.isMatched;
     }
 }
 Spectra.prototype.hasRedshift = function() {
-    return this.automaticRedshift || this.manualRedshift;
+    return this.automaticBestResults || this.manualRedshift;
 };
 Spectra.prototype.getFinalRedshift = function() {
     if (this.manualRedshift) {
         return this.manualRedshift;
-    } else if (this.automaticRedshift) {
-        return this.automaticRedshift;
+    } else if (this.automaticBestResults) {
+        return this.automaticBestResults[0].z;
     } else {
         return null;
     }
@@ -54,16 +52,11 @@ Spectra.prototype.getFinalRedshift = function() {
 Spectra.prototype.getFinalTemplateID = function() {
   if (this.manualRedshift) {
       return this.manualTemplateID;
-  }  else {
-      return this.automaticTemplateID;
+  } else if (this.automaticBestResults) {
+      return this.automaticBestResults[0].templateId;
+  } else {
+      return null;
   }
-};
-Spectra.prototype.getFinalTemplateName = function() {
-    if (this.manualRedshift) {
-        return this.manualTemplateName;
-    }  else {
-        return this.automaticTemplateName;
-    }
 };
 Spectra.prototype.getProcessMessage = function() {
     return {
@@ -120,3 +113,50 @@ Processor.prototype.workOnSpectra = function(data) {
     this.worker.postMessage(data);
     return this.promise.promise;
 };
+
+
+
+
+
+
+
+
+function FastAreaFinder(array) {
+    this.array = array;
+    this.start = null;
+    this.end = null;
+    this.area = 0;
+}
+FastAreaFinder.prototype.getArea = function(start, end) {
+    if (start < 0) start = 0;
+    if (end > this.array.length) end = this.array.length;
+    if (this.start == null || this.end == null) {
+        this.area = 0;
+        for (var i = start; i < end; i++) {
+            this.area += Math.abs(this.array[i]);
+        }
+    } else {
+
+        if (start < this.start) {
+            for (var i = start; i < this.start; i++) {
+                this.area += Math.abs(this.array[i]);
+            }
+        } else if (start > this.start) {
+            for (var i = this.start; i < start; i++) {
+                this.area -= Math.abs(this.array[i]);
+            }
+        }
+        if (end > this.end) {
+            for (var i = this.end; i < end; i++) {
+                this.area += Math.abs(this.array[i]);
+            }
+        } else if (end < this.end) {
+            for (var i = end; i < this.end; i++) {
+                this.area -= Math.abs(this.array[i]);
+            }
+        }
+    }
+    this.start = start;
+    this.end = end;
+    return this.area;
+}
