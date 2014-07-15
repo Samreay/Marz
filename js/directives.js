@@ -1,4 +1,4 @@
-angular.module('directivesZ', ['servicesZ'])
+angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
     .directive('dropzone', function() {
         return {
             restrict : "A",
@@ -76,4 +76,31 @@ angular.module('directivesZ', ['servicesZ'])
                 });
             }
         }
-    }]);
+    }])
+    .directive('keybind', function() {
+
+        return {
+            restrict: 'E',
+            replace: true,
+            scope: {
+                bind: "="
+            },
+            link: function(scope, element, attrs) {
+                scope.getlabels = function() {
+                    var html = "";
+                    var keys = scope.bind.label.split(",");
+                    for (var i = 0; i < keys.length; i++) {
+                        if (i != 0) {
+                            html += " or ";
+                        }
+                        html += "<code>" + keys[i] + "</code>"
+                    }
+                    return html;
+                }
+            },
+            templateUrl: 'templates/keybind.html'
+        }
+
+    });
+
+;
