@@ -11,9 +11,9 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             return $state.current.name == state;
         }
     }])
-    .controller('MainController', ['$scope', 'spectraManager', 'global', function($scope, spectraManager, global) {
+    .controller('MainController', ['$scope', 'spectraService', 'global', function($scope, spectraService, global) {
         $scope.isWaitingDrop = function() {
-            return !spectraManager.hasSpectra();
+            return !spectraService.hasSpectra();
         };
         $scope.isActive = function(spectra) {
             if (spectra.id == null) {
@@ -30,7 +30,7 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             }
         };
     }])
-    .controller('OverviewController', ['$scope', 'spectraManager', 'fitsFile', 'global', function($scope, spectraManager, fitsFile, global) {
+    .controller('OverviewController', ['$scope', 'spectraService', 'fitsFile', 'global', function($scope, spectraService, fitsFile, global) {
         $scope.ui = global.ui;
         $scope.data = global.data;
         $scope.isLoading = function() {
@@ -77,21 +77,64 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
     .controller('UsageController', ['$scope', function($scope) {
 
     }])
-    .controller('FooterController', ['$scope', 'spectraManager', function($scope, spectraManager) {
+    .controller('FooterController', ['$scope', 'spectraService', 'processorService', function($scope, spectraService, processorService) {
         $scope.isProcessing = function() {
-            return spectraManager.isProcessing();
+            return spectraService.isProcessing();
         };
         $scope.getNumberProcessed = function() {
-            return spectraManager.getNumberProcessed();
+            return spectraService.getNumberProcessed();
         };
         $scope.getNumberTotal = function() {
-            return spectraManager.getNumberTotal();
+            return spectraService.getNumberTotal();
         };
         $scope.getNumberMatched = function() {
-            return spectraManager.getNumberMatched();
-        }
+            return spectraService.getNumberMatched();
+        };
+        $scope.togglePause = function() {
+            processorService.togglePause();
+        };
+        $scope.downloadResults = function() {
+            //TODO: SOMETHING
+        };
+        $scope.getPausedText = function() {
+            if (processorService.isPaused()) {
+                return "Resume";
+            } else {
+                return "Pause";
+            }
+        };
+        $scope.getText = function() {
+            if (spectraService.isProcessing()) {
+                return "Processing spectra:   " + spectraService.getNumberProcessed() +
+                    "/" + spectraService.getNumberTotal();
+            } else if (spectraService.isMatching()) {
+                return "Matching spectra:   " + spectraService.getNumberMatched() +
+                    "/" + spectraService.getNumberTotal();
+            } else {
+                return "Finished all spectra";
+            }
+        };
+        $scope.getProgressBarValue = function() {
+            if (spectraService.isProcessing()) {
+                return spectraService.getNumberProcessed();
+            } else {
+                return spectraService.getNumberMatched();
+            }
+        };
+        $scope.getProgressBarMax = function() {
+            return spectraService.getNumberTotal();
+        };
+        $scope.getProgressBarType = function() {
+            if (spectraService.isFinishedMatching()) {
+                return "info";
+            } else if (spectraService.isProcessing()) {
+                return "success";
+            } else {
+                return "danger";
+            }
+        };
     }])
-    .controller('SidebarController', ['$scope', 'spectraManager', 'fitsFile', '$state', 'global', function($scope, spectraManager, fitsFile, $state, global) {
+    .controller('SidebarController', ['$scope', 'spectraService', 'fitsFile', '$state', 'global', function($scope, spectraService, fitsFile, $state, global) {
         $scope.ui = global.ui;
         $scope.data = global.data;
         $scope.addFiles = function(files) {
@@ -103,9 +146,12 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
                 if (files[i].name.endsWith('fits')) {
                     fitsFile.loadInFitsFile(files[i]).then(function() { console.log('Fits file loaded')});
                 } else if (files[i].name.endsWith('txt')) {
-                    spectraManager.loadInResults(files[i]);
+                    spectraService.loadInResults(files[i]);
                 }
             }
+        };
+        $scope.showDataSelectors = function() {
+            return ($state.current.name == 'overview' && $scope.ui.graphicalLayout) ||  ($state.current.name == 'detailed')
         };
         $scope.getTitle = function() {
             return fitsFile.getFilename();
@@ -143,5 +189,5 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             } else {
                 return "Not analysed";
             }
-        }
+        };
     }]);

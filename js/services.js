@@ -28,7 +28,7 @@ angular.module('servicesZ', [])
             return dataStore;
         }]
     })
-    .service('spectraManager', ['global', function(global) {
+    .service('spectraService', ['global', function(global) {
         var self = this;
         var data = global.data;
 
@@ -53,11 +53,17 @@ angular.module('servicesZ', [])
             }
             return num;
         };
+        self.isFinishedMatching = function() {
+            return self.getNumberMatched() == self.getNumberTotal();
+        };
+        self.isMatching = function() {
+            return !self.isProcessing() && (self.getNumberMatched() < self.getNumberTotal());
+        }
+        self.isProcessing = function() {
+            return self.getNumberProcessed() < self.getNumberTotal();
+        };
         self.getNumberTotal = function() {
             return data.spectra.length;
-        };
-        self.isProcessing = function() {
-            return self.getNumberMatched() < self.getNumberTotal();
         };
         self.loadInSpectra = function(file) {
             console.log("loading in ", file);
@@ -78,16 +84,35 @@ angular.module('servicesZ', [])
             if (id == null) return data.spectra;
             return data.spectraHash[id];
         };
+        self.setProcessedResults = function(results) {
+            var spectra = data.spectraHash[results.id];
+            spectra.processedLambda = results.lambda;
+            spectra.processedIntensity = results.intensity;
+            spectra.processedLambdaPlot = results.lambda.map(function(x) { return Math.pow(10, x); });
+            spectra.processedVariance = results.variance;
+            spectra.isProcessing = false;
+            spectra.isProcessed = true;
+        };
+        self.setMatchedResults = function(results) {
+            var spectra = data.spectraHash[results.id];
+
+            spectra.isMatching = false;
+            spectra.isMatched = true;
+        };
     }])
 
     .service('resultsLoader', [function() {
 
     }])
 
-    .service('processorService', ['$q', function($q) {
+    .service('localStorageService', [function() {
+
+    }])
+
+    .service('processorService', ['$q', 'spectraService', function($q, spectraService) {
         var self = this;
 
-        var numProcessors = 3;
+        var numProcessors = 1;
         var processors = [];
         var priorityJobs = [];
         var processing = true;
@@ -104,12 +129,16 @@ angular.module('servicesZ', [])
             console.log('Process spectra', spectra);
             var processor = self.getIdleProcessor();
             processor.workOnSpectra(spectra).then(function(result) {
+                if (result.data.processing) {
+                    spectraService.setProcessedResults(result.data);
+                } else {
+                    spectraService.setMatchedResults(result.data);
+                }
                 self.processJobs();
             }, function(reason) {
                 console.warn(reason);
             });
         };
-
         self.getIdleProcessor = function() {
             for (i = 0; i < processors.length; i++) {
                 if (processors[i].isIdle()) {
@@ -118,7 +147,6 @@ angular.module('servicesZ', [])
             }
             return null;
         };
-
         self.addSpectraListToQueue = function(spectraList) {
             console.log('Adding to queue');
             for (i = 0; i < spectraList.length; i++) {
@@ -126,7 +154,6 @@ angular.module('servicesZ', [])
             }
             self.processJobs();
         };
-
         self.addToPriorityQueue = function(spectra) {
             priorityJobs.push(spectra);
         };
@@ -139,12 +166,19 @@ angular.module('servicesZ', [])
         self.shouldMatch = function(spectra) {
             return spectra.isProcessed && !spectra.isMatching && !spectra.isMatched;
         };
-
         self.processJobs = function() {
-            console.log('Processing jobs');
             var findingJobs = true;
             while (findingJobs && self.hasIdleProcessor()) {
                 findingJobs = self.processAJob();
+            }
+        };
+        self.isPaused = function() {
+            return !processing;
+        };
+        self.togglePause = function() {
+            processing = !processing;
+            if (processing) {
+                self.processJobs();
             }
         };
 
@@ -155,12 +189,14 @@ angular.module('servicesZ', [])
         self.processAJob = function() {
             for (i = 0; i < priorityJobs.length; i++) {
                 if (self.shouldProcess(priorityJobs[i])) {
+                    priorityJobs[i].isProcessing = true;
                     self.processSpectra(priorityJobs[i].getProcessMessage());
                     return true;
                 }
             }
             for (i = 0; i < priorityJobs.length; i++) {
                 if (self.shouldMatch(priorityJobs[i])) {
+                    priorityJobs[i].isMatching = true;
                     self.processSpectra(priorityJobs[i].getMatchMessage());
                     return true;
                 }
@@ -168,12 +204,14 @@ angular.module('servicesZ', [])
             if (processing) {
                 for (i = 0; i < jobs.length; i++) {
                     if (self.shouldProcess(jobs[i])) {
+                        jobs[i].isProcessing = true;
                         self.processSpectra(jobs[i].getProcessMessage());
                         return true;
                     }
                 }
                 for (i = 0; i < jobs.length; i++) {
                     if (self.shouldMatch(jobs[i])) {
+                        jobs[i].isMatching = true;
                         self.processSpectra(jobs[i].getMatchMessage());
                         return true;
                     }
@@ -200,7 +238,7 @@ angular.module('servicesZ', [])
         };
 
     }])
-    .service('fitsFile', ['$q', 'spectraManager', 'processorService', function($q, spectraManager, processorService) {
+    .service('fitsFile', ['$q', 'spectraService', 'processorService', function($q, spectraService, processorService) {
         var self = this;
 
         var hasFitsFile = false;
@@ -378,7 +416,7 @@ angular.module('servicesZ', [])
                 spectraList.push(s);
             }
             isLoading = false;
-            spectraManager.setSpectra(spectraList);
+            spectraService.setSpectra(spectraList);
             processorService.addSpectraListToQueue(spectraList);
             q.resolve();
         }
@@ -400,9 +438,9 @@ angular.module('servicesZ', [])
             var width = canvas.clientWidth;
             if (spectra.intensity.length > 0) {
                 var lambda = self.condenseToXPixels(spectra.lambda, width);
-                var intensity = self.condenseToXPixels(spectra.intensity, width);
-                var processedLambda = self.condenseToXPixels(spectra.processedLambda, width);
-                var processed = self.condenseToXPixels(spectra.processedIntensity, width);
+                var intensity = self.condenseToXPixels(spectra.intensityPlot, width);
+                var processedLambda = self.condenseToXPixels(spectra.processedLambdaPlot, width);
+                var processedIntensity = self.condenseToXPixels(spectra.processedIntensity, width);
                 var tempIntensity = null; //TODO: REMOVE THIS LINE. DO THIS WHOLE SECTION BETTER
 //                var template = v.getFinalTemplate();
 //                var index = template == null ? null : template.index;
@@ -418,19 +456,18 @@ angular.module('servicesZ', [])
                     toBound.push([lambda, intensity]);
                 }
                 if (ui.dataSelection.processed) {
-                    toBound.push([processedLambda, processed]);
+                    toBound.push([processedLambda, processedIntensity]);
                 }
                 if (ui.dataSelection.matched && tempIntensity != null) {
                     toBound.push([lambda, tempIntensity]);
                 }
-
                 var bounds = self.getMaxes(toBound);
                 this.plotZeroLine(canvas, "#C4C4C4", bounds);
                 if (ui.dataSelection.raw) {
                     self.plot(lambda, intensity, ui.colours.raw, canvas, bounds);
                 }
-                if (ui.dataSelection.processed) {
-                    self.plot(processedLambda,processed, ui.colours.processed, canvas, bounds);
+                if (ui.dataSelection.processed && processedIntensity != null) {
+                    self.plot(processedLambda, processedIntensity, ui.colours.processed, canvas, bounds);
                 }
                 if (ui.dataSelection.matched && tempIntensity != null) {
                     self.plot(lambda, tempIntensity, ui.colours.matched, canvas, bounds);

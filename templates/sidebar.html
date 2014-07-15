@@ -3,7 +3,7 @@
         <div id="sidebar-wrapper">
             <div dropzone>
                 <div ng-if="isWaitingDrop()">
-                    <h4>Drop a FITS File or a results file. Or both together. Or a FITS file than a results file.</h4>
+                    <h4>Drop a FITS File or a results file. Or both together. Or a FITS file then a results file.</h4>
                 </div>
                 <div ng-if="!isWaitingDrop()" class="capitalise">
                     <h4>{{getTitle()}}</h4>
@@ -22,7 +22,7 @@
                     </div>
                 </div>
             </div>
-            <div ng-if="ui.graphicalLayout" class="top-spacing">
+            <div ng-if="showDataSelectors()" class="top-spacing">
                 <b>Data Selection:</b>
                 <button type="button" class='btn btn-darkened btn-block btn-sm' ng-click="toggledRaw()">Raw</button>
                 <button type="button" class='btn btn-success btn-block btn-sm' ng-click="toggledProcessed()">Processed</button>

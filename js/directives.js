@@ -25,14 +25,19 @@ angular.module('directivesZ', ['servicesZ'])
             }
         }
     })
-    .directive('overviewItem', ['drawingService', function(drawingService) {
+    .directive('overviewItem', ['drawingService', 'global', function(drawingService, global) {
         return {
             restrict: "A",
             scope: {
                 overviewItem: "="
             },
             link: function($scope, $element, $attr) {
-                drawingService.drawOverviewOnCanvas($scope.overviewItem, $element[0]);
+                $scope.$watch('overviewItem.getHash()', function() {
+                    drawingService.drawOverviewOnCanvas($scope.overviewItem, $element[0]);
+                });
+                $scope.$on('dataSelectionChanged', function() {
+                    drawingService.drawOverviewOnCanvas($scope.overviewItem, $element[0]);
+                });
             }
         }
     }])

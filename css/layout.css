@@ -40,9 +40,25 @@ div[dropzone] h4 {
 }
 
 
+.fill-rest {
+    padding-left: 20px;
+    padding-right: 20px;
+    position: relative;
+    display: block;
+    overflow:hidden;
+}
 
-
-
+.footer .progress {
+    margin-bottom: 0;
+    margin-top: 5px;
+}
+.footer p {
+    color: white;
+    margin: 8px;
+}
+.footer button {
+    margin-top: -2px;
+}
 
 
 
@@ -111,3 +127,118 @@ fieldset[disabled] .btn-darkened.active {
     color: #c3c3c8;
     background-color: #717174;
 }
+
+
+.bs-callout {
+    /*margin: 20px 0;*/
+    margin-bottom: 10px;
+    padding: 15px 30px 15px 15px;
+    border: 1px solid #eee;
+    border-left: 5px solid #eee;
+}
+.bs-callout h1,
+.bs-callout h2,
+.bs-callout h3,
+.bs-callout h4,
+.bs-callout h5,
+.bs-callout h6 {
+    margin-top: 0;
+}
+
+.bs-callout-danger h1,
+.bs-callout-danger h2,
+.bs-callout-danger h3,
+.bs-callout-danger h4,
+.bs-callout-danger h5,
+.bs-callout-danger h6 {
+    color: #B94A48;
+}
+
+.bs-callout-warning h1,
+.bs-callout-warning h2,
+.bs-callout-warning h3,
+.bs-callout-warning h4,
+.bs-callout-warning h5,
+.bs-callout-warning h6 {
+    color: #f09a2d;
+}
+
+.bs-callout-info h1,
+.bs-callout-info h2,
+.bs-callout-info h3,
+.bs-callout-info h4,
+.bs-callout-info h5,
+.bs-callout-info h6 {
+    color: #3A87AD;
+}
+
+.bs-callout-success h1,
+.bs-callout-success h2,
+.bs-callout-success h3,
+.bs-callout-success h4,
+.bs-callout-success h5,
+.bs-callout-success h6 {
+    color: #3C763D;
+}
+
+.bs-callout p:last-child {
+    margin-bottom: 0;
+}
+
+.bs-callout code,
+.bs-callout .highlight {
+    background-color: #fff;
+}
+
+/* Themes for different contexts */
+.bs-callout-danger {
+    background-color: #fcf2f2;
+    border-color: #dFb5b4;
+}
+.bs-callout-warning {
+    background-color: #fcf7f2;
+    border-color: #f0ad4e;
+}
+.bs-callout-info {
+    background-color: #f0f7fd;
+    border-color: #d0e3f0;
+}
+.bs-callout-success {
+    background-color: #dff0d8;
+    border-color: #d6e9c6;
+}
+
+
+.usage h1 {
+    colour: #222;
+    line-height: 1.5em;
+}
+
+.usage h2 {
+    color: #444;
+    font-size: 22px;
+    line-height:  1.5em;
+    margin-bottom: 10px;
+    margin-top: 20px;
+}
+.usage p {
+    color: #555;
+    line-height: 1.6em;
+    font-size: 1em;
+
+}
+.usage .h1group {
+    margin-bottom: 10px;
+    padding: 0px 30px 30px 30px;
+}
+
+.usage hr {
+    border: 0;
+    margin-top: 0px;
+    height: 1px;
+    background-image: -webkit-linear-gradient(left, rgba(0,0,0,0.5), rgba(0,0,0,0));
+    background-image:    -moz-linear-gradient(left, rgba(0,0,0,0.5), rgba(0,0,0,0));
+    background-image:     -ms-linear-gradient(left, rgba(0,0,0,0.5), rgba(0,0,0,0));
+    background-image:      -o-linear-gradient(left, rgba(0,0,0,0.5), rgba(0,0,0,0));
+}
+
