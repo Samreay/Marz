@@ -29,7 +29,8 @@ angular.module('servicesZ', [])
             return dataStore;
         }]
     })
-    .service('spectraService', ['global', 'resultsGeneratorService', 'cookieService', function(global, resultsGeneratorService, cookieService) {
+    .service('spectraService', ['global', 'resultsGeneratorService', 'cookieService', 'localStorageService',
+        function(global, resultsGeneratorService, cookieService, localStorageService) {
         var self = this;
         var data = global.data;
 
@@ -125,6 +126,7 @@ angular.module('servicesZ', [])
                 data.spectra.push(spectraList[i]);
                 data.spectraHash[spectraList[i].id] = spectraList[i];
             }
+            //TODO: ADD localstorage check and normal results check.
         };
         self.getSpectra = function(id) {
             if (id == null) return data.spectra;
@@ -145,8 +147,20 @@ angular.module('servicesZ', [])
             spectra.automaticBestResults = self.getBestResults(results.results);
             spectra.isMatching = false;
             spectra.isMatched = true;
+            if (saveAutomatically) {
+                localStorageService.saveSpectra(spectra);
+            }
             if (downloadAutomatically && self.isFinishedMatching()) {
                 resultsGeneratorService.downloadResults();
+            }
+        };
+        self.setManualResults = function(spectraId, templateId, redshift, qop) {
+            var spectra = global.data.spectraHash[spectraId];
+            spectra.manualTemplateID = templateId;
+            spectra.manualRedshift = redshift;
+            spectra.qop = qop;
+            if (saveAutomatically) {
+                localStorageService.saveSpectra(spectra);
             }
         };
         self.getBestResults = function(resultsList) {
@@ -228,29 +242,105 @@ angular.module('servicesZ', [])
             for (var i = 0; i < global.data.spectra.length; i++) {
                 var spectra = global.data.spectra[i];
                 if (spectra.hasRedshiftToBeSaved()) {
-                    result.push([
-                        {name: "SpectraID", value: spectra.id},
-                        {name: "SpectraName", value: spectra.name},
-                        {name: "SpectraRA", value: spectra.ra},
-                        {name: "SpectraDec", value: spectra.dec},
-                        {name: "SpectraMagnitude", value: spectra.magnitude},
-                        {name: "AutomaticTemplateID", value: spectra.getBestAutomaticResult().templateId},
-                        {name: "AutomaticTemplateName", value:  templatesService.getNameForTemplate(spectra.getBestAutomaticResult().templateId)},
-                        {name: "AutomaticRedshift", value: spectra.getBestAutomaticResult().z.toFixed(5)},
-                        {name: "AutomaticChi2", value: spectra.getBestAutomaticResult().chi2},
-                        {name: "FinalTemplateID", value: spectra.getFinalTemplateID()},
-                        {name: "FinalTemplateName", value: templatesService.getNameForTemplate(spectra.getFinalTemplateID())},
-                        {name: "FinalRedshift", value: spectra.getFinalRedshift().toFixed(5)},
-                        {name: "QOP", value: spectra.qop}
-                    ]);
+                    result.push(self.getResultFromSpectra(spectra));
                 }
             }
             return result;
         };
+        self.getResultFromSpectra = function(spectra) {
+            return [
+                {name: "SpectraID", value: spectra.id},
+                {name: "SpectraName", value: spectra.name},
+                {name: "SpectraRA", value: spectra.ra.toFixed(6)},
+                {name: "SpectraDec", value: spectra.dec.toFixed(6)},
+                {name: "SpectraMagnitude", value: spectra.magnitude.toFixed(2)},
+                {name: "AutomaticTemplateID", value: spectra.getBestAutomaticResult().templateId},
+                {name: "AutomaticTemplateName", value:  templatesService.getNameForTemplate(spectra.getBestAutomaticResult().templateId)},
+                {name: "AutomaticRedshift", value: spectra.getBestAutomaticResult().z.toFixed(5)},
+                {name: "AutomaticChi2", value: spectra.getBestAutomaticResult().chi2},
+                {name: "FinalTemplateID", value: spectra.getFinalTemplateID()},
+                {name: "FinalTemplateName", value: templatesService.getNameForTemplate(spectra.getFinalTemplateID())},
+                {name: "FinalRedshift", value: spectra.getFinalRedshift().toFixed(5)},
+                {name: "QOP", value: spectra.qop}
+            ]
+        };
     }])
 
-    .service('localStorageService', [function() {
+    .service('localStorageService', ['resultsGeneratorService', function(resultsGeneratorService) {
+        var self = this;
+        var active = null;
 
+
+        self.purgeOldStorage = function() {
+            var ratio = decodeURIComponent(JSON.stringify(localStorage)).length / (5 * 1024 * 1024);
+            if (ratio > 0.85) {
+                console.log('Pruning local storage. Currently at ' + Math.ceil(ratio*100) + '%');
+                var dates = [];
+                for (var i = 0; i < localStorage.length; i++) {
+                    dates.push(JSON.parse(localStorage[localStorage.key(i)])[0]);
+                }
+                dates.sort();
+                var mid = dates[Math.floor(dates.length / 2)];
+                for (var i = 0; i < localStorage.length; i++) {
+                    var key = localStorage.key(i);
+                    if (JSON.parse(localStorage[key])[0] <= mid) {
+                        localStorage.removeItem(key);
+                    }
+                }
+                ratio = decodeURIComponent(JSON.stringify(localStorage)).length / (5 * 1024 * 1024);
+                console.log('Pruned local storage. Currently at ' + Math.ceil(ratio*100) + '%');
+            }
+        };
+        self.supportsLocalStorage = function() {
+            try {
+                return 'localStorage' in window && window['localStorage'] !== null;
+            } catch (e) {
+                console.warn('Local storage is not available.');
+                return false;
+            }
+        };
+
+        if (self.supportsLocalStorage()) {
+            active = true;
+            self.purgeOldStorage();
+        } else {
+            active = false;
+        }
+
+
+        self.getKeyFromSpectra = function(spectra) {
+            return spectra.filename + spectra.name;
+        };
+        self.clearFile = function(filename) {
+            for (var i = 0; i < localStorage.length; i++) {
+                var key = localStorage.key(i);
+                if (key.indexOf(filename, 0) == 0) {
+                    localStorage.removeItem(key);
+                    i--;
+                }
+            }
+        };
+        self.clearAll = function() {
+            localStorage.clear();
+        };
+        self.saveSpectra = function(spectra) {
+            if (!active) return;
+            var key = self.getKeyFromSpectra(spectra);
+            var val = resultsGeneratorService.getResultFromSpectra(spectra);
+            if (val != null) {
+                val.unshift(Date.now());
+                localStorage[key] = JSON.stringify(val);
+            }
+        };
+        self.loadSpectra = function(spectra) {
+            if (!active) return null;
+            var key = self.getKeyFromSpectra(spectra);
+            var val = localStorage[key];
+            if (val != null) {
+                val = JSON.parse(val);
+            }
+            return null;
+        };
     }])
 
     .service('cookieService', [function() {
