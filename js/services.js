@@ -29,31 +29,51 @@ angular.module('servicesZ', [])
             return dataStore;
         }]
     })
-    .service('spectraService', ['global', 'resultsGeneratorService', function(global, resultsGeneratorService) {
+    .service('spectraService', ['global', 'resultsGeneratorService', 'cookieService', function(global, resultsGeneratorService, cookieService) {
         var self = this;
         var data = global.data;
 
         var downloadAutomatically = null;
+        var downloadAutomaticallyCookie = "downloadAutomatically";
         var saveAutomatically = null;
+        var saveAutomaticallyCookie = "saveInBackground";
 
         self.setDownloadAutomaticallyDefault = function() {
-            downloadAutomatically = false;
+            self.setDownloadAutomatically(false);
         };
         self.setSaveAutomaticallyDefault = function() {
-            saveAutomatically = true;
+            self.setSaveAutomatically(true);
+        };
+        self.setDownloadAutomaticallyInitial = function() {
+            var cookie = cookieService.getCookie(downloadAutomaticallyCookie);
+            if (cookie == null) {
+                self.setDownloadAutomaticallyDefault()
+            } else {
+                downloadAutomatically = cookie;
+            }
+        };
+        self.setSaveAutomaticallyInitial = function() {
+            var cookie = cookieService.getCookie(saveAutomaticallyCookie);
+            if (cookie == null) {
+                self.setSaveAutomaticallyDefault()
+            } else {
+                saveAutomatically = cookie;
+            }
         };
 
-        self.setDownloadAutomaticallyDefault();
-        self.setSaveAutomaticallyDefault();
+        self.setDownloadAutomaticallyInitial();
+        self.setSaveAutomaticallyInitial();
 
         self.setDownloadAutomatically = function(value) {
             downloadAutomatically = value;
+            cookieService.saveCookie(downloadAutomaticallyCookie, downloadAutomatically);
         };
         self.getDownloadAutomatically = function() {
             return downloadAutomatically;
         };
         self.setSaveAutomatically = function(value) {
             saveAutomatically = value;
+            cookieService.saveCookie(saveAutomaticallyCookie, saveAutomatically);
         };
         self.getSaveAutomatically = function() {
             return saveAutomatically;
@@ -233,7 +253,32 @@ angular.module('servicesZ', [])
 
     }])
 
-    .service('processorService', ['$q', 'spectraService', function($q, spectraService) {
+    .service('cookieService', [function() {
+        var self = this;
+
+        self.getCookie = function(property) {
+            var name = property + "=";
+            var ca = document.cookie.split(';');
+            for (var i = 0; i < ca.length; i++) {
+                var c = ca[i].trim();
+                if (c.indexOf(name) == 0) {
+                    return JSON.parse(c.substring(name.length, c.length));
+                }
+            }
+            return null;
+        };
+
+        self.saveCookie = function(property, value, exdays) {
+            if (exdays == null) {
+                exdays = 1000;
+            }
+            var d = new Date();
+            d.setTime(d.getTime() + (exdays*24*60*60*1000));
+            var expires = "expires=" + d.toGMTString();
+            document.cookie = property + "=" + JSON.stringify(value) + "; " + expires;
+        };
+    }])
+    .service('processorService', ['$q', 'spectraService', 'cookieService', function($q, spectraService, cookieService) {
         var self = this;
 
         var processors = [];
@@ -244,15 +289,23 @@ angular.module('servicesZ', [])
         self.setDefaultNumberOfCores = function() {
             var initialNumberProcessors = navigator.hardwareConcurrency;
             if (typeof(initialNumberProcessors) === "undefined") {
-                initialNumberProcessors = 4;
+                initialNumberProcessors = 3;
             }
             self.setNumberProcessors(initialNumberProcessors);
+        };
+        self.setDefaultNumberOfCoresInitial = function() {
+            var initialNumberProcessors = cookieService.getCookie('numCores');
+            if (initialNumberProcessors == null) {
+                self.setDefaultNumberOfCores();
+            } else {
+                self.setNumberProcessors(initialNumberProcessors);
+            }
         };
         self.getNumberProcessors = function() {
             return processors.length;
         };
         self.setNumberProcessors = function(num) {
-            var num = num - 1;
+            cookieService.saveCookie('numCores', num);
             if (num < processors.length) {
                 while (processors.length > num) {
                     processors[0].flagForDeletion();
@@ -360,9 +413,7 @@ angular.module('servicesZ', [])
             return false;
         };
 
-        //TODO: Add and remove number processors
-
-        self.setDefaultNumberOfCores();
+        self.setDefaultNumberOfCoresInitial();
 
     }])
 

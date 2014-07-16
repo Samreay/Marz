@@ -288,7 +288,7 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
 
         $scope.getValues = function() {
             $scope.downloadAutomatically = spectraService.getDownloadAutomatically();
-            $scope.numberOfCores = processorService.getNumberProcessors();
+            $scope.numberOfCores = processorService.getNumberProcessors() + 1;
             $scope.saveAutomatically = spectraService.getSaveAutomatically();
         };
         $scope.getValues();
@@ -301,7 +301,7 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
         };
         $scope.updateNumberProcessors = function() {
             if (isInt($scope.numberOfCores)) {
-                processorService.setNumberProcessors($scope.numberOfCores);
+                processorService.setNumberProcessors($scope.numberOfCores - 1);
             }
         };
         $scope.resetToDefaults = function() {
