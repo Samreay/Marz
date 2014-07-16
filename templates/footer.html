@@ -8,7 +8,7 @@
                 <p class="fill-height">{{getText()}}</p>
             </div>
             <div class="pull-right">
-                <button class="btn btn-small btn-info" ng-click="togglePause()">{{getPausedText()}}</button>
+                <button class="btn btn-small btn-info" ng-if="displayPause()" ng-click="togglePause()">{{getPausedText()}}</button>
                 <button class="btn btn-small btn-primary" ng-click="downloadResults()">Download</button>
             </div>
             <div class="fill-rest">

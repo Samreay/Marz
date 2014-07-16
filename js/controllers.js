@@ -284,13 +284,46 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
     .controller('TemplatesController', ['$scope', 'templatesService', function($scope, templatesService) {
         $scope.templates = templatesService.getTemplates();
     }])
-    .controller('SettingsController', ['$scope', function($scope) {
+    .controller('SettingsController', ['$scope', 'processorService', 'spectraService', function($scope, processorService, spectraService) {
 
+        $scope.getValues = function() {
+            $scope.downloadAutomatically = spectraService.getDownloadAutomatically();
+            $scope.numberOfCores = processorService.getNumberProcessors();
+            $scope.saveAutomatically = spectraService.getSaveAutomatically();
+        };
+        $scope.getValues();
+
+        $scope.updateDownloadAutomatically = function() {
+            spectraService.setDownloadAutomatically($scope.downloadAutomatically);
+        };
+        $scope.updateSaveAutomatically = function() {
+            spectraService.setSaveAutomatically($scope.saveAutomatically);
+        };
+        $scope.updateNumberProcessors = function() {
+            if (isInt($scope.numberOfCores)) {
+                processorService.setNumberProcessors($scope.numberOfCores);
+            }
+        };
+        $scope.resetToDefaults = function() {
+            spectraService.setDownloadAutomaticallyDefault();
+            spectraService.setSaveAutomaticallyDefault();
+            processorService.setDefaultNumberOfCores();
+            $scope.getValues();
+        };
+
+        $scope.clearCurrentFile = function() {
+            //TODO: Clear current file
+        };
+        $scope.clearAll = function() {
+            //TODO: Clear all files
+        }
     }])
     .controller('UsageController', ['$scope', function($scope) {
 
     }])
-    .controller('FooterController', ['$scope', 'spectraService', 'processorService', function($scope, spectraService, processorService) {
+    .controller('FooterController', ['$scope', 'spectraService', 'processorService', 'resultsGeneratorService',
+        function($scope, spectraService, processorService, resultsGeneratorService) {
+
         $scope.isProcessing = function() {
             return spectraService.isProcessing();
         };
@@ -307,7 +340,10 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             processorService.togglePause();
         };
         $scope.downloadResults = function() {
-            //TODO: SOMETHING
+            resultsGeneratorService.downloadResults();
+        };
+        $scope.displayPause = function() {
+            return spectraService.isProcessing() || spectraService.isMatching();
         };
         $scope.getPausedText = function() {
             if (processorService.isPaused()) {

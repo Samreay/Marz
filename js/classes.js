@@ -40,6 +40,11 @@ function Spectra(id, lambda, intensity, variance, sky, skyAverage, name, ra, dec
 Spectra.prototype.hasRedshift = function() {
     return this.automaticBestResults || this.manualRedshift;
 };
+Spectra.prototype.getBestAutomaticResult = function() {
+    if (this.automaticBestResults != null) {
+        return this.automaticBestResults[0];
+    }
+};
 Spectra.prototype.getFinalRedshift = function() {
     if (this.manualRedshift) {
         return this.manualRedshift;
@@ -48,6 +53,9 @@ Spectra.prototype.getFinalRedshift = function() {
     } else {
         return null;
     }
+};
+Spectra.prototype.hasRedshiftToBeSaved = function() {
+    return this.getFinalRedshift() != null;
 };
 Spectra.prototype.getFinalTemplateID = function() {
   if (this.manualRedshift) {
