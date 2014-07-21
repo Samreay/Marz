@@ -29,8 +29,8 @@ angular.module('servicesZ', [])
             return dataStore;
         }]
     })
-    .service('spectraService', ['global', 'resultsGeneratorService', 'cookieService', 'localStorageService',
-        function(global, resultsGeneratorService, cookieService, localStorageService) {
+    .service('spectraService', ['global', 'resultsGeneratorService', 'cookieService', 'localStorageService', 'resultsLoaderService',
+        function(global, resultsGeneratorService, cookieService, localStorageService, resultsLoaderService) {
         var self = this;
         var data = global.data;
 
@@ -112,21 +112,46 @@ angular.module('servicesZ', [])
         self.getNumberTotal = function() {
             return data.spectra.length;
         };
-        self.loadInSpectra = function(file) {
-            console.log("loading in ", file);
-        };
-        self.loadInResults = function(file) {
-            console.log("loading in results from ", file);
-        };
-
         self.setSpectra = function(spectraList) {
             data.spectra.length = 0;
             data.spectraHash = {};
             for (var i = 0; i < spectraList.length; i++) {
                 data.spectra.push(spectraList[i]);
                 data.spectraHash[spectraList[i].id] = spectraList[i];
+                var result = localStorageService.loadSpectra(spectraList[i]);
+                if (result != null) {
+                    self.loadLocalStorage(spectraList[i], result);
+                }
             }
-            //TODO: ADD localstorage check and normal results check.
+        };
+        self.loadLocalStorage = function(spectra, vals) {
+            spectra.isMatched = true;
+
+            spectra.automaticResults = [{}];
+            for (var i = 1; i < vals.length; i++) {
+                if (vals[i].name == "QOP") {
+                    spectra.qop = vals[i].value;
+                }
+            }
+            for (var i = 1; i < vals.length; i++) {
+                if (vals[i].name == "AutomaticTemplateID") {
+                    spectra.automaticResults[0].templateId = vals[i].value;
+                } else if (vals[i].name == "AutomaticRedshift") {
+                    spectra.automaticResults[0].z = parseFloat(vals[i].value);
+                } else if (vals[i].name == "AutomaticChi2") {
+                    spectra.automaticResults[0].chi2 = parseFloat(vals[i].value);
+                } else if (vals[i].name == "FinalTemplateId" && spectra.qop > 0) {
+                    spectra.manualTemplateID = vals[i].value;
+                } else if (vals[i].name == "FinalRedshift" && spectra.qop > 0) {
+                    spectra.manualRedshift = parseFloat(vals[i].value);
+                }
+            }
+
+            spectra.automaticBestResults = spectra.automaticResults;
+
+            if (downloadAutomatically && self.isFinishedMatching()) {
+                resultsGeneratorService.downloadResults();
+            }
         };
         self.getSpectra = function(id) {
             if (id == null) return data.spectra;
@@ -167,7 +192,6 @@ angular.module('servicesZ', [])
             var best = [{
                 templateId: resultsList[0].id,
                 z: resultsList[0].top[0].z,
-                gof: resultsList[0].top[0].gof,
                 chi2: resultsList[0].top[0].chi2
             }];
             var threshold = 0.05;
@@ -177,11 +201,11 @@ angular.module('servicesZ', [])
                 var tr = resultsList[i];
                 for (var j = 0; j < tr.top.length; j++) {
                     var trr = tr.top[j];
-                    merged.push({id: tr.id, z: trr.z, gof: trr.gof, chi2: trr.chi2});
+                    merged.push({id: tr.id, z: trr.z, chi2: trr.chi2});
                 }
             }
             merged.sort(function(a,b) {
-                return a.gof - b.gof;
+                return a.chi2 - b.chi2;
             });
 
             i = 0;
@@ -193,7 +217,7 @@ angular.module('servicesZ', [])
                     }
                 }
                 if (valid) {
-                    best.push({templateId: merged[i].id, z: merged[i].z, gof: merged[i].gof});
+                    best.push({templateId: merged[i].id, z: merged[i].z, chi2: merged[i].chi2});
                 }
                 i++;
             }
@@ -201,8 +225,38 @@ angular.module('servicesZ', [])
         }
     }])
 
-    .service('resultsLoader', [function() {
+    .service('resultsLoaderService', ['$q', 'localStorageService', 'resultsGeneratorService',
+        function($q, localStorageService, resultsGeneratorService) {
+        var self = this;
+        var dropped = false;
 
+        self.loadResults = function(file) {
+            dropped = true;
+            var filename = file.name.replace('.txt', '').replace('.csv', '').replace('_Results', '');
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                var text = reader.result;
+                var lines = text.split('\n');
+                var headers = lines[0].split(',');
+                for (var i = 1; i < lines.length - 1; i++) {
+                    var columns = lines[i].split(',');
+                    var res = {filename: filename};
+                    for (var j = 0; j < columns.length; j++) {
+                        if (isFloatString(columns[j])) {
+                            res[headers[j]] = parseFloat(columns[j]);
+                        } else {
+                            res[headers[j]] = columns[j];
+                        }
+                    }
+                    localStorageService.saveSpectra(resultsGeneratorService.convertResultToMimicSpectra(res));
+                }
+            };
+            reader.readAsText(file);
+        };
+
+        self.hasAnyResults = function() {
+            return dropped;
+        };
     }])
 
     .service('resultsGeneratorService', ['global', 'templatesService', function(global, templatesService) {
@@ -254,6 +308,7 @@ angular.module('servicesZ', [])
                 {name: "SpectraRA", value: spectra.ra.toFixed(6)},
                 {name: "SpectraDec", value: spectra.dec.toFixed(6)},
                 {name: "SpectraMagnitude", value: spectra.magnitude.toFixed(2)},
+                {name: "SpectraType", value: spectra.type},
                 {name: "AutomaticTemplateID", value: spectra.getBestAutomaticResult().templateId},
                 {name: "AutomaticTemplateName", value:  templatesService.getNameForTemplate(spectra.getBestAutomaticResult().templateId)},
                 {name: "AutomaticRedshift", value: spectra.getBestAutomaticResult().z.toFixed(5)},
@@ -264,9 +319,21 @@ angular.module('servicesZ', [])
                 {name: "QOP", value: spectra.qop}
             ]
         };
+        self.convertResultToMimicSpectra = function(result) {
+            var spectra = new Spectra(result["SpectraID"], null, null, null, null, null, result["SpectraName"],
+                result["SpectraRA"], result["SpectraDec"],result["SpectraMagnitude"], result["SpectraType"], result.filename);
+            spectra.automaticBestResults = [{templateId: result["AutomaticTemplateID"], z: result["AutomaticRedshift"], chi2: result["AutomaticChi2"]}];
+            spectra.qop = result["QOP"];
+            if (spectra.qop > 0) {
+                spectra.manualTemplateID = result["FinalTemplateID"];
+                spectra.manualRedshift = result["FinalRedshift"];
+            }
+            return spectra;
+        };
     }])
 
-    .service('localStorageService', ['resultsGeneratorService', function(resultsGeneratorService) {
+    .service('localStorageService', ['resultsGeneratorService', 'global',
+        function(resultsGeneratorService, global) {
         var self = this;
         var active = null;
 
@@ -305,13 +372,16 @@ angular.module('servicesZ', [])
             self.purgeOldStorage();
         } else {
             active = false;
+            alert('Your browser does not support local storage. Please use another browser.')
         }
 
 
         self.getKeyFromSpectra = function(spectra) {
             return spectra.filename + spectra.name;
         };
-        self.clearFile = function(filename) {
+        self.clearFile = function() {
+            var filename = global.data.fitsFileName;
+            console.log("Clearing", filename);
             for (var i = 0; i < localStorage.length; i++) {
                 var key = localStorage.key(i);
                 if (key.indexOf(filename, 0) == 0) {
@@ -321,6 +391,7 @@ angular.module('servicesZ', [])
             }
         };
         self.clearAll = function() {
+            console.log("All storage cleared");
             localStorage.clear();
         };
         self.saveSpectra = function(spectra) {
@@ -339,7 +410,11 @@ angular.module('servicesZ', [])
             if (val != null) {
                 val = JSON.parse(val);
             }
-            return null;
+            return val;
+        };
+
+        self.hasResultsForFile = function(filename) {
+
         };
     }])
 
@@ -704,7 +779,7 @@ angular.module('servicesZ', [])
             for (var j = 0; j < spectra.length; j++) {
                 var s = new Spectra(spectra[j].id, lambda.slice(0), spectra[j].intensity, spectra[j].variance,
                     isCoadd ? spectra[j].sky : sky, isCoadd ? spectra[j].skyAverage : skyAverage, spectra[j].name, spectra[j].ra, spectra[j].dec,
-                    spectra[j].magnitude, spectra[j].type, self.filename);
+                    spectra[j].magnitude, spectra[j].type, originalFilename);
                 spectraList.push(s);
             }
             isLoading = false;

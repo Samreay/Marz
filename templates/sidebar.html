@@ -3,7 +3,8 @@
         <div id="sidebar-wrapper">
             <div dropzone>
                 <div ng-if="isWaitingDrop()">
-                    <h4>Drop a FITS File or a results file. Or both together. Or a FITS file then a results file.</h4>
+
+                    <h4>{{getDropText()}}</h4>
                 </div>
                 <div ng-if="!isWaitingDrop()" class="capitalise">
                     <h4>{{getTitle()}}</h4>

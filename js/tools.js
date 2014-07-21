@@ -10,6 +10,12 @@ String.prototype.pad = function(size) {
 function isInt(n) {
     return parseInt(n) === n
 }
+function isIntString(n) {
+    return !isNaN(parseInt(n))
+}
+function isFloatString(n) {
+    return !isNaN(parseFloat(n))
+}
 
 
 

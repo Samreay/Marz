@@ -17,10 +17,11 @@ function Spectra(id, lambda, intensity, variance, sky, skyAverage, name, ra, dec
     this.isMatched = false;
     this.isMatching = false;
 
-    this.intensityPlot = this.intensity.slice();
-    this.processedLambdaPlot = null;
-    normaliseViaShift(this.intensityPlot, 0, 500, null);
-
+    if (this.intensity != null) {
+        this.intensityPlot = this.intensity.slice();
+        this.processedLambdaPlot = null;
+        normaliseViaShift(this.intensityPlot, 0, 500, null);
+    }
 
     this.processedLambda = null;
     this.processedIntensity = null;
@@ -97,11 +98,9 @@ Spectra.prototype.getMatchMessage = function() {
  */
 function Processor($q) {
     this.flaggedForDeletion = false;
-//    this.workingData = null;
     this.$q = $q;
     this.worker = new Worker('js/worker.js');
     this.worker.addEventListener('message', function(e) {
-//        this.workingData = null;
         this.promise.resolve(e);
         this.promise = null;
         if (this.flaggedForDeletion) {
@@ -116,7 +115,6 @@ Processor.prototype.isIdle = function() {
     return this.promise == null;
 };
 Processor.prototype.workOnSpectra = function(data) {
-//    this.workingData = data;
     this.promise = this.$q.defer();
     this.worker.postMessage(data);
     return this.promise.promise;

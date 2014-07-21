@@ -79,7 +79,7 @@ self.matchTemplate = function(index, template, lambda, intensity, variance, weig
     var r = null;
     for (var i = 0; i < zs.length; i++) {
         r = self.matchTemplateAtRedshift(intensity, variance, weights, template.interpolatedSpec, offsets[i], intensityAreaFinder, templateAreaFinder, zs[i]);
-        result.res.push({gof: r[0]/Math.pow(r[1],2.5), chi2: r[0], z: parseFloat(zs[i].toFixed(5)), scale: r[2], weight: r[1]});
+        result.res.push({chi2: r[0]/Math.pow(r[1],2.5), z: parseFloat(zs[i].toFixed(5)), scale: r[2], weight: r[1]});
     }
     return result;
 };
@@ -114,14 +114,14 @@ self.coalesceResults = function(templateResults, type) {
             }
         }
 
-        tr.res.sort(function(a,b) { return a.gof - b.gof});
+        tr.res.sort(function(a,b) { return a.chi2 - b.chi2});
         var tempRes = {index: tr.index, id: tr.id, top: []};
         for (var j = 0; j < 100; j++) {
-            tr.res[j].gof = tr.res[j].gof * w;
+            tr.res[j].chi2 = tr.res[j].chi2 * w;
             tempRes.top.push(tr.res[j]);
         }
         coalesced.push(tempRes);
     }
-    coalesced.sort(function(a,b) { return a.top[0].gof - b.top[0].gof});
+    coalesced.sort(function(a,b) { return a.top[0].chi2 - b.top[0].chi2});
     return coalesced;
 };

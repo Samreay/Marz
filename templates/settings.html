@@ -44,10 +44,10 @@
         <h1>Saved Results</h1>
         <hr/>
         <p>Be careful with these buttons. They are not reversible, and if you haven't downloaded your results, you will lose work.</p>
-        <button class="btn btn-warning" ng-click="clearCurrentFile()" tooltip="Cleared!" tooltip-trigger="focus"
+        <button class="btn btn-warning"  style="margin-right: 20px;" ng-if="fileLoaded()" ng-click="clearCurrentFile()" tooltip="Cleared!" tooltip-trigger="focus"
                 tooltip-placement="bottom">Clear ALL results for this file
         </button>
-        <button class="btn btn-danger" style="margin-left: 20px;" ng-click="clearAll()" tooltip="Cleared!" tooltip-trigger="focus"
+        <button class="btn btn-danger" ng-click="clearAll()" tooltip="Cleared!" tooltip-trigger="focus"
                 tooltip-placement="bottom">Clear all internally saved results for ALL files
         </button>
     </div>

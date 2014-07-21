@@ -284,7 +284,8 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
     .controller('TemplatesController', ['$scope', 'templatesService', function($scope, templatesService) {
         $scope.templates = templatesService.getTemplates();
     }])
-    .controller('SettingsController', ['$scope', 'processorService', 'spectraService', function($scope, processorService, spectraService) {
+    .controller('SettingsController', ['$scope', 'processorService', 'spectraService', 'localStorageService', 'global',
+        function($scope, processorService, spectraService, localStorageService, global) {
 
         $scope.getValues = function() {
             $scope.downloadAutomatically = spectraService.getDownloadAutomatically();
@@ -312,10 +313,13 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
         };
 
         $scope.clearCurrentFile = function() {
-            //TODO: Clear current file
+            localStorageService.clearFile();
         };
         $scope.clearAll = function() {
-            //TODO: Clear all files
+            localStorageService.clearAll();
+        };
+        $scope.fileLoaded = function() {
+            return global.data.fitsFileName != null;
         }
     }])
     .controller('UsageController', ['$scope', function($scope) {
@@ -383,7 +387,8 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             }
         };
     }])
-    .controller('SidebarController', ['$scope', 'spectraService', 'fitsFile', '$state', 'global', function($scope, spectraService, fitsFile, $state, global) {
+    .controller('SidebarController', ['$scope', 'spectraService', 'fitsFile', '$state', 'global', 'resultsLoaderService',
+        function($scope, spectraService, fitsFile, $state, global, resultsLoaderService) {
         $scope.ui = global.ui;
         $scope.data = global.data;
         $scope.addFiles = function(files) {
@@ -394,8 +399,9 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             for (var i = 0; i < files.length; i++) {
                 if (files[i].name.endsWith('fits')) {
                     fitsFile.loadInFitsFile(files[i]).then(function() { console.log('Fits file loaded')});
-                } else if (files[i].name.endsWith('txt')) {
-                    spectraService.loadInResults(files[i]);
+                    $state.go('overview');
+                } else if (files[i].name.endsWith('txt') || files[i].name.endsWith('csv')) {
+                    resultsLoaderService.loadResults(files[i]);
                 }
             }
         };
@@ -437,6 +443,13 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
                 return "z=" + spectra.getFinalRedshift().toFixed(4) +", QOP: " + spectra.qop;
             } else {
                 return "Not analysed";
+            }
+        };
+        $scope.getDropText = function() {
+            if (resultsLoaderService.hasAnyResults()) {
+                return "Have loaded results. Drop in FITs file."
+            } else {
+                return "Drop a FITs file or a results file. Or drop a results file and THEN a FITs file."
             }
         };
     }]);
