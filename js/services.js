@@ -10,6 +10,24 @@ angular.module('servicesZ', [])
                     matched: true,
                     sky: true
                 },
+                detailed: {
+                    bounds: {
+                        redshiftMin: 0,
+                        redshiftMax: 4,
+                        maxMatches: 8,
+                        maxSmooth: 11
+                    },
+                    templateId: '0',
+                    continuum: false,
+                    redshift: "0",
+                    matchedActive: false,
+                    matchedIndex: 0,
+                    processedSmooth: "1",
+                    rawSmooth: "3",
+                    spectralLines: true,
+                    waitingForSpectra: true
+
+                },
                 colours: {
                     unselected: '#E8E8E8',
                     raw: "#111111",
@@ -61,10 +79,8 @@ angular.module('servicesZ', [])
                 saveAutomatically = cookie;
             }
         };
-
         self.setDownloadAutomaticallyInitial();
         self.setSaveAutomaticallyInitial();
-
         self.setDownloadAutomatically = function(value) {
             downloadAutomatically = value;
             cookieService.saveCookie(downloadAutomaticallyCookie, downloadAutomatically);
@@ -224,7 +240,13 @@ angular.module('servicesZ', [])
             return best;
         }
     }])
-
+    .service('spectraLineService', [function() {
+        var self = this;
+        var spectralLines = new SpectralLines();
+        self.getAll = function() {
+            return spectralLines.getAll();
+        }
+    }])
     .service('resultsLoaderService', ['$q', 'localStorageService', 'resultsGeneratorService',
         function($q, localStorageService, resultsGeneratorService) {
         var self = this;
@@ -258,7 +280,6 @@ angular.module('servicesZ', [])
             return dropped;
         };
     }])
-
     .service('resultsGeneratorService', ['global', 'templatesService', function(global, templatesService) {
         var self = this;
         self.downloadResults = function() {
@@ -331,7 +352,6 @@ angular.module('servicesZ', [])
             return spectra;
         };
     }])
-
     .service('localStorageService', ['resultsGeneratorService', 'global',
         function(resultsGeneratorService, global) {
         var self = this;
@@ -413,11 +433,7 @@ angular.module('servicesZ', [])
             return val;
         };
 
-        self.hasResultsForFile = function(filename) {
-
-        };
     }])
-
     .service('cookieService', [function() {
         var self = this;
 
@@ -581,7 +597,6 @@ angular.module('servicesZ', [])
         self.setDefaultNumberOfCoresInitial();
 
     }])
-
     .service('templatesService', [function() {
         var self = this;
 
@@ -789,152 +804,151 @@ angular.module('servicesZ', [])
         }
 
     }])
-
     .service('drawingService', ['global', 'templatesService', function(global, templatesService) {
-        var self = this;
-        var ui = global.ui;
-        self.drawTemplateOnCanvas = function(template, canvas) {
-            var arr = template.lambda;
-            var bounds = self.getMaxes([
-                [arr, template.spec]
-            ]);
+    var self = this;
+    var ui = global.ui;
+    self.drawTemplateOnCanvas = function(template, canvas) {
+        var arr = template.lambda;
+        var bounds = self.getMaxes([
+            [arr, template.spec]
+        ]);
+        self.clearPlot(canvas);
+        self.plot(arr, template.spec, ui.colours.template, canvas, bounds);
+    };
+    self.drawOverviewOnCanvas = function(spectra, canvas) {
+        var width = canvas.clientWidth;
+        if (spectra.intensity.length > 0) {
+            var lambda = self.condenseToXPixels(spectra.lambda, width);
+            var intensity = self.condenseToXPixels(spectra.intensityPlot, width);
+            var processedLambda = self.condenseToXPixels(spectra.processedLambdaPlot, width);
+            var processedIntensity = self.condenseToXPixels(spectra.processedIntensity, width);
+            var r = null;
+            if (spectra.getFinalTemplateID() != null) {
+                r = templatesService.getTemplateAtRedshift(spectra.getFinalTemplateID(), spectra.getFinalRedshift(), false);
+            }
+            if (r == null || r[0] == null || r[1] == null) {
+                var tempIntensity = null;
+            } else {
+                var tempIntensity = self.condenseToXPixels(interpolate(spectra.lambda, r[0], r[1]), width);
+            }
             self.clearPlot(canvas);
-            self.plot(arr, template.spec, ui.colours.template, canvas, bounds);
-        };
-        self.drawOverviewOnCanvas = function(spectra, canvas) {
-            var width = canvas.clientWidth;
-            if (spectra.intensity.length > 0) {
-                var lambda = self.condenseToXPixels(spectra.lambda, width);
-                var intensity = self.condenseToXPixels(spectra.intensityPlot, width);
-                var processedLambda = self.condenseToXPixels(spectra.processedLambdaPlot, width);
-                var processedIntensity = self.condenseToXPixels(spectra.processedIntensity, width);
-                var r = null;
-                if (spectra.getFinalTemplateID() != null) {
-                    r = templatesService.getTemplateAtRedshift(spectra.getFinalTemplateID(), spectra.getFinalRedshift(), false);
-                }
-                if (r == null || r[0] == null || r[1] == null) {
-                    var tempIntensity = null;
-                } else {
-                    var tempIntensity = self.condenseToXPixels(interpolate(spectra.lambda, r[0], r[1]), width);
-                }
-                self.clearPlot(canvas);
-                var toBound = [];
-                if (ui.dataSelection.raw) {
-                    toBound.push([lambda, intensity]);
-                }
-                if (ui.dataSelection.processed) {
-                    toBound.push([processedLambda, processedIntensity]);
-                }
-                if (ui.dataSelection.matched && tempIntensity != null) {
-                    toBound.push([lambda, tempIntensity]);
-                }
-                var bounds = self.getMaxes(toBound);
-                this.plotZeroLine(canvas, "#C4C4C4", bounds);
-                if (ui.dataSelection.raw) {
-                    self.plot(lambda, intensity, ui.colours.raw, canvas, bounds);
-                }
-                if (ui.dataSelection.processed && processedIntensity != null) {
-                    self.plot(processedLambda, processedIntensity, ui.colours.processed, canvas, bounds);
-                }
-                if (ui.dataSelection.matched && tempIntensity != null) {
-                    self.plot(lambda, tempIntensity, ui.colours.matched, canvas, bounds);
-                }
+            var toBound = [];
+            if (ui.dataSelection.raw) {
+                toBound.push([lambda, intensity]);
             }
-        };
-        self.plot = function(xs, data, colour, canvas, bounds) {
-            if (data == null || data.length == 0) {
-                return;
+            if (ui.dataSelection.processed) {
+                toBound.push([processedLambda, processedIntensity]);
             }
-            var c = canvas.getContext("2d");
-            var h = canvas.height;
-            var w = canvas.width;
-            c.beginPath();
-            c.strokeStyle = colour;
-            var xmin = bounds[0];
-            var xmax = bounds[1];
-            var ymin = bounds[2];
-            var ymax = bounds[3];
+            if (ui.dataSelection.matched && tempIntensity != null) {
+                toBound.push([lambda, tempIntensity]);
+            }
+            var bounds = self.getMaxes(toBound);
+            this.plotZeroLine(canvas, "#C4C4C4", bounds);
+            if (ui.dataSelection.raw) {
+                self.plot(lambda, intensity, ui.colours.raw, canvas, bounds);
+            }
+            if (ui.dataSelection.processed && processedIntensity != null) {
+                self.plot(processedLambda, processedIntensity, ui.colours.processed, canvas, bounds);
+            }
+            if (ui.dataSelection.matched && tempIntensity != null) {
+                self.plot(lambda, tempIntensity, ui.colours.matched, canvas, bounds);
+            }
+        }
+    };
+    self.plot = function(xs, data, colour, canvas, bounds) {
+        if (data == null || data.length == 0) {
+            return;
+        }
+        var c = canvas.getContext("2d");
+        var h = canvas.height;
+        var w = canvas.width;
+        c.beginPath();
+        c.strokeStyle = colour;
+        var xmin = bounds[0];
+        var xmax = bounds[1];
+        var ymin = bounds[2];
+        var ymax = bounds[3];
 
-            for (var i = 1; i < data.length; i++) {
-                var x = 5 + (xs[i]-xmin)/(xmax-xmin) * (w - 10);
-                var y = h - (5 + (data[i]-ymin)*(h-10)/(ymax-ymin));
-                if (i == 0) {
-                    c.moveTo(x,y);
-                } else {
-                    c.lineTo(x,y);
-                }
+        for (var i = 1; i < data.length; i++) {
+            var x = 5 + (xs[i]-xmin)/(xmax-xmin) * (w - 10);
+            var y = h - (5 + (data[i]-ymin)*(h-10)/(ymax-ymin));
+            if (i == 0) {
+                c.moveTo(x,y);
+            } else {
+                c.lineTo(x,y);
             }
-            c.stroke();
-        };
-        self.plotZeroLine = function (canvas, colour, bounds) {
-            var c = canvas.getContext("2d");
-            var h = canvas.height;
-            var w = canvas.width;
-            var ymin = bounds[2];
-            var ymax = bounds[3];
-            var hh = h - (5 + (0 - ymin) * (h - 10) / (ymax - ymin)) + 0.5;
-            c.strokeStyle = colour;
-            c.moveTo(0, hh);
-            c.lineTo(w, hh);
-            c.stroke();
-        };
-        self.condenseToXPixels = function(data, numPix) {
-            if (data == null) {
-                return null;
+        }
+        c.stroke();
+    };
+    self.plotZeroLine = function (canvas, colour, bounds) {
+        var c = canvas.getContext("2d");
+        var h = canvas.height;
+        var w = canvas.width;
+        var ymin = bounds[2];
+        var ymax = bounds[3];
+        var hh = h - (5 + (0 - ymin) * (h - 10) / (ymax - ymin)) + 0.5;
+        c.strokeStyle = colour;
+        c.moveTo(0, hh);
+        c.lineTo(w, hh);
+        c.stroke();
+    };
+    self.condenseToXPixels = function(data, numPix) {
+        if (data == null) {
+            return null;
+        }
+        var res=Math.ceil(data.length / numPix);
+        var d = [];
+        var tmp = 0;
+        for (var i=0; i < data.length; i++) {
+            if (i % res == 0 && i!=0) {
+                d.push(tmp);
+                tmp = 0;
+            } else {
+                tmp += (data[i] / res)
             }
-            var res=Math.ceil(data.length / numPix);
-            var d = [];
-            var tmp = 0;
-            for (var i=0; i < data.length; i++) {
-                if (i % res == 0 && i!=0) {
-                    d.push(tmp);
-                    tmp = 0;
-                } else {
-                    tmp += (data[i] / res)
-                }
-            }
-            return d;
-        };
-        self.getMaxes = function(vals) {
-            var xmin = 9e9;
-            var xmax = -9e9;
-            var ymin = 9e9;
-            var ymax = -9e9;
-            for (var i = 0; i < vals.length; i++) {
-                var xs = vals[i][0];
-                var ys = vals[i][1];
-                if (xs != null) {
-                    for (var j = 0; j < xs.length; j++) {
-                        if (xs[j] < xmin) {
-                            xmin = xs[j];
-                        }
-                        if (xs[j] > xmax) {
-                            xmax = xs[j];
-                        }
+        }
+        return d;
+    };
+    self.getMaxes = function(vals) {
+        var xmin = 9e9;
+        var xmax = -9e9;
+        var ymin = 9e9;
+        var ymax = -9e9;
+        for (var i = 0; i < vals.length; i++) {
+            var xs = vals[i][0];
+            var ys = vals[i][1];
+            if (xs != null) {
+                for (var j = 0; j < xs.length; j++) {
+                    if (xs[j] < xmin) {
+                        xmin = xs[j];
                     }
-                }
-                if (ys != null) {
-                    for (var k = 0; k < ys.length; k++) {
-                        if (ys[k] < ymin) {
-                            ymin = ys[k];
-                        }
-                        if (ys[k] > ymax) {
-                            ymax = ys[k];
-                        }
+                    if (xs[j] > xmax) {
+                        xmax = xs[j];
                     }
                 }
             }
-            return [xmin, xmax, ymin, ymax];
-        };
-        self.clearPlot = function(canvas) {
-            canvas.width = canvas.clientWidth;
-            canvas.height =canvas.clientHeight;
-            var c = canvas.getContext("2d");
-            c.save();
-            // Use the identity matrix while clearing the canvas
-            c.setTransform(1, 0, 0, 1, 0, 0);
-            c.clearRect(0, 0, canvas.width, canvas.height);
-            // Restore the transform
-            c.restore();
-        };
-    }]);
+            if (ys != null) {
+                for (var k = 0; k < ys.length; k++) {
+                    if (ys[k] < ymin) {
+                        ymin = ys[k];
+                    }
+                    if (ys[k] > ymax) {
+                        ymax = ys[k];
+                    }
+                }
+            }
+        }
+        return [xmin, xmax, ymin, ymax];
+    };
+    self.clearPlot = function(canvas) {
+        canvas.width = canvas.clientWidth;
+        canvas.height =canvas.clientHeight;
+        var c = canvas.getContext("2d");
+        c.save();
+        // Use the identity matrix while clearing the canvas
+        c.setTransform(1, 0, 0, 1, 0, 0);
+        c.clearRect(0, 0, canvas.width, canvas.height);
+        // Restore the transform
+        c.restore();
+    };
+}]);

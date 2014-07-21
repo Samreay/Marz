@@ -14,6 +14,12 @@ function convertVacuumFromAirWithLogLambda(lambda) {
         lambda[i] = Math.log(l * (1 + 2.735192e-4 + (131.4182/Math.pow(l, 2)) + (2.76249E8 /Math.pow(l, 4))))/Math.LN10;
     }
 }
+function shiftWavelength(lambda, z) {
+    return (1+z)*lambda;
+}
+function convertSingleVacuumFromAir(lambda) {
+    return lambda * (1 + 2.735192e-4 + (131.4182/Math.pow(lambda, 2)) + (2.76249E8 /Math.pow(lambda, 4)));
+}
 /**
  * Converts the equispaced linear scale of the given lambda into an equispaced log scale.
  * Interpolates intensity and variance to this new scale.

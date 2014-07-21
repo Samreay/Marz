@@ -46,6 +46,10 @@ Spectra.prototype.getBestAutomaticResult = function() {
         return this.automaticBestResults[0];
     }
 };
+Spectra.prototype.getNumBestResults = function() {
+    if (this.automaticBestResults == null) return 0;
+    return this.automaticBestResults.length;
+}
 Spectra.prototype.getFinalRedshift = function() {
     if (this.manualRedshift) {
         return this.manualRedshift;

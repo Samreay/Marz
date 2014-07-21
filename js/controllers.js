@@ -11,23 +11,29 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             return $state.current.name == state;
         }
     }])
-    .controller('MainController', ['$scope', 'spectraService', 'global', function($scope, spectraService, global) {
+    .controller('MainController', ['$scope', 'spectraService', 'global', '$state', function($scope, spectraService, global, $state) {
         $scope.isWaitingDrop = function() {
             return !spectraService.hasSpectra();
         };
         $scope.isActive = function(spectra) {
-            if (spectra.id == null) {
+            if (spectra.id != null) {
                 return global.ui.active == spectra;
             } else {
                 return global.ui.active == spectra.id;
             }
         };
+        $scope.getActive = function() {
+            if (global.ui.active == null) return null;
+            return global.ui.active;
+        };
         $scope.setActive = function(spectra) {
-            if (spectra.id == null) {
-                global.ui.active = spectra;
-            } else {
-                global.ui.active = spectra.id;
-            }
+            global.ui.active = spectra;
+        };
+        $scope.hasActive = function() {
+            return $scope.getActive() != null;
+        };
+        $scope.goToDetailed = function() {
+            $state.go('detailed');
         };
         //TODO: Uncomment these out and set up proper function binds when they exist.
         /*$scope.keybinds = [
@@ -276,9 +282,69 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             }
             return result + nullRes;
         };
-
     }])
-    .controller('DetailedController', ['$scope', function($scope) {
+    .controller('DetailedController', ['$scope', 'spectraService', 'global', 'templatesService', 'spectraLineService', function($scope, spectraService, global, templatesService, spectraLineService) {
+        $scope.settings = global.ui.detailed;
+        $scope.ui = global.ui;
+        $scope.bounds = global.ui.detailed.bounds;
+        $scope.saveManual = function(qop) {
+            spectraService.setManualResults($scope.ui.active, $scope.settings.templateId, $scope.settings.redshift, qop);
+        };
+        $scope.getTemplatesList = function() {
+            var data = [{id: '0', name: "Select a template"}];
+            var t = templatesService.getTemplates();
+            for (var i = 0; i < t.length; i++) {
+                data.push({id: t[i].id, name: t[i].name});
+            }
+            return data;
+        };
+        $scope.toggleTemplateHasContinuum = function() {
+            $scope.settings.continuum = !$scope.settings.continuum;
+        };
+        $scope.getContinuumText = function() {
+            if ($scope.settings.continuum) {
+                return "No continuum";
+            } else {
+                return "Continuum";
+            }
+        };
+        $scope.hasMatchingDetails = function() {
+            var spectra = $scope.getActive();
+            if (spectra != null) {
+                return spectra.getNumBestResults() > 1;
+            }
+            return false;
+        };
+
+        $scope.reanalyseSpectra = function() {
+            //TODO
+        };
+        $scope.getMatchedTemplateName = function() {
+            //TODO
+        };
+        $scope.getMatchedTemplateRedshift = function() {
+            //TODO
+        };
+        $scope.isWaitingForSpectralLine = function() {
+            //TODO
+        };
+        $scope.clickSpectralLine = function(id) {
+            //TODO
+        };
+        $scope.getSpectralLines = function() {
+            return spectraLineService.getAll();
+        };
+        $scope.toggleSpectralLines = function() {
+            $scope.settings.spectralLines = !$scope.settings.spectralLines;
+        };
+        $scope.getSpectralLinePhrase = function() {
+            if ($scope.settings.spectralLines) {
+                return "Hide spectral lines";
+            } else {
+                return "Show spectral lines";
+            }
+        };
+
 
     }])
     .controller('TemplatesController', ['$scope', 'templatesService', function($scope, templatesService) {
@@ -451,5 +517,17 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             } else {
                 return "Drop a FITs file or a results file. Or drop a results file and THEN a FITs file."
             }
+        };
+        $scope.toggledRaw = function() {
+            global.ui.dataSelection.raw = !global.ui.dataSelection.raw;
+        };
+        $scope.toggledProcessed = function() {
+            global.ui.dataSelection.processed = !global.ui.dataSelection.processed;
+        };
+        $scope.toggleMatched = function() {
+            global.ui.dataSelection.matched = !global.ui.dataSelection.matched;
+        };
+        $scope.toggleSky = function() {
+            global.ui.dataSelection.sky = !global.ui.dataSelection.sky;
         };
     }]);
