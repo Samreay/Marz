@@ -20,12 +20,15 @@ angular.module('servicesZ', [])
                     templateId: '0',
                     continuum: false,
                     redshift: "0",
-                    matchedActive: false,
-                    matchedIndex: 0,
+                    matchedActive: true,
+                    matchedIndex: null,
                     processedSmooth: "1",
-                    rawSmooth: "3",
+                    rawSmooth: "2",
+                    width: 300,
+                    spectraFocus: null,
                     spectralLines: true,
-                    waitingForSpectra: true
+                    waitingForSpectra: false,
+                    lockedBounds: false
 
                 },
                 colours: {
@@ -121,7 +124,7 @@ angular.module('servicesZ', [])
         };
         self.isMatching = function() {
             return !self.isProcessing() && (self.getNumberMatched() < self.getNumberTotal());
-        }
+        };
         self.isProcessing = function() {
             return self.getNumberProcessed() < self.getNumberTotal();
         };
@@ -156,7 +159,7 @@ angular.module('servicesZ', [])
                     spectra.automaticResults[0].z = parseFloat(vals[i].value);
                 } else if (vals[i].name == "AutomaticChi2") {
                     spectra.automaticResults[0].chi2 = parseFloat(vals[i].value);
-                } else if (vals[i].name == "FinalTemplateId" && spectra.qop > 0) {
+                } else if (vals[i].name == "FinalTemplateID" && spectra.qop > 0) {
                     spectra.manualTemplateID = vals[i].value;
                 } else if (vals[i].name == "FinalRedshift" && spectra.qop > 0) {
                     spectra.manualRedshift = parseFloat(vals[i].value);
@@ -172,6 +175,24 @@ angular.module('servicesZ', [])
         self.getSpectra = function(id) {
             if (id == null) return data.spectra;
             return data.spectraHash[id];
+        };
+        self.getNextSpectra = function(spectra) {
+            if (spectra == null) return;
+            for (var i = 0; i < data.spectra.length - 1; i++) {
+                if (data.spectra[i] == spectra) {
+                    return data.spectra[i + 1];
+                }
+            }
+            return null;
+        };
+        self.getPreviousSpectra = function(spectra) {
+            if (spectra == null) return;
+            for (var i = 1; i < data.spectra.length; i++) {
+                if (data.spectra[i] == spectra) {
+                    return data.spectra[i - 1];
+                }
+            }
+            return null;
         };
         self.setProcessedResults = function(results) {
             var spectra = data.spectraHash[results.id];
@@ -194,11 +215,14 @@ angular.module('servicesZ', [])
             if (downloadAutomatically && self.isFinishedMatching()) {
                 resultsGeneratorService.downloadResults();
             }
+            if (global.ui.active == spectra) {
+                global.ui.detailed.templateId = spectra.getFinalTemplateID();
+                global.ui.detailed.redshift = spectra.getFinalRedshift();
+            }
         };
-        self.setManualResults = function(spectraId, templateId, redshift, qop) {
-            var spectra = global.data.spectraHash[spectraId];
+        self.setManualResults = function(spectra, templateId, redshift, qop) {
             spectra.manualTemplateID = templateId;
-            spectra.manualRedshift = redshift;
+            spectra.manualRedshift = parseFloat(redshift);
             spectra.qop = qop;
             if (saveAutomatically) {
                 localStorageService.saveSpectra(spectra);
@@ -245,7 +269,10 @@ angular.module('servicesZ', [])
         var spectralLines = new SpectralLines();
         self.getAll = function() {
             return spectralLines.getAll();
-        }
+        };
+        self.getFromID = function(id) {
+            return spectralLines.getFromID(id);
+        };
     }])
     .service('resultsLoaderService', ['$q', 'localStorageService', 'resultsGeneratorService',
         function($q, localStorageService, resultsGeneratorService) {
@@ -529,7 +556,9 @@ angular.module('servicesZ', [])
             self.processJobs();
         };
         self.addToPriorityQueue = function(spectra) {
+            spectra.isMatched = false;
             priorityJobs.push(spectra);
+            self.processJobs();
         };
         self.hasIdleProcessor = function() {
             return self.getIdleProcessor() != null;

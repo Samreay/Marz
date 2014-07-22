@@ -45,11 +45,23 @@ Spectra.prototype.getBestAutomaticResult = function() {
     if (this.automaticBestResults != null) {
         return this.automaticBestResults[0];
     }
+    return null;
+};
+Spectra.prototype.getMatches = function(number) {
+    if (number == null) return this.automaticBestResults;
+    return this.automaticBestResults.slice(0, number);
+};
+Spectra.prototype.getManual = function() {
+    if (this.manualRedshift == null) return null;
+    return {templateId: this.manualTemplateID, z: this.manualRedshift};
 };
 Spectra.prototype.getNumBestResults = function() {
     if (this.automaticBestResults == null) return 0;
     return this.automaticBestResults.length;
-}
+};
+Spectra.prototype.hasMatches = function() {
+    return (this.automaticBestResults != null && this.automaticBestResults.length > 1);
+};
 Spectra.prototype.getFinalRedshift = function() {
     if (this.manualRedshift) {
         return this.manualRedshift;

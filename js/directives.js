@@ -61,15 +61,17 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
             }
         }
     }])
-    .directive('resize', ['$window', '$timeout', function($window, $timeout) {
+    .directive('resize', ['$window', '$timeout', 'global', function($window, $timeout, global) {
         return {
             restrict: "A",
             scope: {
                 resize: "="
             },
             link: function($scope, $element) {
-                angular.element($window).on('resize', function() {
+                angular.element($window).on('resize', function(e) {
                     $scope.resize($element);
+                    global.ui.detailed.width = $window.innerWidth;
+                    $scope.$apply();
                 });
                 $timeout(function() {
                     $scope.resize($element);
@@ -98,7 +100,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     return html;
                 }
             },
-            templateUrl: 'templates/keybind.html'
+            templateUrl: 'templates/partials/keybind.html'
         }
 
     })
@@ -106,6 +108,8 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
         return {
             restrict: "A",
             link: function($scope, $element, $attr) {
+                $scope.ui = global.ui;
+                $scope.detailed = global.ui.detailed;
 
                 var top = 30;
                 var bottom = 50;
@@ -121,7 +125,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                 var stepColour = '#CCC';
                 var dragInteriorColour = 'rgba(38, 147, 232, 0.2)';
                 var dragOutlineColour = 'rgba(38, 147, 232, 0.6)';
-                var spacingFactor = 1.5;
+                var spacingFactor = 1.2;
 
                 var zoomOutWidth = 40;
                 var zoomOutHeight = 40;
@@ -142,7 +146,6 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                 var labelFill = '#222';
 
                 var minDragForZoom = 20;
-                var lockedBounds = false;
                 var displayingSpectralLines = true;
                 var spectralLineColour = 'rgba(0, 115, 255, 0.8)';
                 var spectralLineTextColour = '#FFFFFF';
@@ -252,16 +255,17 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                         xMax = Math.max(x1, x2);
                         yMin = Math.min(y1, y2);
                         yMax = Math.max(y1, y2);
-                        lockedBounds = true;
+                        $scope.detailed.lockedBounds = true;
                         recalculateFocus();
                     } else {
                         if (loc.x > (canvas.width - zoomOutWidth) && loc.y < zoomOutHeight) {
-                            lockedBounds = false;
+                            $scope.detailed.lockedBounds = false;
                         } else if (checkCanvasInRange(loc.x, loc.y)) {
                             focusX = loc.x;
                             focusY = loc.y;
                             focusDataX = convertCanvasXCoordinateToDataPoint(loc.x);
                             focusDataY = convertCanvasYCoordinateToDataPoint(loc.y);
+                            global.ui.detailed.spectraFocus = focusDataX;
                             global.ui.detailed.waitingForSpectra = true;
                         }
                     }
@@ -312,7 +316,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     height = canvas.height - top - bottom;
                 };
                 var getBounds = function() {
-                    if (lockedBounds) return;
+                    if ($scope.detailed.lockedBounds) return;
                     var c = 0;
                     xMin = 9e9;
                     xMax = -9e9;
@@ -451,7 +455,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                         c.beginPath();
                         c.strokeStyle = global.ui.colours[data[j].id];
                         var xs = data[j].x;
-                        var ys = data[j].y;
+                        var ys = data[j].y2 == null ? data[j].y : data[j].y2;
                         var disconnect = true;
                         var x = 0;
                         var y = 0;
@@ -487,7 +491,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     c.drawImage(zoomOutImg, x, y);
                 };
                 var plotSpectralLines = function() {
-                    if (!displayingSpectralLines) return;
+                    if (!$scope.detailed.spectralLines) return;
                     var lines = spectraLineService.getAll();
                     c.strokeStyle = spectralLineColour;
                     c.filLStyle = spectralLineColour;
@@ -598,24 +602,25 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                 $element.bind("touchend",  handleEvent);
                 $element.bind("touchmove", handleEvent);
 
-                $scope.ui = global.ui;
-                $scope.detailed = global.ui.detailed;
-                $scope.$watchCollection('[detailed.redshift, detailed.templateId]', function() {
-                    console.log('Template changes');
+
+                var smoothData = function(id) {
+                    var smooth = 0;
+                    if (id == 'raw') {
+                        smooth = parseInt($scope.detailed.rawSmooth);
+                    } else {
+                        smooth = parseInt($scope.detailed.processedSmooth);
+                    }
                     for (var i = 0; i < data.length; i++) {
-                        if (data[i].id == 'template') {
-                             data.splice(i, 1);
-                             break;
+                        if (data[i].id == id) {
+                            data[i].y2 = fastSmooth(data[i].y, smooth);
                         }
                     }
-                    if ($scope.detailed.templateId != "0") {
-                        var r = templatesService.getTemplateAtRedshift($scope.detailed.templateId,
-                            parseFloat($scope.detailed.redshift), $scope.detailed.continuum);
-                        data.push({id: "template",x: r[0],y: r[1]});
-                    }
-                    redraw();
-                });
-                $scope.$watch('ui.dataSelection.raw', function() {
+                };
+                $scope.getActiveHash = function() {
+                    if ($scope.ui.active == null) return "";
+                    return $scope.ui.active.getHash();
+                };
+                var addRawData = function() {
                     console.log('Raw changed');
                     for (var i = 0; i < data.length; i++) {
                         if (data[i].id == 'raw') {
@@ -624,13 +629,12 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                         }
                     }
                     if (global.ui.active != null && global.ui.dataSelection.raw) {
-                        data.push({id: 'raw', bound: true, x: global.ui.active.lambda, y: global.ui.active.intensityPlot})
+                        data.push({id: 'raw', bound: true, x: global.ui.active.lambda, y: global.ui.active.intensityPlot});
+                        smoothData('raw');
                     }
-                    redraw();
-                });
-                $scope.$watch('ui.dataSelection.processed', function() {
+                };
+                var addProcessedData = function() {
                     console.log('Processed changed');
-                    debugger;
                     for (var i = 0; i < data.length; i++) {
                         if (data[i].id == 'processed') {
                             data.splice(i, 1);
@@ -639,11 +643,49 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     }
                     if (global.ui.active != null && global.ui.dataSelection.processed && global.ui.active.processedLambdaPlot != null) {
                         data.push({id: 'processed', bound: true, x: global.ui.active.processedLambdaPlot, y: global.ui.active.processedIntensity})
+                        smoothData('processed');
+                    }
+                };
+                $scope.$watch('ui.dataSelection.raw', function() {
+                    addRawData();
+                    smoothData('raw');
+                    redraw();
+                });
+                $scope.$watchCollection('[detailed.redshift, detailed.templateId, ui.dataSelection.matched]', function() {
+                    console.log('Template changes');
+                    for (var i = 0; i < data.length; i++) {
+                        if (data[i].id == 'template') {
+                            data.splice(i, 1);
+                            break;
+                        }
+                    }
+                    if ($scope.detailed.templateId != "0" && $scope.ui.dataSelection.matched) {
+                        var r = templatesService.getTemplateAtRedshift($scope.detailed.templateId,
+                            parseFloat($scope.detailed.redshift), $scope.detailed.continuum);
+                        data.push({id: "template",x: r[0],y: r[1]});
                     }
                     redraw();
                 });
-
-
+                $scope.$watch('ui.dataSelection.processed', function() {
+                    addProcessedData();
+                    redraw();
+                });
+                $scope.$watch('getActiveHash()', function() {
+                    addRawData();
+                    addProcessedData();
+                    redraw();
+                });
+                $scope.$watch('detailed.rawSmooth', function() {
+                    smoothData('raw');
+                    redraw();
+                });
+                $scope.$watch('detailed.processedSmooth', function() {
+                    smoothData('processed');
+                    redraw();
+                });
+                $scope.$watchCollection('[detailed.width, detailed.spectralLines, detailed.lockedBounds]', function() {
+                    redraw();
+                });
                 /*$scope.$watch('ui', function() {
                     console.log("REDRAWING");
                     redraw();

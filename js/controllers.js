@@ -11,7 +11,7 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             return $state.current.name == state;
         }
     }])
-    .controller('MainController', ['$scope', 'spectraService', 'global', '$state', function($scope, spectraService, global, $state) {
+    .controller('MainController', ['$scope', 'spectraService', 'global', '$state', '$timeout', function($scope, spectraService, global, $state, $timeout) {
         $scope.isWaitingDrop = function() {
             return !spectraService.hasSpectra();
         };
@@ -28,6 +28,21 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
         };
         $scope.setActive = function(spectra) {
             global.ui.active = spectra;
+            var id = spectra.getFinalTemplateID();
+            var z = spectra.getFinalRedshift();
+            if (id != null && z != null) {
+                global.ui.detailed.templateId = id;
+                global.ui.detailed.redshift = z;
+            } else {
+                global.ui.detailed.templateId = "0";
+                global.ui.detailed.redshift = "0";
+            }
+        };
+        $scope.setPreviousSpectra = function() {
+            $scope.setActive(spectraService.getPreviousSpectra($scope.getActive()));
+        };
+        $scope.setNextSpectra = function() {
+            $scope.setActive(spectraService.getNextSpectra($scope.getActive()));
         };
         $scope.hasActive = function() {
             return $scope.getActive() != null;
@@ -36,220 +51,175 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             $state.go('detailed');
         };
         //TODO: Uncomment these out and set up proper function binds when they exist.
-        /*$scope.keybinds = [
+        $scope.keybinds = [
             {key: 'shift+?', label: '?', description: 'Go to the Usage tab', fn: function() {
-                $scope.go('usage');
+                $state.go('usage');
             }},
             {key: 'n', label: 'n', description: 'Selects to the next spectra', fn: function() {
-                $scope.nextSpectra();
+                $scope.setNextSpectra();
                 $scope.$apply();
             }},
             {key: 'b', label: 'b', description: 'Selects to the previous spectra', fn: function() {
-                $scope.previousSpectra();
+                $scope.setPreviousSpectra();
                 $scope.$apply();
             }},
             {key: 't', label: 't', description: 'Toggle whether templates are displayed', fn: function() {
-                $scope.interfaceManager.dispTemplate = 1 - $scope.interfaceManager.dispTemplate;
+                global.ui.dataSelection.matched = !global.ui.dataSelection.matched;
                 $scope.$apply();
             }},
-            {key: '1', label: '1', description: '[Detailed screen] Save with manual QOP of 1', fn: function() {
-                $scope.interfaceManager.saveManual(1);
+            {key: '1', label: '1', controller: "detailed", description: '[Detailed screen] Save with manual QOP of 1', fn: function() {
+                this.saveManual(1);
                 $scope.$apply();
             }},
-            {key: '2', label: '2', description: '[Detailed screen] Save with manual QOP of 2', fn: function() {
-                $scope.interfaceManager.saveManual(2);
+            {key: '2', label: '2', controller: "detailed", description: '[Detailed screen] Save with manual QOP of 2', fn: function() {
+                this.saveManual(2);
                 $scope.$apply();
             }},
-            {key: '3', label: '3', description: '[Detailed screen] Save with manual QOP of 3', fn: function() {
-                $scope.interfaceManager.saveManual(3);
+            {key: '3', label: '3', controller: "detailed", description: '[Detailed screen] Save with manual QOP of 3', fn: function() {
+                this.saveManual(3);
                 $scope.$apply();
             }},
-            {key: '4', label: '4', description: '[Detailed screen] Save with manual QOP of 4', fn: function() {
-                $scope.interfaceManager.saveManual(4);
+            {key: '4', label: '4', controller: "detailed", description: '[Detailed screen] Save with manual QOP of 4', fn: function() {
+                this.saveManual(4);
                 $scope.$apply();
             }},
-            {key: 'z', label: 'z', description: '[Detailed screen] Focus on redshift input', fn: function() {
-                if ($scope.interfaceManager.menuActive == 'Detailed') {
-                    $scope.interfaceManager.setFocusToRedshift();
-                    $scope.$apply();
-                    return false;
-                }
+            {key: 'z', label: 'z', controller: "detailed", description: '[Detailed screen] Focus on redshift input', fn: function(e) {
+                this.setFocusToRedshift();
+                e.preventDefault();
             }},
-            {key: 'm', label: 'm', description: '[Detailed screen] Set view to manually found redshift', fn: function() {
-                $scope.interfaceManager.resetToManual();
+            {key: 'm', label: 'm', controller: "detailed", description: '[Detailed screen] Set view to manually found redshift', fn: function() {
+                this.resetToManual();
                 $scope.$apply();
             }},
-            {key: 'shift+r', label: 'shift+r', description: '[Detailed screen] Set view to automaticly found redshift', fn: function() {
-                $scope.interfaceManager.resetToAutomatic();
+            {key: 'shift+r', label: 'shift+r', controller: "detailed", description: '[Detailed screen] Set view to automaticly found redshift', fn: function() {
+                this.resetToAutomatic();
                 $scope.$apply();
             }},
-            {key: 'o', label: 'o', description: '[Detailed screen] Show the next automatic redshift result', fn: function() {
-                $scope.interfaceManager.nextMatchedDetails();
+            {key: 'o', label: 'o', controller: "detailed", description: '[Detailed screen] Show the next automatic redshift result', fn: function() {
+                this.nextMatchedDetails();
                 $scope.$apply();
             }},
-            {key: 's', label: 's', description: '[Detailed screen] Increase smoothing level', fn: function() {
-                $scope.interfaceManager.incrementSmooth();
+            {key: 's', label: 's', controller: "detailed", description: '[Detailed screen] Increase smoothing level', fn: function() {
+                this.incrementSmooth();
                 $scope.$apply();
             }},
-            {key: 'd', label: 'd', description: '[Detailed screen] Decrease smoothing level', fn: function() {
-                $scope.interfaceManager.decrementSmooth();
+            {key: 'd', label: 'd', controller: "detailed", description: '[Detailed screen] Decrease smoothing level', fn: function() {
+                this.decrementSmooth();
                 $scope.$apply();
             }},
-            {key: 'r', label: 'r', description: '[Detailed screen] Reset graph zoom to extents', fn: function() {
-                $scope.interfaceManager.detailedSettings.lockedBounds = false;
+            {key: 'r', label: 'r', controller: "detailed", description: '[Detailed screen] Reset graph zoom to extents', fn: function() {
+                global.ui.detailed.lockedBounds = false;
                 $scope.$apply();
             }},
-            {key: 'l', label: 'l', description: '[Detailed screen] Toggles spectral lines', fn: function() {
-                $scope.interfaceManager.detailedSettings.toggleSpectralLines();
+            {key: 'l', label: 'l', controller: "detailed", description: '[Detailed screen] Toggles spectral lines', fn: function() {
+                this.toggleSpectralLines();
                 $scope.$apply();
             }},
-            {key: 'down', label: 'down', description: '[Detailed screen] Selects the next template', fn: function() {
-                $scope.interfaceManager.nextTemplate();
+            {key: 'down', label: 'down', controller: "detailed", description: '[Detailed screen] Selects the next template', fn: function() {
+                this.nextTemplate();
                 $scope.$apply();
             }},
-            {key: 'up', label: 'up', description: '[Detailed screen] Selects the previous template', fn: function() {
-                $scope.interfaceManager.previousTemplate();
+            {key: 'up', label: 'up', controller: "detailed", description: '[Detailed screen] Selects the previous template', fn: function() {
+                this.previousTemplate();
                 $scope.$apply();
             }},
-            {key: 'shift+y', label: 'shift+y', description: '[Detailed screen] Sets the current focus to Lyb', fn: function() {
-                if ($scope.interfaceManager.menuActive == 'Detailed') {
-                    $scope.interfaceManager.clickSpectralLine('Lyb');
-                }
+            {key: 'shift+y', label: 'shift+y', controller: "detailed", description: '[Detailed screen] Sets the current focus to Lyb', fn: function() {
+                this.clickSpectralLine('Lyb');
                 $scope.$apply();
             }},
-            {key: 'shift+l', label: 'shift+l', description: '[Detailed screen] Sets the current focus to Lya', fn: function() {
-                if ($scope.interfaceManager.menuActive == 'Detailed') {
-                    $scope.interfaceManager.clickSpectralLine('Lya');
-                }
+            {key: 'shift+l', label: 'shift+l', controller: "detailed", description: '[Detailed screen] Sets the current focus to Lya', fn: function() {
+                this.clickSpectralLine('Lya');
                 $scope.$apply();
             }},
-            {key: 'shift+t', label: 'shift+t', description: '[Detailed screen] Sets the current focus to N5', fn: function() {
-                if ($scope.interfaceManager.menuActive == 'Detailed') {
-                    $scope.interfaceManager.clickSpectralLine('N5');
-                }
+            {key: 'shift+t', label: 'shift+t', controller: "detailed", description: '[Detailed screen] Sets the current focus to N5', fn: function() {
+                this.clickSpectralLine('N5');
                 $scope.$apply();
             }},
-            {key: 'shift+s', label: 'shift+s', description: '[Detailed screen] Sets the current focus to Si4', fn: function() {
-                if ($scope.interfaceManager.menuActive == 'Detailed') {
-                    $scope.interfaceManager.clickSpectralLine('Si4');
-                }
+            {key: 'shift+s', label: 'shift+s', controller: "detailed", description: '[Detailed screen] Sets the current focus to Si4', fn: function() {
+                this.clickSpectralLine('Si4');
                 $scope.$apply();
             }},
-            {key: 'shift+c', label: 'shift+c', description: '[Detailed screen] Sets the current focus to CIV', fn: function() {
-                if ($scope.interfaceManager.menuActive == 'Detailed') {
-                    $scope.interfaceManager.clickSpectralLine('C4');
-                }
+            {key: 'shift+c', label: 'shift+c', controller: "detailed", description: '[Detailed screen] Sets the current focus to CIV', fn: function() {
+                this.clickSpectralLine('C4');
                 $scope.$apply();
             }},
-            {key: 'shift+v', label: 'shift+v', description: '[Detailed screen] Sets the current focus to CIII', fn: function() {
-                if ($scope.interfaceManager.menuActive == 'Detailed') {
-                    $scope.interfaceManager.clickSpectralLine('C3');
-                }
+            {key: 'shift+v', label: 'shift+v', controller: "detailed", description: '[Detailed screen] Sets the current focus to CIII', fn: function() {
+                this.clickSpectralLine('C3');
                 $scope.$apply();
             }},
-            {key: 'shift+m', label: 'shift+m', description: '[Detailed screen] Sets the current focus to MgII', fn: function() {
-                if ($scope.interfaceManager.menuActive == 'Detailed') {
-                    $scope.interfaceManager.clickSpectralLine('Mg2');
-                }
+            {key: 'shift+m', label: 'shift+m', controller: "detailed", description: '[Detailed screen] Sets the current focus to MgII', fn: function() {
+                this.clickSpectralLine('Mg2');
                 $scope.$apply();
             }},
-            {key: 'shift+o', label: 'shift+o', description: '[Detailed screen] Sets the current focus to [OII]', fn: function() {
-                if ($scope.interfaceManager.menuActive == 'Detailed') {
-                    $scope.interfaceManager.clickSpectralLine('O2');
-                }
+            {key: 'shift+o', label: 'shift+o', controller: "detailed", description: '[Detailed screen] Sets the current focus to [OII]', fn: function() {
+                this.clickSpectralLine('O2');
                 $scope.$apply();
             }},
-            {key: 'shift+k', label: 'shift+k', description: '[Detailed screen] Sets the current focus to K', fn: function() {
-                if ($scope.interfaceManager.menuActive == 'Detailed') {
-                    $scope.interfaceManager.clickSpectralLine('K');
-                }
+            {key: 'shift+k', label: 'shift+k', controller: "detailed", description: '[Detailed screen] Sets the current focus to K', fn: function() {
+                this.clickSpectralLine('K');
                 $scope.$apply();
             }},
-            {key: 'shift+h', label: 'shift+h', description: '[Detailed screen] Sets the current focus to H', fn: function() {
-                if ($scope.interfaceManager.menuActive == 'Detailed') {
-                    $scope.interfaceManager.clickSpectralLine('H');
-                }
+            {key: 'shift+h', label: 'shift+h', controller: "detailed", description: '[Detailed screen] Sets the current focus to H', fn: function() {
+                this.clickSpectralLine('H');
                 $scope.$apply();
             }},
-            {key: 'shift+d', label: 'shift+d', description: '[Detailed screen] Sets the current focus to D', fn: function() {
-                if ($scope.interfaceManager.menuActive == 'Detailed') {
-                    $scope.interfaceManager.clickSpectralLine('D');
-                }
+            {key: 'shift+d', label: 'shift+d', controller: "detailed", description: '[Detailed screen] Sets the current focus to D', fn: function() {
+                this.clickSpectralLine('D');
                 $scope.$apply();
             }},
-            {key: 'shift+g', label: 'shift+g', description: '[Detailed screen] Sets the current focus to G', fn: function() {
-                if ($scope.interfaceManager.menuActive == 'Detailed') {
-                    $scope.interfaceManager.clickSpectralLine('G');
-                }
+            {key: 'shift+g', label: 'shift+g', controller: "detailed", description: '[Detailed screen] Sets the current focus to G', fn: function() {
+                this.clickSpectralLine('G');
                 $scope.$apply();
             }},
-            {key: 'shift+f', label: 'shift+f', description: '[Detailed screen] Sets the current focus to Hg', fn: function() {
-                if ($scope.interfaceManager.menuActive == 'Detailed') {
-                    $scope.interfaceManager.clickSpectralLine('Hg');
-                }
+            {key: 'shift+f', label: 'shift+f', controller: "detailed", description: '[Detailed screen] Sets the current focus to Hg', fn: function() {
+                this.clickSpectralLine('Hg');
                 $scope.$apply();
             }},
-            {key: 'shift+b', label: 'shift+b', description: '[Detailed screen] Sets the current focus to Hb', fn: function() {
-                if ($scope.interfaceManager.menuActive == 'Detailed') {
-                    $scope.interfaceManager.clickSpectralLine('Hb');
-                }
+            {key: 'shift+b', label: 'shift+b', controller: "detailed", description: '[Detailed screen] Sets the current focus to Hb', fn: function() {
+                this.clickSpectralLine('Hb');
                 $scope.$apply();
             }},
-            {key: 'shift+u', label: 'shift+u', description: '[Detailed screen] Sets the current focus to first [OIII]', fn: function() {
-                if ($scope.interfaceManager.menuActive == 'Detailed') {
-                    $scope.interfaceManager.clickSpectralLine('O3');
-                }
+            {key: 'shift+u', label: 'shift+u', controller: "detailed", description: '[Detailed screen] Sets the current focus to first [OIII]', fn: function() {
+                this.clickSpectralLine('O3');
                 $scope.$apply();
             }},
-            {key: 'shift+i', label: 'shift+i', description: '[Detailed screen] Sets the current focus to second [OIII]', fn: function() {
-                if ($scope.interfaceManager.menuActive == 'Detailed') {
-                    $scope.interfaceManager.clickSpectralLine('O3d');
-                }
+            {key: 'shift+i', label: 'shift+i', controller: "detailed", description: '[Detailed screen] Sets the current focus to second [OIII]', fn: function() {
+                this.clickSpectralLine('O3d');
                 $scope.$apply();
             }},
-            {key: 'shift+j', label: 'shift+j', description: '[Detailed screen] Sets the current focus to Mg', fn: function() {
-                if ($scope.interfaceManager.menuActive == 'Detailed') {
-                    $scope.interfaceManager.clickSpectralLine('Mg');
-                }
+            {key: 'shift+j', label: 'shift+j', controller: "detailed", description: '[Detailed screen] Sets the current focus to Mg', fn: function() {
+                this.clickSpectralLine('Mg');
                 $scope.$apply();
             }},
-            {key: 'shift+n', label: 'shift+n', description: '[Detailed screen] Sets the current focus to Na', fn: function() {
-                if ($scope.interfaceManager.menuActive == 'Detailed') {
-                    $scope.interfaceManager.clickSpectralLine('Na');
-                }
+            {key: 'shift+n', label: 'shift+n', controller: "detailed", description: '[Detailed screen] Sets the current focus to Na', fn: function() {
+                this.clickSpectralLine('Na');
                 $scope.$apply();
             }},
-            {key: 'shift+a', label: 'shift+a', description: '[Detailed screen] Sets the current focus to Ha', fn: function() {
-                if ($scope.interfaceManager.menuActive == 'Detailed') {
-                    $scope.interfaceManager.clickSpectralLine('Ha');
-                }
+            {key: 'shift+a', label: 'shift+a', controller: "detailed", description: '[Detailed screen] Sets the current focus to Ha', fn: function() {
+                this.clickSpectralLine('Ha');
                 $scope.$apply();
             }},
-            {key: 'shift+w', label: 'shift+w', description: '[Detailed screen] Sets the current focus to N2', fn: function() {
-                if ($scope.interfaceManager.menuActive == 'Detailed') {
-                    $scope.interfaceManager.clickSpectralLine('N2');
-                }
+            {key: 'shift+w', label: 'shift+w', controller: "detailed", description: '[Detailed screen] Sets the current focus to N2', fn: function() {
+                this.clickSpectralLine('N2');
                 $scope.$apply();
             }},
-            {key: 'shift+z', label: 'shift+z', description: '[Detailed screen] Sets the current focus to S2', fn: function() {
-                if ($scope.interfaceManager.menuActive == 'Detailed') {
-                    $scope.interfaceManager.clickSpectralLine('S2');
-                }
+            {key: 'shift+z', label: 'shift+z', controller: "detailed", description: '[Detailed screen] Sets the current focus to S2', fn: function() {
+                this.clickSpectralLine('S2');
                 $scope.$apply();
             }},
-            {key: 'shift+x', label: 'shift+x', description: '[Detailed screen] Sets the current focus to S2 doublet', fn: function() {
-                if ($scope.interfaceManager.menuActive == 'Detailed') {
-                    $scope.interfaceManager.clickSpectralLine('S2d');
-                }
+            {key: 'shift+x', label: 'shift+x', controller: "detailed", description: '[Detailed screen] Sets the current focus to S2 doublet', fn: function() {
+                this.clickSpectralLine('S2d');
                 $scope.$apply();
             }}
         ];
 
         for (var i = 0; i < $scope.keybinds.length; i++) {
-            KeyboardJS.on($scope.keybinds[i].key, $scope.keybinds[i].fn);
-        }*/
+            if ($scope.keybinds[i].controller == null) {
+                KeyboardJS.on($scope.keybinds[i].key, $scope.keybinds[i].fn);
+            }
+        }
     }])
-    .controller('OverviewController', ['$scope', 'spectraService', 'fitsFile', 'global', function($scope, spectraService, fitsFile, global) {
+    .controller('OverviewController', ['$scope', 'spectraService', 'fitsFile', 'global', '$timeout', function($scope, spectraService, fitsFile, global, $timeout) {
         $scope.ui = global.ui;
         $scope.data = global.data;
         $scope.isLoading = function() {
@@ -282,13 +252,25 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             }
             return result + nullRes;
         };
+        $scope.$watchCollection('[ui.active, ui.graphicalLayout]', function() {
+            $timeout(function() {
+                if ($scope.ui.graphicalLayout) {
+                    $(".overview-item.activeSelect").scrollintoview();
+                } else {
+                    $(".overviewTable .activeSelect").scrollintoview();
+                }
+            });
+        });
     }])
-    .controller('DetailedController', ['$scope', 'spectraService', 'global', 'templatesService', 'spectraLineService', function($scope, spectraService, global, templatesService, spectraLineService) {
+    .controller('DetailedController', ['$scope', 'spectraService', 'global', 'templatesService', 'spectraLineService', 'processorService', function($scope, spectraService, global, templatesService, spectraLineService, processorService) {
         $scope.settings = global.ui.detailed;
         $scope.ui = global.ui;
         $scope.bounds = global.ui.detailed.bounds;
         $scope.saveManual = function(qop) {
-            spectraService.setManualResults($scope.ui.active, $scope.settings.templateId, $scope.settings.redshift, qop);
+            if ($scope.hasActive()) {
+                spectraService.setManualResults($scope.ui.active, $scope.settings.templateId, $scope.settings.redshift, qop);
+                $scope.setNextSpectra();
+            }
         };
         $scope.getTemplatesList = function() {
             var data = [{id: '0', name: "Select a template"}];
@@ -317,19 +299,93 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
         };
 
         $scope.reanalyseSpectra = function() {
-            //TODO
+            if ($scope.hasActive()) {
+                processorService.addToPriorityQueue($scope.getActive());
+            }
+        };
+        $scope.showTopResults = function() {
+            return $scope.hasActive() && $scope.getActive().hasMatches()
+        };
+        $scope.getMatches = function() {
+            return $scope.getActive().getMatches($scope.bounds.maxMatches);
+        };
+        $scope.currentlyMatching = function() {
+            var matches = $scope.getActive().getMatches($scope.bounds.maxMatches);
+            for (var i = 0; i < matches.length; i++) {
+                if ($scope.settings.redshift == matches[i].z && $scope.settings.templateId == matches[i].templateId) {
+                    $scope.settings.matchedIndex = i;
+                    matches[i].index = i;
+                    if (i < matches.length - 1) {
+                        matches[i].next = matches[i + 1];
+                    } else {
+                        matches[i].next = matches[0];
+                    }
+                    return matches[i];
+                }
+            }
+            return null;
+        };
+        $scope.isCurrentlyMatching = function() {
+            return $scope.currentlyMatching() != null;
         };
         $scope.getMatchedTemplateName = function() {
-            //TODO
+            var match = $scope.currentlyMatching();
+            if (match != null) {
+                return templatesService.getNameForTemplate(match.templateId);
+            }
+            return "";
+        };
+        $scope.nextMatchedDetails = function() {
+            var match = $scope.currentlyMatching();
+            if (match == null) {
+                $scope.selectMatch($scope.getMatches()[0]);
+            } else {
+                $scope.selectMatch(match.next);
+            }
+            $scope.$apply();
+        };
+        $scope.selectMatch = function(match) {
+            $scope.settings.redshift = match.z;
+            $scope.settings.templateId = match.templateId;
         };
         $scope.getMatchedTemplateRedshift = function() {
-            //TODO
+            var match = $scope.currentlyMatching();
+            if (match != null) {
+                return match.z.toFixed(5);
+            }
+            return "";
+        };
+        $scope.resetToAutomatic = function() {
+            var spectra = global.ui.active;
+            if (spectra != null) {
+                var best = spectra.getBestAutomaticResult();
+                if (best != null) {
+                    global.ui.detailed.templateId = best.templateId;
+                    global.ui.detailed.redshift = best.z;
+                }
+            }
+        };
+        $scope.resetToManual = function() {
+            var spectra = global.ui.active;
+            if (spectra != null) {
+                var best = spectra.getManual();
+                if (best != null) {
+                    global.ui.detailed.templateId = best.templateId;
+                    global.ui.detailed.redshift = best.z;
+                }
+            }
         };
         $scope.isWaitingForSpectralLine = function() {
-            //TODO
+            return $scope.settings.waitingForSpectra;
         };
         $scope.clickSpectralLine = function(id) {
-            //TODO
+            if ($scope.settings.spectraFocus != null) {
+                $scope.settings.spectralLines = true;
+                var currentWavelength = spectraLineService.getFromID(id).wavelength;
+                var desiredWavelength = $scope.settings.spectraFocus;
+                var z = desiredWavelength/currentWavelength - 1;
+                $scope.settings.redshift = "" + z;
+            }
         };
         $scope.getSpectralLines = function() {
             return spectraLineService.getAll();
@@ -344,7 +400,42 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
                 return "Show spectral lines";
             }
         };
-
+        $scope.setFocusToRedshift = function() {
+            $('#redshiftInput').focus().select();
+        };
+        $scope.incrementSmooth = function() {
+            if ($scope.settings.rawSmooth < $scope.bounds.maxSmooth) {
+                $scope.settings.rawSmooth = "" + (parseInt($scope.settings.rawSmooth) + 1);
+            }
+            if ($scope.settings.processedSmooth < $scope.bounds.maxSmooth) {
+                $scope.settings.processedSmooth = "" + (parseInt($scope.settings.processedSmooth) + 1);
+            }
+        };
+        $scope.decrementSmooth = function() {
+            if ($scope.settings.rawSmooth > 0) {
+                $scope.settings.rawSmooth = "" + (parseInt($scope.settings.rawSmooth) - 1);
+            }
+            if ($scope.settings.processedSmooth > 0) {
+                $scope.settings.processedSmooth = "" + (parseInt($scope.settings.processedSmooth) - 1);
+            }
+        };
+        $scope.nextTemplate = function() {
+            var t = parseInt($scope.settings.templateId);
+            if (t < templatesService.getTemplates().length) {
+                $scope.settings.templateId = "" + (t + 1);
+            }
+        };
+        $scope.previousTemplate = function() {
+            var t = parseInt($scope.settings.templateId);
+            if (t > 0) {
+                $scope.settings.templateId = "" + (t - 1);
+            }
+        };
+        for (var i = 0; i < $scope.keybinds.length; i++) {
+            if ($scope.keybinds[i].controller == "detailed") {
+                KeyboardJS.on($scope.keybinds[i].key, $scope.keybinds[i].fn.bind($scope));
+            }
+        }
 
     }])
     .controller('TemplatesController', ['$scope', 'templatesService', function($scope, templatesService) {
@@ -453,8 +544,8 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             }
         };
     }])
-    .controller('SidebarController', ['$scope', 'spectraService', 'fitsFile', '$state', 'global', 'resultsLoaderService',
-        function($scope, spectraService, fitsFile, $state, global, resultsLoaderService) {
+    .controller('SidebarController', ['$scope', 'spectraService', 'fitsFile', '$state', 'global', 'resultsLoaderService', '$timeout',
+        function($scope, spectraService, fitsFile, $state, global, resultsLoaderService, $timeout) {
         $scope.ui = global.ui;
         $scope.data = global.data;
         $scope.addFiles = function(files) {
@@ -530,4 +621,9 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
         $scope.toggleSky = function() {
             global.ui.dataSelection.sky = !global.ui.dataSelection.sky;
         };
+        $scope.$watch('ui.active', function() {
+            $timeout(function() {
+                $("#sidebar-list .activeSelect").scrollintoview();
+            });
+        });
     }]);

@@ -63,8 +63,21 @@ div[dropzone] h4 {
     margin-top: -2px;
 }
 
-
-
+#detailedheader {
+    overflow: hidden;
+    min-height: 30px;
+    height: 30px;
+    margin-bottom: 0px;
+    color: #CCC;
+    line-height: 30px;
+    vertical-align: middle;
+}
+#detailedheader p em {
+    color: #DDD;
+    font-weight: bold;
+    font-style: normal;
+    margin-left: 20px;
+}
 
 input[type="checkbox"].form-control {
     width: 34px;

@@ -15,8 +15,8 @@
                 <div class="btn-group"><button style="width:125px" class="btn btn-sm btn-success" ng-click="saveManual(4)" tooltip="Saved!"  tooltip-trigger="focus" tooltip-placement="bottom">Great (4)</button></div>
             </div>
             <div class="btn-group pull-right">
-                <button class="btn btn-sm btn-primary" ng-click="interfaceManager.resetToAutomatic()">Reset auto</button>
-                <button class="btn btn-sm btn-primary" ng-click="interfaceManager.resetToManual()">Reset manual</button>
+                <button class="btn btn-sm btn-primary" ng-click="resetToAutomatic()">Reset auto</button>
+                <button class="btn btn-sm btn-primary" ng-click="resetToManual()">Reset manual</button>
             </div>
         </div>
         <div>
@@ -60,13 +60,13 @@
             </div>
             <div class="clear"></div>
         </div>
-        <div class="blocky detailedInput clearfix" ng-if="hasActive() || 1">
+        <div class="blocky detailedInput clearfix" ng-if="hasActive()">
             <label>Top Results:</label>
-            <div style="display: inline-block;" ng-if="hasMatchingDetails()">
-                <div class="btn-group pull-left">
-                    <button class="btn btn-sm btn-default" btn-radio="$index" ng-model="settings.matchedIndex" ng-repeat="i in range(settings.bounds.maxMatchedIndex) track by $index">{{$index + 1}}</button>
+            <div style="display: inline-block;" ng-if="showTopResults()">
+                <div class="btn-group">
+                    <button class="btn btn-sm btn-default" btn-radio="$index" ng-click="selectMatch(i)" ng-model="settings.matchedIndex" ng-repeat="i in getMatches() track by $index">{{$index + 1}}</button>
                 </div>
-                <p ng-show="interfaceManager.matchedActive()" class="pull-left inlineblock" style="margin-left: 10px; line-height: 30px;"><strong>{{getMatchedTemplateName()}}</strong> at z = <strong>{{getMatchedTemplateRedshift()}}</strong></p>
+                <p ng-show="isCurrentlyMatching()" class="inline" style="margin-left: 10px; line-height: 30px;"><strong>{{getMatchedTemplateName()}}</strong> at z = <strong>{{getMatchedTemplateRedshift()}}</strong></p>
                 <div class="clearfix"></div>
             </div>
             <p class="inlineblock" ng-if="!hasMatchingDetails()">No results list found.<button style="margin-left: 20px;" class="btn btn-xs btn-primary pull-right" ng-click="reanalyseSpectra()">Reanalyse and get full results</button></p>
@@ -80,7 +80,7 @@
                     <input style="width: 25px" type="text" ng-model="settings.rawSmooth">
                 </div>
                 <div  style="margin-left: 180px">
-                    <input type="range" min="1" max="{{bounds.maxSmooth}}"  step="1"  ng-model="settings.rawSmooth">
+                    <input type="range" min="0" max="{{bounds.maxSmooth}}"  step="1"  ng-model="settings.rawSmooth">
                 </div>
                 <div class="clear"></div>
             </div>
@@ -90,7 +90,7 @@
                     <input style="width: 25px" type="text" ng-model="settings.processedSmooth">
                 </div>
                 <div  style="margin-left: 180px">
-                    <input type="range" min="1" max="{{bounds.maxSmooth}}" step="1" ng-model="settings.processedSmooth">
+                    <input type="range" min="0" max="{{bounds.maxSmooth}}" step="1" ng-model="settings.processedSmooth">
                 </div>
                 <div class="clear"></div>
             </div>
