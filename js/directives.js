@@ -621,7 +621,6 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     return $scope.ui.active.getHash();
                 };
                 var addRawData = function() {
-                    console.log('Raw changed');
                     for (var i = 0; i < data.length; i++) {
                         if (data[i].id == 'raw') {
                             data.splice(i, 1);
@@ -634,7 +633,6 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     }
                 };
                 var addProcessedData = function() {
-                    console.log('Processed changed');
                     for (var i = 0; i < data.length; i++) {
                         if (data[i].id == 'processed') {
                             data.splice(i, 1);
@@ -651,7 +649,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     smoothData('raw');
                     redraw();
                 });
-                $scope.$watchCollection('[detailed.redshift, detailed.templateId, ui.dataSelection.matched]', function() {
+                $scope.$watchCollection('[detailed.redshift, detailed.templateId, ui.dataSelection.matched, detailed.continuum]', function() {
                     console.log('Template changes');
                     for (var i = 0; i < data.length; i++) {
                         if (data[i].id == 'template') {

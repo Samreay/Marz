@@ -51,10 +51,10 @@
             <div class="detailedInput">
                 <div style="float: left; width:170px">
                     <label>Redshift: </label>
-                    <input style="width: 55px" id="redshiftInput" type="text" ng-model="settings.redshift">
+                    <input style="width: 55px" id="redshiftInput" ng-change="changedRedshift()" type="text" ng-model="settings.redshift">
                 </div>
                 <div  style="margin-left: 170px">
-                    <input type="range" min={{settings.bounds.redshiftMin}} max="{{settings.bounds.redshiftMax}}" step="0.0001" ng-model="settings.redshift">
+                    <input type="range" min={{settings.bounds.redshiftMin}} max="{{settings.bounds.redshiftMax}}" step="0.0001" ng-change="changedRedshift()" ng-model="settings.redshift">
                 </div>
                 <div class="clear"></div>
             </div>

@@ -1,4 +1,4 @@
-angular.module('servicesZ', [])
+angular.module('servicesZ', ['dialogs.main'])
     .provider('global', function() {
         var dataStore = {
             ui: {
@@ -20,6 +20,7 @@ angular.module('servicesZ', [])
                     templateId: '0',
                     continuum: false,
                     redshift: "0",
+                    oldRedshift: "0",
                     matchedActive: true,
                     matchedIndex: null,
                     processedSmooth: "1",
@@ -44,14 +45,57 @@ angular.module('servicesZ', [])
                 fitsFileName: null,
                 spectra: [],
                 spectraHash: {}
+            },
+            personal: {
+                initials: ""
             }
         };
         this.$get = [function() {
             return dataStore;
         }]
     })
-    .service('spectraService', ['global', 'resultsGeneratorService', 'cookieService', 'localStorageService', 'resultsLoaderService',
-        function(global, resultsGeneratorService, cookieService, localStorageService, resultsLoaderService) {
+
+    .service('personalService', ['global', 'cookieService', 'dialogs', '$q', function(global, cookieService, dialogs, $q) {
+        var self = this;
+        var initialsCookie = "initials";
+
+        self.getInitials = function() {
+            return global.personal.initials;
+        };
+        self.getInitialsInitial = function() {
+            global.personal.initials = cookieService.getCookie(initialsCookie);
+        };
+        self.updateInitials = function() {
+            if (global.personal.initials == null) global.personal.initials = "";
+            global.personal.initials = global.personal.initials.replace(/\W/g, '').substr(0, 10);
+            cookieService.saveCookie(initialsCookie, global.personal.initials);
+            return global.personal.initials;
+        };
+        self.ensureInitials = function() {
+            var q = $q.defer();
+            if (global.personal.initials == null || global.personal.initials == "") {
+                var dlg = dialogs.input('Initials required', 'Enter your initials:');
+                dlg.result.then(function(value) {
+                    global.personal.initials = value.value;
+                    self.updateInitials();
+                    if (global.personal.initials != null && global.personal.initials != "") {
+                        q.resolve(true);
+                    } else {
+                        q.reject(false);
+                    }
+                }, function() {
+                    console.warn("Initials not entered");
+                    q.reject(false);
+                });
+            } else {
+                q.resolve(true);
+            }
+            return q.promise;
+        };
+        self.getInitialsInitial();
+    }])
+    .service('spectraService', ['global', 'resultsGeneratorService', 'cookieService', 'localStorageService',
+        function(global, resultsGeneratorService, cookieService, localStorageService) {
         var self = this;
         var data = global.data;
 
@@ -154,13 +198,13 @@ angular.module('servicesZ', [])
             }
             for (var i = 1; i < vals.length; i++) {
                 if (vals[i].name == "AutomaticTemplateID") {
-                    spectra.automaticResults[0].templateId = vals[i].value;
+                    spectra.automaticResults[0].templateId = "" + vals[i].value;
                 } else if (vals[i].name == "AutomaticRedshift") {
                     spectra.automaticResults[0].z = parseFloat(vals[i].value);
                 } else if (vals[i].name == "AutomaticChi2") {
                     spectra.automaticResults[0].chi2 = parseFloat(vals[i].value);
                 } else if (vals[i].name == "FinalTemplateID" && spectra.qop > 0) {
-                    spectra.manualTemplateID = vals[i].value;
+                    spectra.manualTemplateID = "" + vals[i].value;
                 } else if (vals[i].name == "FinalRedshift" && spectra.qop > 0) {
                     spectra.manualRedshift = parseFloat(vals[i].value);
                 }
@@ -286,8 +330,13 @@ angular.module('servicesZ', [])
             reader.onload = function(e) {
                 var text = reader.result;
                 var lines = text.split('\n');
-                var headers = lines[0].split(',');
-                for (var i = 1; i < lines.length - 1; i++) {
+                var newFilename = lines[0].substring(lines[0].indexOf("[[") + 2, lines[0].indexOf("]]"));
+                if (newFilename.length > 1) {
+                    filename = newFilename;
+                }
+                var headers = lines[1].replace('#','').split(',');
+                for (var i = 0; i < lines.length - 1; i++) {
+                    if (lines[i].indexOf("#") == 0) continue;
                     var columns = lines[i].split(',');
                     var res = {filename: filename};
                     for (var j = 0; j < columns.length; j++) {
@@ -307,21 +356,24 @@ angular.module('servicesZ', [])
             return dropped;
         };
     }])
-    .service('resultsGeneratorService', ['global', 'templatesService', function(global, templatesService) {
+    .service('resultsGeneratorService', ['global', 'templatesService', 'personalService', function(global, templatesService, personalService) {
         var self = this;
         self.downloadResults = function() {
-            var results = self.getResultsCSV();
-            if (results.length > 0) {
-                var blob = new Blob([results], {type: 'text/html'});
-                saveAs(blob, self.getFilename());
-            }
+            personalService.ensureInitials().then(function() {
+                var results = self.getResultsCSV();
+                if (results.length > 0) {
+                    var blob = new Blob([results], {type: 'text/html'});
+                    saveAs(blob, self.getFilename());
+                }
+            });
         };
         self.getFilename = function() {
             return global.data.fitsFileName + ".csv";
         };
         self.getResultsCSV = function() {
             var results = self.getResultsArray();
-            var string = "";
+            var string = "# Results generated by " + personalService.getInitials()
+                + " for file [[" + global.data.fitsFileName + "]] at " + new Date().toString() + "\n#";
             for (var i = 0; i < results.length; i++) {
                 var res = results[i];
                 var first = 0;
@@ -513,6 +565,11 @@ angular.module('servicesZ', [])
             return processors.length;
         };
         self.setNumberProcessors = function(num) {
+            if (num < 1) {
+                num = 1;
+            } else if (num > 32) {
+                num = 32;
+            }
             cookieService.saveCookie('numCores', num);
             if (num < processors.length) {
                 while (processors.length > num) {

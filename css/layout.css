@@ -41,7 +41,12 @@ div[dropzone] h4 {
 .activeSelect td{
     background-color: #D3DFF5 !important;
 }
-
+.my-class .modal-body {
+    background-color: #eee;
+}
+.my-class .modal-footer {
+    margin-top: 0;
+}
 
 .fill-rest {
     padding-left: 20px;
