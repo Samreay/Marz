@@ -77,7 +77,7 @@ self.matchTemplate = function(index, template, lambda, intensity, variance, weig
     }
     // Get chi2 for all redshifts
     var r = null;
-    for (var i = 0; i < zs.length; i++) {
+    for (var i = 0; i < zs.length; i+=2) {
         r = self.matchTemplateAtRedshift(intensity, variance, weights, template.interpolatedSpec, offsets[i], intensityAreaFinder, templateAreaFinder, zs[i]);
         result.res.push({chi2: r[0]/Math.pow(r[1],2.5), z: parseFloat(zs[i].toFixed(5)), scale: r[2], weight: r[1]});
     }

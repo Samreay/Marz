@@ -212,9 +212,6 @@ angular.module('servicesZ', ['dialogs.main'])
 
             spectra.automaticBestResults = spectra.automaticResults;
 
-            if (downloadAutomatically && self.isFinishedMatching()) {
-                resultsGeneratorService.downloadResults();
-            }
         };
         self.getSpectra = function(id) {
             if (id == null) return data.spectra;
@@ -826,6 +823,7 @@ angular.module('servicesZ', ['dialogs.main'])
                 for (var i = 0; i < spectra.length; i++) {
                     var j = spectra[i].fitsIndex;
                     spectra[i].type = data[j].split(' ')[0];
+                    spectra[i].type = spectra[i].type.trim().replace(/\W/g, '');
                     if (spectra[i].type == 'Parked') {
                         spectra.splice(i,1);
                         for (var k = i; k < spectra.length; k++) {
