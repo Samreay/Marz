@@ -80,17 +80,12 @@ div[dropzone] h4 {
     margin-top: -2px;
 }
 
-#detailedheader {
+.detailed-control .panel-heading {
     overflow: hidden;
-    min-height: 30px;
-    height: 30px;
-    margin-bottom: 10px;
-    color: #CCC;
-    line-height: 30px;
-    vertical-align: middle;
+    color: #333;
 }
-#detailedheader p em {
-    color: #DDD;
+.detailed-control .panel-heading strong {
+    color: #000;
     font-weight: bold;
     font-style: normal;
     margin-left: 20px;

@@ -630,7 +630,8 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                         }
                     }
                     if (global.ui.active != null && global.ui.dataSelection.raw) {
-                        data.push({id: 'raw', bound: true, x: global.ui.active.lambda, y: global.ui.active.intensityPlot});
+                        var ys = global.ui.detailed.continuum ? global.ui.active.intensityPlot : global.ui.active.intensitySubtractPlot;
+                        data.push({id: 'raw', bound: true, x: global.ui.active.lambda, y: ys});
                         smoothData('raw');
                     }
                 };
@@ -642,7 +643,8 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                         }
                     }
                     if (global.ui.active != null && global.ui.dataSelection.processed && global.ui.active.processedLambdaPlot != null) {
-                        data.push({id: 'processed', bound: true, x: global.ui.active.processedLambdaPlot, y: global.ui.active.processedContinuum})
+                        var ys = global.ui.detailed.continuum ? global.ui.active.processedContinuum : global.ui.active.processedIntensity;
+                        data.push({id: 'processed', bound: true, x: global.ui.active.processedLambdaPlot, y: ys})
                         smoothData('processed');
                     }
                 };
@@ -658,7 +660,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                         data.push({id: 'sky', bound: false, x: global.ui.active.processedLambdaPlot, y: global.ui.active.sky})
                     }
                 };
-                $scope.$watchCollection('[ui.dataSelection.raw, ui.dataSelection.processed]', function() {
+                $scope.$watchCollection('[ui.dataSelection.raw, ui.dataSelection.processed, detailed.continuum]', function() {
                     addRawData();
                     addProcessedData();
                     smoothData('raw');

@@ -16,9 +16,9 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
         };
     }])
     .controller('MainController', ['$scope', 'spectraService', 'global', '$state', '$timeout', function($scope, spectraService, global, $state, $timeout) {
-/*        window.onbeforeunload = function(){
+        window.onbeforeunload = function(){
             return 'Please ensure changes are all saved before leaving.';
-        };*/
+        };
         $scope.isDetailedView = function() {
             return $state.current.name == 'detailed';
         };
@@ -63,7 +63,26 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
         $scope.goToDetailed = function() {
             $state.go('detailed');
         };
-        //TODO: Uncomment these out and set up proper function binds when they exist.
+        $scope.toggleRaw = function() {
+            global.ui.dataSelection.raw = !global.ui.dataSelection.raw;
+            global.ui.dataSelection.processed = !global.ui.dataSelection.raw
+        };
+        $scope.toggleProcessed = function() {
+            global.ui.dataSelection.processed = !global.ui.dataSelection.processed;
+            global.ui.dataSelection.raw = !global.ui.dataSelection.processed
+        };
+        $scope.toggleMatched = function() {
+            global.ui.dataSelection.matched = !global.ui.dataSelection.matched;
+        };
+        $scope.toggleSky = function() {
+            global.ui.dataSelection.sky = !global.ui.dataSelection.sky;
+        };
+        $scope.saveManual = function(qop) {
+            if ($scope.hasActive()) {
+                spectraService.setManualResults(global.ui.active, global.ui.detailed.templateId, global.ui.detailed.redshift, qop);
+                $scope.setNextSpectra();
+            }
+        };
         $scope.keybinds = [
             {key: 'shift+?', label: '?', description: 'Go to the Usage tab', fn: function() {
                 $state.go('usage');
@@ -80,19 +99,19 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
                 global.ui.dataSelection.matched = !global.ui.dataSelection.matched;
                 $scope.$apply();
             }},
-            {key: '1', label: '1', controller: "detailed", description: '[Detailed screen] Save with manual QOP of 1', fn: function($scope) {
+            {key: '1', label: '1', controller: "detailed", description: '[Detailed screen] Save with manual QOP of 1', fn: function() {
                 $scope.saveManual(1);
                 $scope.$apply();
             }},
-            {key: '2', label: '2', controller: "detailed", description: '[Detailed screen] Save with manual QOP of 2', fn: function($scope) {
+            {key: '2', label: '2', controller: "detailed", description: '[Detailed screen] Save with manual QOP of 2', fn: function() {
                 $scope.saveManual(2);
                 $scope.$apply();
             }},
-            {key: '3', label: '3', controller: "detailed", description: '[Detailed screen] Save with manual QOP of 3', fn: function($scope) {
+            {key: '3', label: '3', controller: "detailed", description: '[Detailed screen] Save with manual QOP of 3', fn: function() {
                 $scope.saveManual(3);
                 $scope.$apply();
             }},
-            {key: '4', label: '4', controller: "detailed", description: '[Detailed screen] Save with manual QOP of 4', fn: function($scope) {
+            {key: '4', label: '4', controller: "detailed", description: '[Detailed screen] Save with manual QOP of 4', fn: function() {
                 $scope.saveManual(4);
                 $scope.$apply();
             }},
@@ -286,12 +305,6 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
         $scope.settings = global.ui.detailed;
         $scope.ui = global.ui;
         $scope.bounds = global.ui.detailed.bounds;
-        $scope.saveManual = function(qop) {
-            if ($scope.hasActive()) {
-                spectraService.setManualResults($scope.ui.active, $scope.settings.templateId, $scope.settings.redshift, qop);
-                $scope.setNextSpectra();
-            }
-        };
         $scope.changedRedshift = function() {
             if (isNaN($scope.settings.redshift)) {
                 $scope.settings.redshift = $scope.settings.oldRedshift;
@@ -606,20 +619,6 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
         };
         $scope.showTabular = function() {
           return $state.current.name == 'overview';
-        };
-        $scope.toggleRaw = function() {
-            $scope.ui.dataSelection.raw = !$scope.ui.dataSelection.raw;
-            $scope.ui.dataSelection.processed = !$scope.ui.dataSelection.raw
-        };
-        $scope.toggleProcessed = function() {
-            $scope.ui.dataSelection.processed = !$scope.ui.dataSelection.processed;
-            $scope.ui.dataSelection.raw = !$scope.ui.dataSelection.processed
-        };
-        $scope.toggleMatched = function() {
-            $scope.ui.dataSelection.matched = !$scope.ui.dataSelection.matched;
-        };
-        $scope.toggleSky = function() {
-            $scope.ui.dataSelection.sky = !$scope.ui.dataSelection.sky;
         };
         $scope.listStyle = function() {
             return {height: $scope.getListHeight()};

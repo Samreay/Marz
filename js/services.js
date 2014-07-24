@@ -15,15 +15,15 @@ angular.module('servicesZ', ['dialogs.main'])
                         redshiftMin: 0,
                         redshiftMax: 4,
                         maxMatches: 8,
-                        maxSmooth: 11
+                        maxSmooth: 15
                     },
                     templateId: '0',
-                    continuum: false,
+                    continuum: true,
                     redshift: "0",
                     oldRedshift: "0",
                     matchedActive: true,
                     matchedIndex: null,
-                    smooth: "0",
+                    smooth: "2",
                     width: 300,
                     spectraFocus: null,
                     spectralLines: true,
