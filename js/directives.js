@@ -125,7 +125,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                 var stepColour = '#CCC';
                 var dragInteriorColour = 'rgba(38, 147, 232, 0.2)';
                 var dragOutlineColour = 'rgba(38, 147, 232, 0.6)';
-                var spacingFactor = 1.2;
+                var spacingFactor = 1.1;
 
                 var zoomOutWidth = 40;
                 var zoomOutHeight = 40;
@@ -644,6 +644,18 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                         smoothData('processed');
                     }
                 };
+                var addSkyData = function() {
+                    for (var i = 0; i < data.length; i++) {
+                        if (data[i].id == 'sky') {
+                            data.splice(i, 1);
+                            break;
+                        }
+                    }
+                    if (global.ui.active != null && global.ui.dataSelection.sky && global.ui.active.sky != null) {
+                        skyAverage = global.ui.active.skyAverage;
+                        data.push({id: 'sky', bound: false, x: global.ui.active.processedLambdaPlot, y: global.ui.active.sky})
+                    }
+                };
                 $scope.$watch('ui.dataSelection.raw', function() {
                     addRawData();
                     smoothData('raw');
@@ -668,9 +680,15 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     addProcessedData();
                     redraw();
                 });
+                $scope.$watch('ui.dataSelection.sky', function() {
+                    addSkyData();
+                    redraw();
+                });
                 $scope.$watch('getActiveHash()', function() {
                     addRawData();
                     addProcessedData();
+                    addSkyData();
+                    $scope.detailed.lockedBounds = false;
                     redraw();
                 });
                 $scope.$watch('detailed.rawSmooth', function() {

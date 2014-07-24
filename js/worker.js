@@ -43,6 +43,7 @@ self.addEventListener('message', function(event) {
         }
         result = {
             id: data.id,
+            name: data.name,
             results: self.matchTemplates(data.lambda, data.intensity, data.variance, data.type)
         };
     }

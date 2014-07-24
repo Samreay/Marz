@@ -12,6 +12,8 @@ function Spectra(id, lambda, intensity, variance, sky, skyAverage, name, ra, dec
     this.sky = sky;
     this.skyAverage = skyAverage;
 
+    console.log(name);
+
     this.isProcessed = false;
     this.isProcessing = false;
     this.isMatched = false;
@@ -35,7 +37,7 @@ function Spectra(id, lambda, intensity, variance, sky, skyAverage, name, ra, dec
     this.qop = 0;
 
     this.getHash = function() {
-        return "" + this.id + this.getFinalRedshift() + this.getFinalTemplateID() + this.isProcessed + this.isMatched;
+        return "" + this.id + this.name + this.getFinalRedshift() + this.getFinalTemplateID() + this.isProcessed + this.isMatched;
     }
 }
 Spectra.prototype.hasRedshift = function() {
@@ -87,6 +89,7 @@ Spectra.prototype.getProcessMessage = function() {
     return {
         processing: true,
         id: this.id,
+        name: this.name,
         lambda: this.lambda,
         intensity: this.intensity,
         variance: this.variance
@@ -96,6 +99,7 @@ Spectra.prototype.getMatchMessage = function() {
     return {
         processing: false,
         id: this.id,
+        name: this.name,
         type: this.type,
         lambda: this.processedLambda,
         intensity: this.processedIntensity,
@@ -126,7 +130,7 @@ function Processor($q) {
 }
 Processor.prototype.flagForDeletion = function() {
     this.flaggedForDeletion = true;
-}
+};
 Processor.prototype.isIdle = function() {
     return this.promise == null;
 };

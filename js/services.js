@@ -237,6 +237,7 @@ angular.module('servicesZ', ['dialogs.main'])
         };
         self.setProcessedResults = function(results) {
             var spectra = data.spectraHash[results.id];
+            if (spectra.name != results.name) return;
             spectra.processedLambda = results.lambda;
             spectra.processedIntensity = results.intensity;
             spectra.processedLambdaPlot = results.lambda.map(function(x) { return Math.pow(10, x); });
@@ -246,6 +247,7 @@ angular.module('servicesZ', ['dialogs.main'])
         };
         self.setMatchedResults = function(results) {
             var spectra = data.spectraHash[results.id];
+            if (spectra == null || spectra.name != results.name) return;
             spectra.automaticResults = results.results;
             spectra.automaticBestResults = self.getBestResults(results.results);
             spectra.isMatching = false;
@@ -604,10 +606,11 @@ angular.module('servicesZ', ['dialogs.main'])
             return null;
         };
         self.addSpectraListToQueue = function(spectraList) {
+            jobs.length = 0;
             for (i = 0; i < spectraList.length; i++) {
                 jobs.push(spectraList[i]);
             }
-            self.processJobs();
+            self.setRunning();
         };
         self.addToPriorityQueue = function(spectra) {
             spectra.isMatched = false;
@@ -631,6 +634,13 @@ angular.module('servicesZ', ['dialogs.main'])
         };
         self.isPaused = function() {
             return !processing;
+        };
+        self.setPause = function() {
+            processing = false;
+        };
+        self.setRunning = function() {
+            processing = true;
+            self.processJobs();
         };
         self.togglePause = function() {
             processing = !processing;
@@ -736,6 +746,7 @@ angular.module('servicesZ', ['dialogs.main'])
             filename = originalFilename.replace(/_/g, " ");
             self.fits = new astro.FITS(file, function() {
                 parseFitsFile(q);
+                processorService.setPause();
             });
             return q.promise;
 

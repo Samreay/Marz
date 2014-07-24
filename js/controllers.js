@@ -16,6 +16,9 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
         };
     }])
     .controller('MainController', ['$scope', 'spectraService', 'global', '$state', '$timeout', function($scope, spectraService, global, $state, $timeout) {
+        window.onbeforeunload = function(){
+            return 'Please ensure changes are all saved before leaving.';
+        };
         $scope.isWaitingDrop = function() {
             return !spectraService.hasSpectra();
         };
@@ -103,8 +106,7 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
                 $scope.$apply();
             }},
             {key: 'o', label: 'o', controller: "detailed", description: '[Detailed screen] Show the next automatic redshift result', fn: function($scope) {
-                $scope.nextMatchedDetails();
-                $scope.$apply();
+                $timeout($scope.nextMatchedDetails());
             }},
             {key: 's', label: 's', controller: "detailed", description: '[Detailed screen] Increase smoothing level', fn: function($scope) {
                 $scope.incrementSmooth();
@@ -288,10 +290,9 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             }
         };
         $scope.changedRedshift = function() {
-            if (isNaN(parseFloat($scope.settings.redshift))) {
+            if (isNaN($scope.settings.redshift)) {
                 $scope.settings.redshift = $scope.settings.oldRedshift;
             } else {
-                $scope.settings.redshift = parseFloat($scope.settings.redshift).toString().substring(0,6);
                 $scope.settings.oldRedshift = $scope.settings.redshift;
             }
         };
@@ -552,9 +553,9 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
         };
         $scope.getProgressBarValue = function() {
             if (spectraService.isProcessing()) {
-                return spectraService.getNumberProcessed();
+                return 1000*spectraService.getNumberProcessed()/$scope.getProgressBarMax();
             } else {
-                return spectraService.getNumberMatched();
+                return 1000*spectraService.getNumberMatched()/$scope.getProgressBarMax();
             }
         };
         $scope.getProgressBarMax = function() {
