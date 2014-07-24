@@ -5,6 +5,9 @@ html, body, .filler {
     height: 100%;
     position: relative;
 }
+html, body {
+    min-width: 1200px;
+}
 body {
     background-color: #FCFCFC;
 }

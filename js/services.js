@@ -23,8 +23,7 @@ angular.module('servicesZ', ['dialogs.main'])
                     oldRedshift: "0",
                     matchedActive: true,
                     matchedIndex: null,
-                    processedSmooth: "1",
-                    rawSmooth: "2",
+                    smooth: "0",
                     width: 300,
                     spectraFocus: null,
                     spectralLines: true,
@@ -240,6 +239,7 @@ angular.module('servicesZ', ['dialogs.main'])
             if (spectra.name != results.name) return;
             spectra.processedLambda = results.lambda;
             spectra.processedIntensity = results.intensity;
+            spectra.processedContinuum = results.continuum;
             spectra.processedLambdaPlot = results.lambda.map(function(x) { return Math.pow(10, x); });
             spectra.processedVariance = results.variance;
             spectra.isProcessing = false;
@@ -916,7 +916,7 @@ angular.module('servicesZ', ['dialogs.main'])
             var lambda = self.condenseToXPixels(spectra.lambda, width);
             var intensity = self.condenseToXPixels(spectra.intensityPlot, width);
             var processedLambda = self.condenseToXPixels(spectra.processedLambdaPlot, width);
-            var processedIntensity = self.condenseToXPixels(spectra.processedIntensity, width);
+            var processedIntensity = self.condenseToXPixels(spectra.processedContinuum, width);
             var r = null;
             if (spectra.getFinalTemplateID() != null) {
                 r = templatesService.getTemplateAtRedshift(spectra.getFinalTemplateID(), spectra.getFinalRedshift(), false);

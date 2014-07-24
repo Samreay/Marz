@@ -1,2 +1,2 @@
-var app = angular.module('interfaceZ', ['routerZ', 'controllersZ', 'directivesZ']);
+var app = angular.module('interfaceZ', ['routerZ', 'controllersZ', 'directivesZ', 'toggle-switch']);
 

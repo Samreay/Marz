@@ -25,17 +25,15 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
             }
         }
     })
-    .directive('overviewItem', ['drawingService', function(drawingService) {
+    .directive('overviewItem', ['drawingService', 'global', function(drawingService, global) {
         return {
             restrict: "A",
             scope: {
                 overviewItem: "="
             },
             link: function($scope, $element, $attr) {
-                $scope.$watch('overviewItem.getHash()', function() {
-                    drawingService.drawOverviewOnCanvas($scope.overviewItem, $element[0]);
-                });
-                $scope.$on('dataSelectionChanged', function() {
+                $scope.data = global.ui.dataSelection;
+                $scope.$watchCollection('[overviewItem.getHash(), data.raw, data.processed, data.matched]', function() {
                     drawingService.drawOverviewOnCanvas($scope.overviewItem, $element[0]);
                 });
             }
@@ -71,6 +69,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                 angular.element($window).on('resize', function(e) {
                     $scope.resize($element);
                     global.ui.detailed.width = $window.innerWidth;
+                    global.ui.detailed.height = $window.innerHeight;
                     $scope.$apply();
                 });
                 $timeout(function() {
@@ -168,6 +167,8 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
 
                 var height = 100;
                 var width = 300;
+
+                var startRawTruncate = 5;
 
                 var lastXDown = null;
                 var lastYDown = null;
@@ -267,6 +268,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                             focusDataY = convertCanvasYCoordinateToDataPoint(loc.y);
                             global.ui.detailed.spectraFocus = focusDataX;
                             global.ui.detailed.waitingForSpectra = true;
+                            $scope.$apply();
                         }
                     }
                     lastXDown = null;
@@ -323,6 +325,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     yMin = 9e9;
                     yMax = -9e9;
                     for (var i = 0; i < data.length; i++) {
+                        if (data.id == "raw" && i < startRawTruncate) continue;
                         if (data[i].bound) {
                             c++;
                         }
@@ -466,7 +469,11 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                             var position = convertDataYToCanvasCoordinate(skyAverage);
                             yOffset = position - skyPosition;
                         }
-                        for (var i = 1; i < xs.length; i++) {
+                        var start = 1;
+                        if (data[j].id == "raw") {
+                            start = startRawTruncate;
+                        }
+                        for (var i = start; i < xs.length; i++) {
                             x = convertDataXToCanvasCoordinate(xs[i]);
                             y = convertDataYToCanvasCoordinate(ys[i]) - yOffset;
                             if (disconnect == true) {
@@ -604,12 +611,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
 
 
                 var smoothData = function(id) {
-                    var smooth = 0;
-                    if (id == 'raw') {
-                        smooth = parseInt($scope.detailed.rawSmooth);
-                    } else {
-                        smooth = parseInt($scope.detailed.processedSmooth);
-                    }
+                    var smooth = parseInt($scope.detailed.smooth);
                     for (var i = 0; i < data.length; i++) {
                         if (data[i].id == id) {
                             data[i].y2 = fastSmooth(data[i].y, smooth);
@@ -640,7 +642,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                         }
                     }
                     if (global.ui.active != null && global.ui.dataSelection.processed && global.ui.active.processedLambdaPlot != null) {
-                        data.push({id: 'processed', bound: true, x: global.ui.active.processedLambdaPlot, y: global.ui.active.processedIntensity})
+                        data.push({id: 'processed', bound: true, x: global.ui.active.processedLambdaPlot, y: global.ui.active.processedContinuum})
                         smoothData('processed');
                     }
                 };
@@ -656,9 +658,11 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                         data.push({id: 'sky', bound: false, x: global.ui.active.processedLambdaPlot, y: global.ui.active.sky})
                     }
                 };
-                $scope.$watch('ui.dataSelection.raw', function() {
+                $scope.$watchCollection('[ui.dataSelection.raw, ui.dataSelection.processed]', function() {
                     addRawData();
+                    addProcessedData();
                     smoothData('raw');
+                    smoothData('processed');
                     redraw();
                 });
                 $scope.$watchCollection('[detailed.redshift, detailed.templateId, ui.dataSelection.matched, detailed.continuum]', function() {
@@ -676,10 +680,6 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     }
                     redraw();
                 });
-                $scope.$watch('ui.dataSelection.processed', function() {
-                    addProcessedData();
-                    redraw();
-                });
                 $scope.$watch('ui.dataSelection.sky', function() {
                     addSkyData();
                     redraw();
@@ -691,15 +691,12 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     $scope.detailed.lockedBounds = false;
                     redraw();
                 });
-                $scope.$watch('detailed.rawSmooth', function() {
+                $scope.$watch('detailed.smooth', function() {
                     smoothData('raw');
-                    redraw();
-                });
-                $scope.$watch('detailed.processedSmooth', function() {
                     smoothData('processed');
                     redraw();
                 });
-                $scope.$watchCollection('[detailed.width, detailed.spectralLines, detailed.lockedBounds]', function() {
+                $scope.$watchCollection('[detailed.width, detailed.height, detailed.spectralLines, detailed.lockedBounds]', function() {
                     redraw();
                 });
                 /*$scope.$watch('ui', function() {

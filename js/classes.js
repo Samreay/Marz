@@ -12,8 +12,6 @@ function Spectra(id, lambda, intensity, variance, sky, skyAverage, name, ra, dec
     this.sky = sky;
     this.skyAverage = skyAverage;
 
-    console.log(name);
-
     this.isProcessed = false;
     this.isProcessing = false;
     this.isMatched = false;
@@ -22,10 +20,11 @@ function Spectra(id, lambda, intensity, variance, sky, skyAverage, name, ra, dec
     if (this.intensity != null) {
         this.intensityPlot = this.intensity.slice();
         this.processedLambdaPlot = null;
-        normaliseViaShift(this.intensityPlot, 0, 500, null);
+        normaliseViaShift(this.intensityPlot, 0, 600, null);
     }
 
     this.processedLambda = null;
+    this.processedContinuum = null;
     this.processedIntensity = null;
     this.processedVariance = null
 
@@ -185,4 +184,4 @@ FastAreaFinder.prototype.getArea = function(start, end) {
     this.start = start;
     this.end = end;
     return this.area;
-}
+};

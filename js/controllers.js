@@ -16,8 +16,11 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
         };
     }])
     .controller('MainController', ['$scope', 'spectraService', 'global', '$state', '$timeout', function($scope, spectraService, global, $state, $timeout) {
-        window.onbeforeunload = function(){
+/*        window.onbeforeunload = function(){
             return 'Please ensure changes are all saved before leaving.';
+        };*/
+        $scope.isDetailedView = function() {
+            return $state.current.name == 'detailed';
         };
         $scope.isWaitingDrop = function() {
             return !spectraService.hasSpectra();
@@ -589,6 +592,9 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
                 }
             }
         };
+        $scope.showSave = function() {
+            return $state.current.name == 'detailed';
+        };
         $scope.showDataSelectors = function() {
             return ($state.current.name == 'overview' && $scope.ui.graphicalLayout) ||  ($state.current.name == 'detailed')
         };
@@ -603,9 +609,11 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
         };
         $scope.toggleRaw = function() {
             $scope.ui.dataSelection.raw = !$scope.ui.dataSelection.raw;
+            $scope.ui.dataSelection.processed = !$scope.ui.dataSelection.raw
         };
         $scope.toggleProcessed = function() {
             $scope.ui.dataSelection.processed = !$scope.ui.dataSelection.processed;
+            $scope.ui.dataSelection.raw = !$scope.ui.dataSelection.processed
         };
         $scope.toggleMatched = function() {
             $scope.ui.dataSelection.matched = !$scope.ui.dataSelection.matched;

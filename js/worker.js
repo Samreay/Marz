@@ -10,14 +10,16 @@ self.processData = function(lambda, intensity, variance) {
     removeBlanks(intensity, variance, 3);
     removeCosmicRay(intensity, variance, 4, 2, 2);
     rollingPointMean(intensity, variance, 4, 0.85);
-    subtractPolyFit(lambda, intensity);
-    normaliseViaArea(intensity, variance);
+    var continuum = subtractPolyFit(lambda, intensity);
+    var r = normaliseViaArea(intensity, variance);
     convertLambdaToLogLambda(lambda, intensity, variance);
-
+    scale(continuum, r);
+    add(continuum, intensity);
+    return continuum;
 };
 
 self.process = function(data) {
-    self.processData(data.lambda, data.intensity, data.variance);
+    data.continuum = self.processData(data.lambda, data.intensity, data.variance);
     return data;
 };
 self.calculateWeights = function(intensity) {

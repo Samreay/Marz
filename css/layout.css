@@ -25,6 +25,9 @@ div[dropzone] h4 {
     cursor: pointer;
 }
 
+.detailedView {
+    min-height: 450px;
+}
 
 .overview-item {
     width: 320px;
@@ -56,6 +59,15 @@ div[dropzone] h4 {
     overflow:hidden;
 }
 
+.detailed-control .input-group-addon,
+.detailed-control .form-control,
+.detailed-control .list-group-item {
+    padding: 5px;
+}
+
+.detailed-control .panel-heading {
+    padding: 5px 10px;
+}
 .footer .progress {
     margin-bottom: 0;
     margin-top: 5px;
@@ -72,7 +84,7 @@ div[dropzone] h4 {
     overflow: hidden;
     min-height: 30px;
     height: 30px;
-    margin-bottom: 0px;
+    margin-bottom: 10px;
     color: #CCC;
     line-height: 30px;
     vertical-align: middle;
@@ -91,7 +103,7 @@ input[type="checkbox"].form-control {
 
 #detailedCanvas {
     width: 100%;
-    height: 400px;
+    height: 100%;
 }
 
 .blocky {
@@ -118,20 +130,22 @@ input[type="checkbox"].form-control {
 .detailedInput label {
     width: 100px;
 }
+.full-width {
+    width: 100%;
+}
 .detailedInput {
     min-height: 40px;
 }
 
 .sline {
-    text-size: 13pt;
-    text-align: center;
-    margin-right: 3px;
-    margin-bottom: 4px;
-    padding: 5px;
-    float: left;
-    width: 40px;
     height: 30px;
-    color: #999999;
+    min-width: 32px;
+    text-align: center;
+    line-height: 30px;
+    border-radius: 3px;
+    margin-left: 5px;
+    display: inline-block;
+    padding: 0px 3px;
     cursor: hand;
     cursor: pointer;
     transition: background-color 0.25s;
@@ -145,9 +159,9 @@ input[type="checkbox"].form-control {
 }
 .glowing li {
     border: 1px solid #5E99FF;
-    -webkit-box-shadow: 0px 0px 5px 5px rgba(63, 169, 255, 0.2);
-    -moz-box-shadow: 0px 0px 5px 5px rgba(63, 169, 255, 0.2);
-    box-shadow: 0px 0px 5px 5px rgba(63, 169, 255, 0.2);
+    -webkit-box-shadow: 0px 0px 3px 3px rgba(63, 169, 255, 0.2);
+    -moz-box-shadow: 0px 0px 3px 3px rgba(63, 169, 255, 0.2);
+    box-shadow: 0px 0px 3px 3px rgba(63, 169, 255, 0.2);
 }
 
 .btn-darkened {

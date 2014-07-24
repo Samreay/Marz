@@ -91,6 +91,17 @@ function normaliseViaArea(array, variance, val) {
             variance[j] = variance[j] * r;
         }
     }
+    return r;
+}
+function scale(array, r) {
+    for (var i = 0; i < array.length; i++) {
+        array[i] *= r;
+    }
+}
+function add(original, addition) {
+    for (var i = 0; i < original.length; i++) {
+        original[i] += addition[i];
+    }
 }
 function normaliseViaShift(array, bottom, top, optional) {
     var min = 9e9;
@@ -111,6 +122,29 @@ function normaliseViaShift(array, bottom, top, optional) {
         }
         array[j] = newVal;
     }
+}
+function findMinAndMax(array) {
+    var min = 9e9;
+    var max = -9e9;
+    for (var j = 0; j < array.length; j++) {
+        if (array[j] > max) {
+            max = array[j];
+        }
+        if (array[j] < min) {
+            min = array[j];
+        }
+    }
+    return {min: min, max: max};
+}
+function getAverage(array) {
+    var c = 0;
+    for (var i = 0; i < array.length; i++) {
+
+    }
+}
+function normaliseAtMeanWithSpread(array, mean, spread) {
+    maxes = findMinAndMax(array);
+
 }
 function removeNaNs(y) {
     for (var i = 0; i < y.length; i++) {
@@ -241,6 +275,7 @@ function subtractPolyFit(lambda, intensity) {
     for (var i = 0; i < intensity.length; i++) {
         intensity[i] = intensity[i] - r[i];
     }
+    return r;
 }
 
 function polyFit(lambda, intensity) {

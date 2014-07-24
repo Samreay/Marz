@@ -12,6 +12,8 @@
     <link href="css/common.css" rel="stylesheet">
     <link href="css/layout.css" rel="stylesheet">
     <link href="css/dialogs.css" rel="stylesheet">
+    <link href="css/angular-toggle-switch.css" rel="stylesheet">
+    <link href="css/angular-toggle-switch-bootstrap.css" rel="stylesheet">
 
 </head>
 <body ng-app="interfaceZ">
@@ -36,6 +38,7 @@
     <script src="lib/angular-translate.min.js"></script>
     <script src="lib/angular-ui-router.min.js"></script>
     <script src="lib/ui-bootstrap-tpls-0.11.0.js"></script>
+    <script src="lib/angular-toggle-switch.min.js"></script>
 
     <link href="css/bootstrap.css" rel="stylesheet">
     <link href="css/bootstrap-theme.css" rel="stylesheet">
@@ -56,7 +59,7 @@
             </div>
             <div id="afterSideBarContainer">
                 <div class="spacing">
-                    <div id="content" autoscroll="false" ui-view></div>
+                    <div id="content" ng-class="{filler: isDetailedView}" autoscroll="false" ui-view></div>
                 </div>
             </div>
         </div>
