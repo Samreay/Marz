@@ -1,0 +1,75 @@
+<div class="detailedView filler">
+    <div class="panel panel-default detailed-control">
+        <div class="panel-heading">
+            <strong>ID</strong> {{getActive().id}}
+            <strong>NAME</strong> {{getActive().name}}
+            <strong>RA</strong> {{getActive().ra.toFixed(6)}}
+            <strong>DEC</strong> {{getActive().dec.toFixed(6)}}
+            <strong>MAGNITUDE</strong> {{getActive().magnitude.toFixed(2)}}
+            <strong>TYPE</strong> {{getActive().type}}
+        </div>
+        <ul class="list-group">
+            <li class="list-group-item form-inline">
+                <div class="form-group" style="height: 30px">
+                    <toggle-switch class="green" style="width: 170px" model="ui.dataSelection.processed" knob-label="Data" on-label="Processed" off-label="Raw"><toggle-switch>
+                </div>
+                <div class="form-group" style="height: 30px">
+                    <toggle-switch class="red" style="width: 170px" model="ui.dataSelection.matched" knob-label="Template"><toggle-switch>
+                </div>
+                <div class="form-group" style="height: 30px">
+                    <toggle-switch style="width: 170px" model="settings.continuum" knob-label="Continuum"><toggle-switch>
+                </div>
+                <div class="form-group">
+                    <div class="btn-group">
+                        <button class="btn btn-default btn-sm" ng-click="resetToAutomatic()">Reset auto</button>
+                        <button class="btn btn-default btn-sm" ng-click="resetToManual()">Reset manual</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="input-group input-group-sm" style="width: 245px">
+                        <span class="input-group-addon">Smooth</span>
+                        <input type="text input-sm" class="form-control" ng-model="settings.smooth">
+                        <span class="input-group-addon"><input style="width:120px;" type="range" min="0" max="{{bounds.maxSmooth}}" ng-model="settings.smooth"></span>
+                    </div>
+                </div>
+            </li>
+            <li class="list-group-item form-inline">
+                <div class="form-group">
+                    <div class="input-group input-group-sm" style="width: 230px">
+                        <span class="input-group-addon">Top Results</span>
+                        <div class="btn-group" ng-if="showTopResults()">
+                            <button class="btn btn-sm btn-default" btn-radio="$index" ng-click="selectMatch(i)" ng-model="settings.matchedIndex" ng-repeat="i in getMatches() track by $index">{{$index + 1}}</button>
+                        </div>
+                        <span class="input-group-btn" ng-if="!hasMatchingDetails()">
+                            <button class="btn btn-block btn-default" ng-click="reanalyseSpectra()">Reanalyse spectra</button>
+                        </span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="input-group input-group-sm" style="width: 340px">
+                        <span class="input-group-addon">Template</span>
+                        <select class="form-control" style="width: 265px" ng-model="settings.templateId" data-ng-options="t.id as t.id + ' - ' + t.name for t in getTemplatesList()"></select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="input-group input-group-sm" style="width:434px">
+                        <span class="input-group-addon">Redshift</span>
+                        <input type="text" id="redshiftInput" class="form-control" ng-change="changedRedshift()" ng-model="settings.redshift">
+                        <span class="input-group-addon" style="width:294px"><input  type="range" min={{settings.bounds.redshiftMin}} max="{{settings.bounds.redshiftMax}}" step="0.0001" ng-change="changedRedshift()" ng-model="settings.redshift"></span>
+                    </div>
+                </div>
+            </li>
+            <li class="list-group-item form-inline">
+                    <button class="form-group btn btn-primary btn-sm" style="display: inline-block;" ng-click="toggleSpectralLines()">{{getSpectralLinePhrase()}}</button>
+                    <ul class="form-group list-unstyled list-inline" ng-class="{glowing:isWaitingForSpectralLine()}">
+                        <li class="sline lined" ng-class="{enabled:i.enabled}" ng-click="clickSpectralLine(i.id)" ng-repeat="i in getSpectralLines() track by i.id">
+                            {{i.label}}
+                        </li>
+                    </ul>
+            </li>
+         </ul>
+    </div>
+    <div style="position: absolute; top: 160px; bottom: 0; left: 0; right: 0">
+        <canvas id="detailedCanvas" detailed-item></canvas>
+    </div>
+</div>

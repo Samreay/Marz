@@ -1,0 +1,54 @@
+<div class="usage">
+    <div class="bs-callout bs-callout-warning">
+        <h4>Use caution</h4>
+        <p>Most settings should not need to be changed. Changing settings are always reversible, but clearing saves are not.</p>
+    </div>
+    <div class="h1group lined">
+        <h1>User Settings</h1>
+        <hr/>
+        <form class="form-horizontal">
+            <div class="form-group">
+                <div class="form-group cb">
+                    <label for="download" class="col-sm-3 control-label">Download Automatically</label>
+                    <div class="col-sm-9">
+                        <input type="checkbox" class="form-control" id="download"
+                               ng-model="downloadAutomatically"
+                               ng-change="updateDownloadAutomatically(downloadAutomatically)">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="cores" class="col-sm-3 control-label">Number of cores in computer</label>
+                    <div class="col-sm-9">
+                        <input type="number" class="form-control" id="cores" ng-model="numberOfCores" min="2"
+                               max="64" required="true" ng-change="updateNumberProcessors(numberOfCores)">
+                    </div>
+                </div>
+            </div>
+        </form>
+        <h1>Program Settings</h1>
+        <hr/>
+        <form class="form-horizontal">
+            <div class="form-group cb">
+                <label for="saveauto" class="col-sm-3 control-label">Save results in background</label>
+                <div class="col-sm-9">
+                    <input type="checkbox" class="form-control" id="saveauto"
+                           ng-model="saveAutomatically"
+                           ng-change="updateSaveAutomatically(saveAutomatically)" style="display: inline;">
+                    <p style="display: inline; vertical-align: top; line-height: 35px;">Unless you have VERY good reasons, do NOT disable this.</p>
+                </div>
+            </div>
+        </form>
+        <button class="btn btn-primary" ng-click="resetToDefaults()">Reset settings to defaults</button>
+    </div>
+    <div class="h1group lined">
+        <h1>Saved Results</h1>
+        <hr/>
+        <p>Be careful with these buttons. They are not reversible, and if you haven't downloaded your results, you will lose work.</p>
+        <button class="btn btn-warning"  style="margin-right: 20px;" ng-if="fileLoaded()" ng-click="clearCurrentFile()" tooltip="Cleared!" tooltip-trigger="focus"
+                tooltip-placement="bottom">Clear ALL results for this file
+        </button>
+        <button class="btn btn-danger" ng-click="clearAll()" tooltip="Cleared!" tooltip-trigger="focus"
+                tooltip-placement="bottom">Clear all internally saved results for ALL files
+        </button>
+    </div>
+</div>

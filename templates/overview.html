@@ -1,0 +1,49 @@
+<div ng-if="isLoading()" class="spinner"></div>
+<div ng-if="!isLoading()">
+    <div ng-if="ui.graphicalLayout">
+        <div class="overview-item lined" ng-class="{activeSelect:isActive(i)}" ng-click="setActive(i)" ng-dblclick="goToDetailed(i)" ng-repeat="i in data.spectra track by i.id">
+            <div class="top-bar">
+                <strong>ID: {{i.id}}</strong><p ng-show="i.hasRedshift()">z={{i.getFinalRedshift().toFixed(4)}} QOP: {{i.qop}}</p>
+            </div>
+            <canvas class="under-bar unselectable" overview-item="i"></canvas>
+        </div>
+    </div>
+    <div ng-if="!ui.graphicalLayout">
+        <div class="table-responsive">
+            <table class="overviewTable table table-striped table-bordered table-hover table-condensed">
+                <thead>
+                <tr>
+                    <th class="col-md-1" style="cursor: pointer;" ng-click="setSort('id'); sortOrder = !sortOrder">
+                        ID <span ng-show="isSortBy('id')"><i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': !sortOrder, 'glyphicon-chevron-down': sortOrder}"></i></span>
+                    </th>
+                    <th class="col-md-2" style="cursor: pointer;" ng-click="setSort('type'); sortOrder = !sortOrder">
+                        Type <span ng-show="isSortBy('type')"><i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': !sortOrder, 'glyphicon-chevron-down': sortOrder}"></i></span>
+                    </th>
+                    <th class="col-md-2" style="cursor: pointer;" ng-click="setSort('finalTemplateID'); sortOrder = !sortOrder">
+                        Template ID<span ng-show="isSortBy('finalTemplateID')"><i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': !sortOrder, 'glyphicon-chevron-down': sortOrder}"></i></span>
+                    </th>
+                    <th class="col-md-4" style="cursor: pointer;" ng-click="setSort('finalTemplateName'); sortOrder = !sortOrder">
+                        Template<span ng-show="isSortBy('finalTemplateName')"><i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': !sortOrder, 'glyphicon-chevron-down': sortOrder}"></i></span>
+                    </th>
+                    <th class="col-md-1" style="cursor: pointer;" ng-click="setSort('finalZ'); sortOrder = !sortOrder">
+                        Redshift <span ng-show="isSortBy('finalZ')"><i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': !sortOrder, 'glyphicon-chevron-down': sortOrder}"></i></span>
+                    </th>
+                    <th class="col-md-1" style="cursor: pointer;" ng-click="setSort('qop'); sortOrder = !sortOrder">
+                        QOP <span ng-show="isSortBy('qop')"><i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': !sortOrder, 'glyphicon-chevron-down': sortOrder}"></i></span>
+                    </th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-class="{activeSelect:isActive(i)}" ng-click="setActive(i)" ng-dblclick="goToDetailed(i)" ng-repeat="i in data.spectra | orderBy:sortOverview:!sortOrder">
+                    <td>{{i.id}}</td>
+                    <td>{{i.type}}</td>
+                    <td>{{i.getFinalTemplateID()}}</td>
+                    <td>{{i.getFinalTemplateName()}}</td>
+                    <td>{{i.getFinalRedshift().toFixed(4)}}</td>
+                    <td>{{i.qop}}</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,21 @@
+<div class="navbar-inverse footer filler grey-text" ng-controller="FooterController">
+    <div class="spacing vcenter">
+        <div ng-if="isWaitingDrop()" class="pull-left">
+            <p class="fill-height">Please drop in a FITS file from the AAOmega spectrograph</p>
+        </div>
+        <div ng-if="!isWaitingDrop()">
+            <div class="pull-left">
+                <p class="fill-height">{{getText()}}</p>
+            </div>
+            <div class="pull-right">
+                <button class="btn btn-small btn-info" style="width: 150px;" ng-if="displayPause()" ng-click="togglePause()">{{getPausedText()}}</button>
+                <button class="btn btn-small btn-primary" style="width: 150px;" ng-click="downloadResults()">Download</button>
+            </div>
+            <div class="fill-rest">
+                <progressbar animate="false" class="progress-striped active"
+                             max="1000" value="getProgressBarValue()"
+                             type="{{getProgressBarType()}}"></progressbar>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,82 +1,61 @@
-/*html, body {
-    height: 100%;
-    min-width: 800px;
-    padding: 0;
+html, body, .filler {
     margin: 0;
-    background-color: #E5E5E5;
-    font-family: Helvetica,Arial,sans-serif;
-}*/
-/*#footer, .push {
-    height: 50px; *//* '.push' must be the same height as 'footer' *//*
-    z-index: 10;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    position: relative;
 }
-#header {
+html, body {
+    min-width: 1275px;
+}
+body {
+    background-color: #FCFCFC;
+}
+.splash {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+
+#underNavContainer {
+    position: absolute;
+    top: 50px;
+    bottom: 50px;
+    left: 0;
+    right: 0;
+}
+
+#sidebar {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 213px;
+}
+
+#afterSideBarContainer {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 213px;
+    right: 0;
+    overflow: auto;
+}
+
+#footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
     height: 50px;
-}
-#containertotal {
-    height: calc(100% - 50px); *//* Footer subtract *//*
-    position: relative;
-
-}
-#container {
-    height: calc(100% - 50px); *//* Header subtract *//*
-    position: relative;
-
-}*/
-#leftbar {
-    float: left;
-    position: relative;
-    width: 210px;
-    height: 100%;
-    overflow: auto;
-}
-#rightbar {
-    position: relative;
-    float: right;
-    width: 0px;
-    height: 100%;
-    overflow: auto;
-}
-#rightbar.nonzero{
-    width: 330px;
-}
-#central {
-    position: relative;
-    height: 100%;
-    overflow: auto;
 }
 
 .spacing {
-    position: relative;
     padding: 10px;
-    height: 100%;
     width: 100%;
-    /*height: calc(100% - 20px);*/
-    /*width: calc(100% - 20px);*/
-}
-#leftbar .spacing {
-    overflow: hidden;
-}
-
-/****************************************************/
-
-
-/*#header {
-    background-color: green;
-}
-#container {
-    background-color: dodgerblue;
-}*/
-/*#content {
-    background-color: #5E99FF;
-}*/
-#leftbar {
-    background-color: #E0E0E0;
-}
-#rightbar {
-    background-color: #E0E0E0;
-}
-
-#central {
-    background-color: #FCFCFC;
+    height: 100%;
 }

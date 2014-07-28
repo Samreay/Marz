@@ -17,10 +17,10 @@
     </accordion-group>
     <accordion-group heading="Loading Files">
         <h4>Loading Files</h4>
-        <p>Files can be loaded into the system by dragging them over the top left hand dashed box. The application will accept <code>.fits</code> files from the AAOmega spectrograph containing spectra, and <code>.txt</code> files containing saved results.</p>
+        <p>Files can be loaded into the system by dragging them over the top left hand dashed box. The application will accept <code>.fits</code> files from the AAOmega spectrograph containing spectra, and <code>.csv</code> files containing saved results.</p>
 
-        <p>To start from scratch, simply drag in a fits file and let the application start analysis. If you have previously been analysing the file and saved results, you can load these results back in by dragging in the previously download results file. The order of drag and drop does not matter. The application allows dragging them both in simultaneously, or in either order. Note that if you want to analyse a different fits file or stop using results, you must refresh the page (to be updated in the future).</p>
-        <p>For quick usage, a few example FITS files that Conor O'Neil has been using in his project are provided:</p>
+        <p>To start from scratch, simply drag in a fits file and let the application start analysis. If you have previously been analysing the file and saved results, you can load these results back in by dragging in the previously download results file. The order of drag and drop does matter - please drop the results file first. Note that if you want to analyse a different fits file or stop using results, you must refresh the page (to be updated in the future).</p>
+        <p>For quick usage, a few example FITS files that Conor O'Neill has been using in his project are provided:</p>
         <ul>
             <li><a href="https://github.com/Samreay/ThesisZ/releases/download/0.2.0/alldata_combined_runz_x12_b02.fits">alldata_combined_runz_x12_b02</a></li>
             <li><a href="https://github.com/Samreay/ThesisZ/releases/download/0.2.0/alldata_combined_runz_x6_b02.fits">alldata_combined_runz_x6_b02</a></li>
@@ -56,10 +56,10 @@
     </accordion-group>
     <accordion-group heading="The Settings Screen">
         <p>The settings screen allows configuration of the program. All changes on the Settings screen are <strong>instantly</strong> applied on change, and do not need to be saved. The settings are stored as cookie values, and will persist between sessions.</p>
-        <p>The options to clear the internal saved data are irreversible. If you have saved <code>txt</code> output via downloading the results, these can still be loaded in without hassle, this section only pertains to the automatic background saving of results.</p>
+        <p>The options to clear the internal saved data are irreversible. If you have saved <code>csv</code> output via downloading the results, these can still be loaded in without hassle, this section only pertains to the automatic background saving of results.</p>
     </accordion-group>
     <accordion-group heading="Keybindings">
         <p>Many key bindings have been added to this application from the RUNZ default keymapping to make usage easier. The following commands are available:
-        <keybind bind="bind" ng-repeat="bind in keybinds"></keybind>
+            <keybind bind="bind" ng-repeat="bind in keybinds"></keybind>
     </accordion-group>
 </accordion>
