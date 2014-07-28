@@ -10,14 +10,20 @@
         </div>
         <ul class="list-group">
             <li class="list-group-item form-inline">
-                <div class="form-group btn-group">
-                    <div class="btn-group"><button style="width:80px" type="button" class='btn btn-darkened btn-block btn-sm' ng-click="toggleRaw()">Raw</button></div>
-                    <div class="btn-group"><button style="width:80px" type="button" class='btn btn-success btn-block btn-sm' ng-click="toggleProcessed()">Processed</button></div>
-                    <div class="btn-group"><button style="width:80px" type="button" class='btn btn-danger btn-block btn-sm'  ng-click="toggleMatched()">Template</button></div>
-                    <div class="btn-group"><button style="width:80px" type="button" class='btn btn-info btn-block btn-sm'  ng-click="toggleSky()">Sky</button></div>
+                <div class="form-group" style="height: 30px">
+                    <toggle-switch class="green" style="width: 170px" model="ui.dataSelection.processed" knob-label="Data" on-label="Processed" off-label="Raw"><toggle-switch>
+                </div>
+                <div class="form-group" style="height: 30px">
+                    <toggle-switch class="red" style="width: 170px" model="ui.dataSelection.matched" knob-label="Template"><toggle-switch>
                 </div>
                 <div class="form-group" style="height: 30px">
                     <toggle-switch style="width: 170px" model="settings.continuum" knob-label="Continuum"><toggle-switch>
+                </div>
+                <div class="form-group">
+                    <div class="btn-group">
+                        <button class="btn btn-default btn-sm" ng-click="resetToAutomatic()">Reset auto</button>
+                        <button class="btn btn-default btn-sm" ng-click="resetToManual()">Reset manual</button>
+                    </div>
                 </div>
                 <div class="form-group">
                     <div class="input-group input-group-sm" style="width: 245px">
@@ -29,16 +35,27 @@
             </li>
             <li class="list-group-item form-inline">
                 <div class="form-group">
+                    <div class="input-group input-group-sm" style="width: 230px">
+                        <span class="input-group-addon">Top Results</span>
+                        <div class="btn-group" ng-if="showTopResults()">
+                            <button class="btn btn-sm btn-default" btn-radio="$index" ng-click="selectMatch(i)" ng-model="settings.matchedIndex" ng-repeat="i in getMatches() track by $index">{{$index + 1}}</button>
+                        </div>
+                        <span class="input-group-btn" ng-if="!hasMatchingDetails()">
+                            <button class="btn btn-block btn-default" ng-click="reanalyseSpectra()">Reanalyse spectra</button>
+                        </span>
+                    </div>
+                </div>
+                <div class="form-group">
                     <div class="input-group input-group-sm" style="width: 340px">
                         <span class="input-group-addon">Template</span>
                         <select class="form-control" style="width: 265px" ng-model="settings.templateId" data-ng-options="t.id as t.id + ' - ' + t.name for t in getTemplatesList()"></select>
                     </div>
                 </div>
                 <div class="form-group">
-                    <div class="input-group input-group-sm" style="width:634px">
+                    <div class="input-group input-group-sm" style="width:434px">
                         <span class="input-group-addon">Redshift</span>
                         <input type="text" id="redshiftInput" class="form-control" ng-change="changedRedshift()" ng-model="settings.redshift">
-                        <span class="input-group-addon" style="width:494px"><input  type="range" min={{settings.bounds.redshiftMin}} max="{{settings.bounds.redshiftMax}}" step="0.0001" ng-change="changedRedshift()" ng-model="settings.redshift"></span>
+                        <span class="input-group-addon" style="width:294px"><input  type="range" min={{settings.bounds.redshiftMin}} max="{{settings.bounds.redshiftMax}}" step="0.0001" ng-change="changedRedshift()" ng-model="settings.redshift"></span>
                     </div>
                 </div>
             </li>
@@ -52,19 +69,6 @@
             </li>
          </ul>
     </div>
-    <!--
-    <div class="blocky detailedInput clearfix" ng-if="hasActive()">
-            <label>Top Results:</label>
-            <div style="display: inline-block;" ng-if="showTopResults()">
-                <div class="btn-group">
-                    <button class="btn btn-sm btn-default" btn-radio="$index" ng-click="selectMatch(i)" ng-model="settings.matchedIndex" ng-repeat="i in getMatches() track by $index">{{$index + 1}}</button>
-                </div>
-                <p ng-show="isCurrentlyMatching()" class="inline" style="margin-left: 10px; line-height: 30px;"><em>{{getMatchedTemplateName()}}</em> at z = <em>{{getMatchedTemplateRedshift()}}</em></p>
-                <div class="clearfix"></div>
-            </div>
-            <p class="inlineblock" ng-if="!hasMatchingDetails()">No results list found.<button style="margin-left: 20px;" class="btn btn-xs btn-primary pull-right" ng-click="reanalyseSpectra()">Reanalyse and get full results</button></p>
-        </div>
-        -->
     <div style="position: absolute; top: 160px; bottom: 0; left: 0; right: 0">
         <canvas id="detailedCanvas" detailed-item></canvas>
     </div>

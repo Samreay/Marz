@@ -5,17 +5,15 @@ angular.module('servicesZ', ['dialogs.main'])
                 active: null,
                 graphicalLayout: true,
                 dataSelection: {
-                    raw: true,
                     processed: true,
-                    matched: true,
-                    sky: true
+                    matched: true
                 },
                 detailed: {
                     bounds: {
                         redshiftMin: 0,
                         redshiftMax: 4,
-                        maxMatches: 8,
-                        maxSmooth: 15
+                        maxMatches: 5,
+                        maxSmooth: 20
                     },
                     templateId: '0',
                     continuum: true,
@@ -23,12 +21,13 @@ angular.module('servicesZ', ['dialogs.main'])
                     oldRedshift: "0",
                     matchedActive: true,
                     matchedIndex: null,
-                    smooth: "2",
+                    smooth: "4",
                     width: 300,
                     spectraFocus: null,
                     spectralLines: true,
                     waitingForSpectra: false,
-                    lockedBounds: false
+                    lockedBounds: false,
+                    skyHeight: 30
 
                 },
                 colours: {
@@ -852,8 +851,7 @@ angular.module('servicesZ', ['dialogs.main'])
                     for (var i = 0; i < spectra.length; i++) {
                         spectra[i].sky = d.slice((spectra[i].id-1) * numPoints, (spectra[i].id ) * numPoints);
                         removeNaNs(spectra[i].sky);
-                        normaliseViaArea(spectra[i].sky, null, 30000);
-                        cropSky(spectra[i].sky, 80);
+                        normaliseViaShift(spectra[i].sky, 0, global.ui.detailed.skyHeight, null);
                         spectra[i].skyAverage = getAverage(spectra[i].sky);
                     }
                 } else {
@@ -928,24 +926,18 @@ angular.module('servicesZ', ['dialogs.main'])
             }
             self.clearPlot(canvas);
             var toBound = [];
-            if (ui.dataSelection.raw) {
-                toBound.push([lambda, intensity]);
-            }
-            if (ui.dataSelection.processed) {
-                toBound.push([processedLambda, processedIntensity]);
-            }
-            if (ui.dataSelection.matched && tempIntensity != null) {
+            toBound.push([lambda, intensity]);
+            toBound.push([processedLambda, processedIntensity]);
+            if (tempIntensity != null) {
                 toBound.push([lambda, tempIntensity]);
             }
             var bounds = self.getMaxes(toBound);
             this.plotZeroLine(canvas, "#C4C4C4", bounds);
-            if (ui.dataSelection.raw) {
-                self.plot(lambda, intensity, ui.colours.raw, canvas, bounds);
-            }
-            if (ui.dataSelection.processed && processedIntensity != null) {
+            self.plot(lambda, intensity, ui.colours.raw, canvas, bounds);
+            if (processedIntensity != null) {
                 self.plot(processedLambda, processedIntensity, ui.colours.processed, canvas, bounds);
             }
-            if (ui.dataSelection.matched && tempIntensity != null) {
+            if (tempIntensity != null) {
                 self.plot(lambda, tempIntensity, ui.colours.matched, canvas, bounds);
             }
         }

@@ -22,7 +22,11 @@ function Spectra(id, lambda, intensity, variance, sky, skyAverage, name, ra, dec
         this.processedLambdaPlot = null;
         normaliseViaShift(this.intensityPlot, 0, 600, null);
         this.intensitySubtractPlot = this.intensityPlot.slice();
-        subtractPolyFit(this.lambda, this.intensitySubtractPlot);
+        //subtractPolyFit(this.lambda, this.intensitySubtractPlot);
+    }
+
+    if (this.sky != null) {
+        this.skyMax
     }
 
     this.processedLambda = null;

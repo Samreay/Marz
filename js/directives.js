@@ -124,7 +124,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                 var stepColour = '#CCC';
                 var dragInteriorColour = 'rgba(38, 147, 232, 0.2)';
                 var dragOutlineColour = 'rgba(38, 147, 232, 0.6)';
-                var spacingFactor = 1.1;
+                var spacingFactor = 1.2;
 
                 var zoomOutWidth = 40;
                 var zoomOutHeight = 40;
@@ -133,8 +133,8 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
 
                 var cursorColour = 'rgba(104, 0, 103, 0.9)';
                 var cursorTextColour = '#FFFFFF';
-                var cursorXGap = 10;
-                var cursorYGap = 10;
+                var cursorXGap = 2;
+                var cursorYGap = 2;
 
                 var data = [];
                 var template = null;
@@ -150,7 +150,6 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                 var spectralLineTextColour = '#FFFFFF';
 
                 var templatePixelOffset = 30;
-                var skyPosition = 340;
                 var skyAverage = 0;
 
                 var focusX = null;
@@ -211,9 +210,6 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                 var removeFocus = function() {
                     focusX = null;
                     focusY = null;
-                    focusDataX = null;
-                    focusDataY = null;
-                    global.ui.detailed.waitingForSpectra = false;
                 };
                 var windowToCanvas = function(e) {
                     var result = {};
@@ -235,7 +231,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     }
                 };
                 var recalculateFocus = function() {
-                    if (focusX == null || focusY == null) return;
+                    if (focusDataX == null || focusDataY == null) return;
                     if (checkDataXYInRange(focusDataX, focusDataY)) {
                         focusX = convertDataXToCanvasCoordinate(focusDataX);
                         focusY = convertDataYToCanvasCoordinate(focusDataY);
@@ -325,12 +321,11 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     yMin = 9e9;
                     yMax = -9e9;
                     for (var i = 0; i < data.length; i++) {
-                        if (data.id == "raw" && i < startRawTruncate) continue;
+                        if (data.id == "data" && i < startRawTruncate) continue;
                         if (data[i].bound) {
                             c++;
                         }
                         var xs = data[i].x;
-                        var ys = data[i].y;
                         if (data[i].bound) {
                             if (xs != null) {
                                 for (var j = 0; j < xs.length; j++) {
@@ -345,16 +340,21 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                         }
                     }
                     for (var i = 0; i < data.length; i++) {
-                        var xs = data[i].x;
-                        var ys = data[i].y;
-                        if (ys != null) {
-                            for (var j = 0; j < ys.length; j++) {
-                                if (xs[j] < xMin || xs[j] > xMax) continue;
-                                if (ys[j] < yMin) {
-                                    yMin = ys[j];
-                                }
-                                if (ys[j] > yMax) {
-                                    yMax = ys[j];
+                        if (data[i].bound) {
+                            var xs = data[i].x;
+                            var ys = data[i].y;
+                            if (data[i].y2 != null) {
+                                ys = data[i].y2;
+                            }
+                            if (ys != null) {
+                                for (var j = 0; j < ys.length; j++) {
+                                    if (xs[j] < xMin || xs[j] > xMax) continue;
+                                    if (ys[j] < yMin) {
+                                        yMin = ys[j];
+                                    }
+                                    if (ys[j] > yMax) {
+                                        yMax = ys[j];
+                                    }
                                 }
                             }
                         }
@@ -365,6 +365,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                         yMin = -500;
                         yMax = 1000;
                     } else {
+
                         if (yMin < 0) {
                             yMin *= spacingFactor;
                         } else {
@@ -456,7 +457,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                 var renderPlots = function() {
                     for (var j = 0; j < data.length; j++) {
                         c.beginPath();
-                        c.strokeStyle = global.ui.colours[data[j].id];
+                        c.strokeStyle = data[j].colour;
                         var xs = data[j].x;
                         var ys = data[j].y2 == null ? data[j].y : data[j].y2;
                         var disconnect = true;
@@ -466,16 +467,20 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                         if (data[j].id == 'template') {
                             yOffset = parseInt(templatePixelOffset);
                         } else if (data[j].id == 'sky') {
-                            var position = convertDataYToCanvasCoordinate(skyAverage);
-                            yOffset = position - skyPosition;
+                            yOffset = height + top;
                         }
                         var start = 1;
-                        if (data[j].id == "raw") {
+                        if (data[j].id == "data") {
                             start = startRawTruncate;
                         }
                         for (var i = start; i < xs.length; i++) {
                             x = convertDataXToCanvasCoordinate(xs[i]);
-                            y = convertDataYToCanvasCoordinate(ys[i]) - yOffset;
+                            if (data[j].id != "sky") {
+                                y = convertDataYToCanvasCoordinate(ys[i]) - yOffset;
+                            } else {
+                                y = yOffset - ys[i];
+                            }
+
                             if (disconnect == true) {
                                 disconnect = false;
                                 c.moveTo(x, y);
@@ -597,6 +602,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     plotAxesLabels(true);
                     drawZoomOut();
                     plotSpectralLines();
+                    recalculateFocus();
                     drawFocus();
                     drawCursor();
                 };
@@ -622,30 +628,28 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     if ($scope.ui.active == null) return "";
                     return $scope.ui.active.getHash();
                 };
-                var addRawData = function() {
+                var addBaseData = function() {
                     for (var i = 0; i < data.length; i++) {
-                        if (data[i].id == 'raw') {
+                        if (data[i].id == 'data') {
                             data.splice(i, 1);
                             break;
                         }
                     }
-                    if (global.ui.active != null && global.ui.dataSelection.raw) {
-                        var ys = global.ui.detailed.continuum ? global.ui.active.intensityPlot : global.ui.active.intensitySubtractPlot;
-                        data.push({id: 'raw', bound: true, x: global.ui.active.lambda, y: ys});
-                        smoothData('raw');
-                    }
-                };
-                var addProcessedData = function() {
-                    for (var i = 0; i < data.length; i++) {
-                        if (data[i].id == 'processed') {
-                            data.splice(i, 1);
-                            break;
+                    if (global.ui.active != null) {
+                        var ys = null;
+                        var xs = null;
+                        var colour = "#000";
+                        if (global.ui.dataSelection.processed && global.ui.active.processedLambdaPlot != null) {
+                            xs = global.ui.active.processedLambdaPlot;
+                            ys = global.ui.detailed.continuum ? global.ui.active.processedContinuum : global.ui.active.processedIntensity;
+                            colour = global.ui.colours.processed;
+                        } else {
+                            ys = global.ui.detailed.continuum ? global.ui.active.intensityPlot : global.ui.active.intensitySubtractPlot;
+                            xs = global.ui.active.lambda;
+                            colour = global.ui.colours.raw;
                         }
-                    }
-                    if (global.ui.active != null && global.ui.dataSelection.processed && global.ui.active.processedLambdaPlot != null) {
-                        var ys = global.ui.detailed.continuum ? global.ui.active.processedContinuum : global.ui.active.processedIntensity;
-                        data.push({id: 'processed', bound: true, x: global.ui.active.processedLambdaPlot, y: ys})
-                        smoothData('processed');
+                        data.push({id: 'data', bound: true, colour: colour, x: xs, y: ys});
+                        smoothData('data');
                     }
                 };
                 var addSkyData = function() {
@@ -655,20 +659,16 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                             break;
                         }
                     }
-                    if (global.ui.active != null && global.ui.dataSelection.sky && global.ui.active.sky != null) {
+                    if (global.ui.active != null && global.ui.active.sky != null) {
                         skyAverage = global.ui.active.skyAverage;
-                        data.push({id: 'sky', bound: false, x: global.ui.active.processedLambdaPlot, y: global.ui.active.sky})
+                        data.push({id: 'sky', colour: global.ui.colours.sky, bound: false, x: global.ui.active.lambda, y: global.ui.active.sky})
                     }
                 };
-                $scope.$watchCollection('[ui.dataSelection.raw, ui.dataSelection.processed, detailed.continuum]', function() {
-                    addRawData();
-                    addProcessedData();
-                    smoothData('raw');
-                    smoothData('processed');
+                $scope.$watchCollection('[ui.dataSelection.processed, detailed.continuum]', function() {
+                    addBaseData();
                     redraw();
                 });
                 $scope.$watchCollection('[detailed.redshift, detailed.templateId, ui.dataSelection.matched, detailed.continuum]', function() {
-                    console.log('Template changes');
                     for (var i = 0; i < data.length; i++) {
                         if (data[i].id == 'template') {
                             data.splice(i, 1);
@@ -678,7 +678,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     if ($scope.detailed.templateId != "0" && $scope.ui.dataSelection.matched) {
                         var r = templatesService.getTemplateAtRedshift($scope.detailed.templateId,
                             parseFloat($scope.detailed.redshift), $scope.detailed.continuum);
-                        data.push({id: "template",x: r[0],y: r[1]});
+                        data.push({id: "template", colour: global.ui.colours.matched, x: r[0],y: r[1]});
                     }
                     redraw();
                 });
@@ -687,25 +687,18 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     redraw();
                 });
                 $scope.$watch('getActiveHash()', function() {
-                    addRawData();
-                    addProcessedData();
+                    addBaseData();
                     addSkyData();
                     $scope.detailed.lockedBounds = false;
                     redraw();
                 });
                 $scope.$watch('detailed.smooth', function() {
-                    smoothData('raw');
-                    smoothData('processed');
+                    smoothData('data');
                     redraw();
                 });
                 $scope.$watchCollection('[detailed.width, detailed.height, detailed.spectralLines, detailed.lockedBounds]', function() {
                     redraw();
                 });
-                /*$scope.$watch('ui', function() {
-                    console.log("REDRAWING");
-                    redraw();
-                }, true);*/
-
             }
         }
     }]);

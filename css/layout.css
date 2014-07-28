@@ -104,7 +104,12 @@ input[type="checkbox"].form-control {
 .blocky {
     display: block;
 }
-
+#detailedCanvas {
+    cursor: crosshair;   
+}
+.input-group .btn-group .btn {
+    border-radius: 0;
+}
 .inline {
     display: inline;
 }
@@ -134,7 +139,7 @@ input[type="checkbox"].form-control {
 
 .sline {
     height: 30px;
-    min-width: 32px;
+    min-width: 35px;
     text-align: center;
     line-height: 30px;
     border-radius: 3px;
