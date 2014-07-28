@@ -80,6 +80,44 @@ function fastSmooth(y, num) {
     }
     return d;
 }
+function normaliseSection(xs, ys, xMin, xMax, yMin, height) {
+    var xBounds = getXBounds(xs, xMin, xMax);
+    var bounds = findMinAndMaxSubset(xs, ys, xBounds.start, xBounds.end);
+    var r = height/(bounds.max - bounds.min);
+    var xss = xs.slice(xBounds.start, xBounds.end);
+    var yss = ys.slice(xBounds.start, xBounds.end);
+    for (var i = 0; i < yss.length; i++) {
+        yss[i] = yMin + r * (yss[i] - bounds.min);
+    }
+    return {xs: xss, ys: yss};
+
+}
+//TODO: Log time complexity should be easy to do here
+function getXBounds(xs, xMin, xMax) {
+    var start = null;
+    var end = null;
+    for (var i = 0; i < xs.length; i++) {
+        if (xs[i] > xMin && start == null) {
+            start = i - 1;
+        }
+        if (xs[i] > xMax && end == null) {
+            end = i + 1;
+        }
+    }
+    if (start == null) {
+        start = xs.length - 1;
+    } else if (start < 0) {
+        start = 0;
+    }
+    if (end == null) {
+        end = xs.length;
+    } else if (end < 0) {
+        end = 0;
+    }
+
+    console.log(start, end);
+    return {start: start, end: end};
+}
 function normaliseViaArea(array, variance, val) {
     var a = val == null ? normalised_area : val;
     var area = getAreaInArray(array, 0, array.length - 1);
@@ -132,6 +170,19 @@ function findMinAndMax(array) {
         }
         if (array[j] < min) {
             min = array[j];
+        }
+    }
+    return {min: min, max: max};
+}
+function findMinAndMaxSubset(xs, ys, start, end) {
+    var min = 9e9;
+    var max = -9e9;
+    for (var j = start; j < end; j++) {
+        if (ys[j] > max) {
+            max = ys[j];
+        }
+        if (ys[j] < min) {
+            min = ys[j];
         }
     }
     return {min: min, max: max};

@@ -21,13 +21,13 @@ angular.module('servicesZ', ['dialogs.main'])
                     oldRedshift: "0",
                     matchedActive: true,
                     matchedIndex: null,
-                    smooth: "4",
+                    smooth: "2",
                     width: 300,
                     spectraFocus: null,
                     spectralLines: true,
                     waitingForSpectra: false,
                     lockedBounds: false,
-                    skyHeight: 30
+                    skyHeight: 50
 
                 },
                 colours: {
@@ -852,14 +852,13 @@ angular.module('servicesZ', ['dialogs.main'])
                         spectra[i].sky = d.slice((spectra[i].id-1) * numPoints, (spectra[i].id ) * numPoints);
                         removeNaNs(spectra[i].sky);
                         normaliseViaShift(spectra[i].sky, 0, global.ui.detailed.skyHeight, null);
-                        spectra[i].skyAverage = getAverage(spectra[i].sky);
+                        spectra[i].skyAverage = null;
                     }
                 } else {
                     sky = d;
                     removeNaNs(sky);
-                    normaliseViaArea(sky, null, 30000);
-                    cropSky(sky, 80);
-                    skyAverage = getAverage(sky);
+                    normaliseViaShift(sky, 0, global.ui.detailed.skyHeight, null);
+                    skyAverage = null;
                 }
                 getSpectra(q);
             });

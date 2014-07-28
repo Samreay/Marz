@@ -103,7 +103,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
         }
 
     })
-    .directive('detailedItem', ['$rootScope', 'global', 'spectraLineService', 'templatesService', function($rootScope, global, spectraLineService, templatesService) {
+    .directive('detailedItem', ['$rootScope', 'global', 'spectraLineService', 'templatesService', '$timeout', function($rootScope, global, spectraLineService, templatesService, $timeout) {
         return {
             restrict: "A",
             link: function($scope, $element, $attr) {
@@ -124,7 +124,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                 var stepColour = '#CCC';
                 var dragInteriorColour = 'rgba(38, 147, 232, 0.2)';
                 var dragOutlineColour = 'rgba(38, 147, 232, 0.6)';
-                var spacingFactor = 1.2;
+                var spacingFactor = 2;
 
                 var zoomOutWidth = 40;
                 var zoomOutHeight = 40;
@@ -254,9 +254,13 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                         yMax = Math.max(y1, y2);
                         $scope.detailed.lockedBounds = true;
                         recalculateFocus();
+                        addTemplateData();
                     } else {
                         if (loc.x > (canvas.width - zoomOutWidth) && loc.y < zoomOutHeight) {
                             $scope.detailed.lockedBounds = false;
+                            getBounds();
+                            addTemplateData();
+                            redraw();
                         } else if (checkCanvasInRange(loc.x, loc.y)) {
                             focusX = loc.x;
                             focusY = loc.y;
@@ -366,16 +370,13 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                         yMax = 1000;
                     } else {
 
-                        if (yMin < 0) {
+                        /*if (yMin < 0) {
                             yMin *= spacingFactor;
                         } else {
                             yMin /= spacingFactor;
-                        }
-                        if (yMax < 0) {
-                            yMax /= spacingFactor;
-                        } else {
-                            yMax *= spacingFactor;
-                        }
+                        }*/
+                        yMin = yMax - spacingFactor*(yMax - yMin);
+
                     }
                     recalculateFocus();
                 };
@@ -465,9 +466,12 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                         var y = 0;
                         var yOffset = 0;
                         if (data[j].id == 'template') {
-                            yOffset = parseInt(templatePixelOffset);
+                            yOffset = 20 // parseInt(templatePixelOffset);
                         } else if (data[j].id == 'sky') {
                             yOffset = height + top;
+                        } else if (data[j].id == "data") {
+                            yOffset = -20;
+//                            yOffset = top + ((height-top-bottom)* (1 - 1/spacingFactor));
                         }
                         var start = 1;
                         if (data[j].id == "data") {
@@ -664,22 +668,31 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                         data.push({id: 'sky', colour: global.ui.colours.sky, bound: false, x: global.ui.active.lambda, y: global.ui.active.sky})
                     }
                 };
-                $scope.$watchCollection('[ui.dataSelection.processed, detailed.continuum]', function() {
-                    addBaseData();
-                    redraw();
-                });
-                $scope.$watchCollection('[detailed.redshift, detailed.templateId, ui.dataSelection.matched, detailed.continuum]', function() {
+                var addTemplateData = function() {
                     for (var i = 0; i < data.length; i++) {
                         if (data[i].id == 'template') {
                             data.splice(i, 1);
                             break;
                         }
                     }
+
                     if ($scope.detailed.templateId != "0" && $scope.ui.dataSelection.matched) {
                         var r = templatesService.getTemplateAtRedshift($scope.detailed.templateId,
                             parseFloat($scope.detailed.redshift), $scope.detailed.continuum);
-                        data.push({id: "template", colour: global.ui.colours.matched, x: r[0],y: r[1]});
+                        var height = (yMax - yMin) / spacingFactor;
+                        r = normaliseSection(r[0], r[1], xMin, xMax, yMin, height);
+                        data.push({id: "template", colour: global.ui.colours.matched, x: r.xs,y: r.ys});
                     }
+                };
+                $scope.$watchCollection('[ui.dataSelection.processed, detailed.continuum]', function() {
+                    addBaseData();
+                    getBounds();
+                    addTemplateData();
+                    redraw();
+                });
+                $scope.$watchCollection('[detailed.redshift, detailed.templateId, ui.dataSelection.matched, detailed.continuum]', function() {
+                    getBounds();
+                    addTemplateData();
                     redraw();
                 });
                 $scope.$watch('ui.dataSelection.sky', function() {
@@ -689,6 +702,8 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                 $scope.$watch('getActiveHash()', function() {
                     addBaseData();
                     addSkyData();
+                    getBounds();
+                    addTemplateData();
                     $scope.detailed.lockedBounds = false;
                     redraw();
                 });
@@ -697,6 +712,9 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     redraw();
                 });
                 $scope.$watchCollection('[detailed.width, detailed.height, detailed.spectralLines, detailed.lockedBounds]', function() {
+                    console.log('Zoom out');
+                    getBounds();
+                    addTemplateData();
                     redraw();
                 });
             }
