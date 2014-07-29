@@ -119,12 +119,24 @@ self.coalesceResults = function(templateResults, type) {
 
         tr.res.sort(function(a,b) { return a.chi2 - b.chi2});
         var tempRes = {index: tr.index, id: tr.id, top: []};
-        for (var j = 0; j < 100; j++) {
+        for (var j = 0; j < 10; j++) {
             tr.res[j].chi2 = tr.res[j].chi2 * w;
             tempRes.top.push(tr.res[j]);
         }
         coalesced.push(tempRes);
     }
     coalesced.sort(function(a,b) { return a.top[0].chi2 - b.top[0].chi2});
-    return coalesced;
+
+    var templates = [];
+    for (var i = 0; i < templateResults.length; i++) {
+        var chi2 = [];
+        var zs = [];
+        for (var j = 0; j < templateResults[i].res.length; j++) {
+            chi2.push(templateResults[i].res[j].chi2);
+            zs.push(templateResults[i].res[j].z);
+        }
+        templates.push({id: templateResults[i].id, z: chi2, chi2: zs});
+
+    }
+    return {coalesced: coalesced, templates: templates};
 };

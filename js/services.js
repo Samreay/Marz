@@ -36,7 +36,8 @@ angular.module('servicesZ', ['dialogs.main'])
                     processed: "#058518",
                     matched: "#AA0000",
                     sky: "#009DFF",
-                    template: '#8C0623'
+                    template: '#8C0623',
+                    variance: '#B731E8'
                 }
             },
             data: {
@@ -247,8 +248,9 @@ angular.module('servicesZ', ['dialogs.main'])
         self.setMatchedResults = function(results) {
             var spectra = data.spectraHash[results.id];
             if (spectra == null || spectra.name != results.name) return;
-            spectra.automaticResults = results.results;
-            spectra.automaticBestResults = self.getBestResults(results.results);
+            spectra.automaticResults = results.results.coalesced;
+            spectra.templateResults = results.results.templates;
+            spectra.automaticBestResults = self.getBestResults(results.results.coalesced);
             spectra.isMatching = false;
             spectra.isMatched = true;
             if (saveAutomatically) {

@@ -57,7 +57,7 @@ SpectralLines.prototype.addSpectralLine = function(id, label, name, wavelength, 
         type: type,
         enabled: enabled
     });
-}
+};
 SpectralLines.prototype.initialiseDefault = function() {
     this.addSpectralLine('Lyb','Lyb', 'Lyman Beta',          1025.722, 0, 1, 1);
     this.addSpectralLine('Lya','Lya', 'Lyman Alpha',         1215.670, 0, 1, 1);
@@ -81,10 +81,10 @@ SpectralLines.prototype.initialiseDefault = function() {
     this.addSpectralLine('N2', 'N2',  'Nitrogen 2',          6583.46,  1, 1, 1);
     this.addSpectralLine('S2', 'S2',  'Sulfur 2',            6716.44,  1, 1, 1);
     this.addSpectralLine('S2d','S2d', 'Sulfur 2 Doublet',    6730.81,  1, 1, 1);
-}
+};
 SpectralLines.prototype.getAll = function() {
     return this.lines;
-}
+};
 SpectralLines.prototype.getEnabled = function() {
     var result = [];
     for (var i = 0; i < this.lines.length; i++) {
@@ -93,14 +93,14 @@ SpectralLines.prototype.getEnabled = function() {
         }
     }
     return result;
-}
+};
 SpectralLines.prototype.getFromID = function(id) {
     for (var i = 0; i < this.lines.length; i++) {
         if (this.lines[i].id == id) {
             return this.lines[i];
         }
     }
-}
+};
 SpectralLines.prototype.toggle = function(id) {
     for (var i = 0; i < this.lines.length; i++) {
         if (this.lines[i].id == id) {
@@ -108,4 +108,4 @@ SpectralLines.prototype.toggle = function(id) {
             return;
         }
     }
-}
+};

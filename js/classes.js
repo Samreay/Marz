@@ -11,6 +11,7 @@ function Spectra(id, lambda, intensity, variance, sky, skyAverage, name, ra, dec
     this.variance = variance;
     this.sky = sky;
     this.skyAverage = skyAverage;
+    this.intensitySubtractPlot = null;
 
     this.isProcessed = false;
     this.isProcessing = false;
@@ -21,12 +22,6 @@ function Spectra(id, lambda, intensity, variance, sky, skyAverage, name, ra, dec
         this.intensityPlot = this.intensity.slice();
         this.processedLambdaPlot = null;
         normaliseViaShift(this.intensityPlot, 0, 600, null);
-        this.intensitySubtractPlot = this.intensityPlot.slice();
-        //subtractPolyFit(this.lambda, this.intensitySubtractPlot);
-    }
-
-    if (this.sky != null) {
-        this.skyMax
     }
 
     this.processedLambda = null;
@@ -34,6 +29,7 @@ function Spectra(id, lambda, intensity, variance, sky, skyAverage, name, ra, dec
     this.processedIntensity = null;
     this.processedVariance = null
 
+    this.templateResults = null;
     this.automaticResults = null;
     this.automaticBestResults = null;
     this.manualRedshift = null;
@@ -45,6 +41,22 @@ function Spectra(id, lambda, intensity, variance, sky, skyAverage, name, ra, dec
         return "" + this.id + this.name + this.getFinalRedshift() + this.getFinalTemplateID() + this.isProcessed + this.isMatched;
     }
 }
+Spectra.prototype.getTemplateResults = function() {
+    return this.templateResults;
+};
+Spectra.prototype.getIntensitySubtracted = function() {
+    if (this.intensitySubtractPlot == null) {
+        if (this.intensityPlot == null) {
+            return null;
+        } else {
+            this.intensitySubtractPlot = this.intensity.slice();
+            subtractPolyFit(this.lambda, this.intensitySubtractPlot);
+            return this.intensitySubtractPlot;
+        }
+    } else {
+        return this.intensitySubtractPlot;
+    }
+};
 Spectra.prototype.hasRedshift = function() {
     return this.automaticBestResults || this.manualRedshift;
 };

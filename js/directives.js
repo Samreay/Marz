@@ -648,7 +648,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                             ys = global.ui.detailed.continuum ? global.ui.active.processedContinuum : global.ui.active.processedIntensity;
                             colour = global.ui.colours.processed;
                         } else {
-                            ys = global.ui.detailed.continuum ? global.ui.active.intensityPlot : global.ui.active.intensitySubtractPlot;
+                            ys = global.ui.detailed.continuum ? global.ui.active.intensityPlot : global.ui.active.getIntensitySubtracted();
                             xs = global.ui.active.lambda;
                             colour = global.ui.colours.raw;
                         }
