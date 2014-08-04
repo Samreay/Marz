@@ -158,6 +158,9 @@ function TemplateManager() {
     }
     this.processTemplates();
 }
+TemplateManager.prototype.getTemplateFromId = function(id) {
+    return this.templatesHash[id];
+}
 TemplateManager.prototype.getTemplate = function (id, z, withContinuum) {
     var t = this.templatesHash[id];
     var lambda = linearScaleFactor(t.start_lambda_linear, t.end_lambda_linear, (1 + z) / (1 + t.redshift) - 1, t.lambda_linear.length);
@@ -187,16 +190,20 @@ TemplateManager.prototype.processTemplates = function () {
         if (!t.log_linear) {
             t.lambda_linear = t.lambda;
             t.lambda = t.lambda.map(function(x) { return Math.log(x)/Math.LN10; });
+            t.specWithContinuum_linear = t.spec.slice();
         } else {
-            t.lambda_linear = t.lambda.map(function(x) { return Math.pow(10, x); });
+            t.lambda_linear = linearScale(Math.pow(10, t.lambda[0]), Math.pow(10, t.lambda[t.lambda.length - 1]), t.lambda.length);
+            var rescale = t.lambda.map(function(x) { return Math.pow(10, x); });
+            t.specWithContinuum_linear = interpolate(t.lambda_linear, rescale, t.spec);
         }
-        t.specWithContinuum_linear = t.spec.slice();
         t.spec_linear = t.specWithContinuum_linear.slice();
+        t.start_lambda_linear = t.lambda_linear[0];
+        t.end_lambda_linear = t.lambda_linear[t.lambda_linear.length - 1];
+
         subtractPolyFit(t.lambda_linear, t.spec_linear);
 
 
         // We will create the data to be used for matching only when called for, so the UI does not waste time.
-
     }
 };
 TemplateManager.prototype.shiftToMatchSpectra = function () {
@@ -207,12 +214,37 @@ TemplateManager.prototype.shiftToMatchSpectra = function () {
         polyFitReject(t.lambda, t.spec);
         smoothAndSubtract(t.spec);
         taperSpectra(t.spec);
+        normalise(t.spec);
 
-        t.lambda = logLambda;
         t.spec = interpolate(logLambda, t.lambda, t.spec);
+        t.lambda = logLambda;
 
         t.fft = new FFT(t.spec.length, t.spec.length);
         t.fft.forward(t.spec);
         t.fft.conjugate();
+
+        var gap = t.lambda[1] - t.lambda[0];
+        var num = t.lambda.length / 2;
+        t.zs = t.lambda.map(function(x,i) {
+            return (Math.pow(10, (i - num) * gap) * (1 + t.redshift)) - 1
+        });
+
+        t.startZIndex = null;
+        t.endZIndex = null;
+
+        // Linear search through an ordered array is horrible, I should fix this.. in around 50 places.
+        for (var j = 0; j < t.zs.length; j++) {
+            if (t.startZIndex == null && t.zs[j] > t.z_start) {
+                t.startZIndex = j;
+            }
+            if (t.endZIndex == null && t.zs[j] > t.z_end) {
+                t.endZIndex = j;
+            }
+            if (t.endZIndex != null && t.startZIndex != null) {
+                break;
+            }
+        }
+
+        t.zs = t.zs.slice(t.startZIndex, t.endZIndex);
     }
 };

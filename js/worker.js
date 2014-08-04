@@ -1,4 +1,4 @@
-importScripts('../lib/regression.js', 'tools.js', 'methods.js', 'templates.js', 'classes.js', '../lib/dsp.js', 'config.js', '../lib/dspUtils-11.js')
+importScripts('../lib/regression.js', 'tools.js', 'methods.js', 'templates.js', 'classes.js', '../lib/dsp.js', 'config.js')
 var templateManager = new TemplateManager();
 var shifted_temp = false;
 var self = this;
@@ -67,6 +67,13 @@ self.matchTemplates = function(lambda, intensity, variance, type) {
     lambda = result.lambda;
     intensity = result.intensity;
 
+
+    if (!shifted_temp) {
+        templateManager.shiftToMatchSpectra();
+        shifted_temp = true;
+    }
+
+
     var templateResults = templateManager.templates.map(function(template) {
         return self.matchTemplate(template, lambda, intensity);
     });
@@ -75,96 +82,66 @@ self.matchTemplates = function(lambda, intensity, variance, type) {
 
 
 self.matchTemplate = function(template, lambda, intensity) {
-    var result = {'id': template.id, res: []};
-
-    if (!shifted_temp) {
-        templateManager.shiftToMatchSpectra();
-        shifted_temp = true;
-    }
-
-    if (template.id == '6') {
-        var fft = new FFT(intensity.length, intensity.length);
-        fft.forward(intensity);
-        fft.multiply(template.fft);
-        var final = fft.inverse();
-        final = Array.prototype.slice.call(final);
-        circShift(final, final.length/2);
-
-
-
-        console.log("myres2 = " + JSON.stringify(Array.prototype.slice.call(final)) + ";");
-
-    }/*
-    var zs = [];
-    // Generate all viable redshifts to check
-    var z = template.z_start;
-    var offsetFromZ = Math.floor((Math.log(1 + z)/Math.LN10) / spacing);
-    var lambda_start = Math.pow(10, template.interpolatedLambda[0]) / (1 + template.redshift);
-    while(z < template.z_end) {
-        zs.push(z);
-        offsets.push(initialTemplateOffset-offsetFromZ);
-        offsetFromZ++;
-        z = (Math.pow(10, template.interpolatedLambda[0] + (offsetFromZ * spacing))/lambda_start) - 1;
-    }
-    // Get chi2 for all redshifts
-    var r = null;
-    for (var i = 0; i < zs.length; i+=2) {
-        r = self.matchTemplateAtRedshift(intensity, variance, weights, template.interpolatedSpec, offsets[i], intensityAreaFinder, templateAreaFinder, zs[i]);
-        result.res.push({chi2: r[0]/Math.pow(r[1],2.5), z: parseFloat(zs[i].toFixed(5)), scale: r[2], weight: r[1]});
-    }*/
-    return result;
+    var fft = new FFT(intensity.length, intensity.length);
+    fft.forward(intensity);
+    fft.multiply(template.fft);
+    var final = fft.inverse();
+    final = Array.prototype.slice.call(final);
+    circShift(final, final.length/2);
+    final = pruneResults(final, template);
+    var finalPeaks = normaliseXCorr(final);
+    return {
+        id: template.id,
+        zs: template.zs,
+        xcor: final,
+        peaks: finalPeaks
+    };
 };
-self.matchTemplateAtRedshift = function(intensity, variance, weights, spec, offset, intensityAreaFinder, templateAreaFinder, z) {
-    var start = Math.max(0, -offset);
-    var end = Math.min(intensity.length, spec.length-offset);
-    if ((end-start)/intensity.length < 0.4) {
-        return [19e9, 1, 1];
-    }
-    var w = 0;
-    var chi2 = 0;
-    var a = intensityAreaFinder.getArea(start,end);
-    var b = (1.3*templateAreaFinder.getArea(start + offset, end + offset));
-    var s = Math.max(0.5, a / b); // Factors to stop zero lines and to reflect less noise in templates
-    for (var i = start; i < end; i++) {
-        chi2 += weights[i] * Math.pow((intensity[i] - s * spec[i + offset])/variance[i], 2);
-        w += weights[i];
-    }
-    return [chi2, w, s];
-};
+
 self.coalesceResults = function(templateResults, type) {
     // Adjust for optional weighting
     var coalesced = [];
     for (var i = 0; i < templateResults.length; i++) {
         var tr = templateResults[i];
-        var index = tr.index;
-        var w =  templateManager.templates[index].weights[''+type];
+        var t = templateManager.getTemplateFromId(tr.id);
+
+        // Find the weight to apply
+        var w =  t.weights[''+type];
         if (w == 0 || w == null) {
-            w = templateManager.templates[index].weights['blank'];
+            w = t.weights['blank'];
             if (w == 0 || w == null) {
                 w = 1;
             }
         }
 
-        tr.res.sort(function(a,b) { return a.chi2 - b.chi2});
-        var tempRes = {index: tr.index, id: tr.id, top: []};
-        for (var j = 0; j < 10; j++) {
-            tr.res[j].chi2 = tr.res[j].chi2 * w;
-            tempRes.top.push(tr.res[j]);
+        for (var j = 0; j < tr.peaks.length; j++) {
+            tr.peaks[j].value = tr.peaks[j].value / w;
+            tr.peaks[j].z = tr.zs[tr.peaks[j].index];
+            tr.peaks[j].templateId = tr.id;
+            coalesced.push(tr.peaks[j]);
         }
-        coalesced.push(tempRes);
     }
-    coalesced.sort(function(a,b) { return a.top[0].chi2 - b.top[0].chi2});
+    coalesced.sort(function(a,b) { return b.value - a.value});
 
-    var templates = [];
-    for (var i = 0; i < templateResults.length; i++) {
-        var chi2 = [];
-        var zs = [];
-        for (var j = 0; j < templateResults[i].res.length; j++) {
-            chi2.push(templateResults[i].res[j].chi2);
-            zs.push(templateResults[i].res[j].z);
-        }
-        templates.push({id: templateResults[i].id, z: chi2, chi2: zs});
+    // Return only the ten best results
+    coalesced.splice(10, coalesced.length - 1);
 
-    }
-    return {coalesced: coalesced, templates: templates};
+    //TODO: Instead of just splicing, make sure the best results are a threshold value in redshift different
+
+    //TODO: For each of those results we actually want to do a quadratic fit.
+
+    //TODO: Add all info back in after shrinking down the zs array to < 5000 elements
+
+//    var templates = [];
+//    for (var i = 0; i < templateResults.length; i++) {
+//        var chi2 = [];
+//        var zs = [];
+//        for (var j = 0; j < templateResults[i].res.length; j++) {
+//            chi2.push(templateResults[i].res[j].chi2);
+//            zs.push(templateResults[i].res[j].z);
+//        }
+//        templates.push({id: templateResults[i].id, z: chi2, chi2: zs});
+//
+//    }
+    return {coalesced: coalesced, templates: null};
 };

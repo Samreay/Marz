@@ -11,7 +11,7 @@ angular.module('servicesZ', ['dialogs.main'])
                 detailed: {
                     bounds: {
                         redshiftMin: 0,
-                        redshiftMax: 4,
+                        redshiftMax: 4.5,
                         maxMatches: 5,
                         maxSmooth: 20
                     },
@@ -250,7 +250,7 @@ angular.module('servicesZ', ['dialogs.main'])
             if (spectra == null || spectra.name != results.name) return;
             spectra.automaticResults = results.results.coalesced;
             spectra.templateResults = results.results.templates;
-            spectra.automaticBestResults = self.getBestResults(results.results.coalesced);
+            spectra.automaticBestResults = results.results.coalesced; // TODO: REMOVE BEST RESULTS, ONLY HAVE AUTOMATIC RESULTS
             spectra.isMatching = false;
             spectra.isMatched = true;
             if (saveAutomatically) {

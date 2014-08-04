@@ -1,3 +1,9 @@
+::selection {
+    background-color: transparent;
+}
+input::selection {
+    background-color: yellow;
+}
 div[dropzone] {
     border-radius: 5px;
     border: 4px dashed #bbb;

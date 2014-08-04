@@ -101,8 +101,6 @@ function getXBounds(xs, xMin, xMax) {
     } else if (end < 0) {
         end = 0;
     }
-
-    console.log(start, end);
     return {start: start, end: end};
 }
 function normaliseViaArea(array, variance, val) {
@@ -683,6 +681,13 @@ function divideByError(intensity, variance) {
         intensity[i] = intensity[i] / (variance[i] * variance[i]);
     }
 }
+function findMean(data) {
+    var result = 0;
+    for (var i = 0; i < data.length; i++) {
+        result += data[i];
+    }
+    return result / data.length;
+}
 function absMean(data) {
     var running = 0;
     for (var i = 0; i < data.length; i++) {
@@ -724,4 +729,62 @@ function circShift(data, num) {
     for (var i = 0; i < l; i++) {
         data[i] = temp[(i + num) % l];
     }
+}
+
+function pruneResults(final, template) {
+    return final.slice(template.startZIndex, template.endZIndex);
+}
+function subtractMeanReject(final, trimAmount) {
+    var num = Math.floor(trimAmount * final.length);
+    var sorted = final.slice().sort(function(a,b) { return a-b });
+    sorted.splice(num, sorted.length - num);
+    var mean = findMean(sorted);
+    for (var i = 0; i < final.length; i++) {
+        final[i] -= mean;
+    }
+}
+function getPeaks(final, both) {
+    if (typeof both === 'undefined') both = true;
+    var is = [];
+    var vals = [];
+    for (var i = 2; i < final.length - 2; i++) {
+        if (final[i] >= final[i + 1] && final[i] >= final[i+2] && final[i] > final[i - 1] && final[i] > final[i - 2]) {
+            vals.push(final[i]);
+            is.push(i);
+        } else if (both && (final[i] <= final[i + 1] && final[i] <= final[i+2] && final[i] < final[i - 1] && final[i] < final[i - 2])) {
+            vals.push(final[i]);
+            is.push(i);
+        }
+    }
+    return {index: is, value: vals};
+}
+function getRMS(data) {
+    var mean = 0;
+    for (var i = 0; i < data.length; i++) {
+        mean += data[i];
+    }
+    mean = mean / data.length;
+    var squared = 0;
+    for (var i = 0; i < data.length; i++) {
+        squared += Math.pow((data[i] - mean), 2);
+    }
+    squared /= data.length;
+    return Math.sqrt(squared);
+}
+function rmsNormalisePeaks(final) {
+    var peaks = getPeaks(final).value;
+    var rms = getRMS(peaks);
+    for (var i = 0; i < final.length; i++) {
+        final[i] /= rms;
+    }
+}
+function normaliseXCorr(final) {
+    subtractMeanReject(final, trimAmount);
+    rmsNormalisePeaks(final);
+    var peaks = getPeaks(final, false);
+    var result = [];
+    for (var i = 0; i < peaks.index.length; i++) {
+        result.push({index: peaks.index[i], value: peaks.value[i]});
+    }
+    return result;
 }
