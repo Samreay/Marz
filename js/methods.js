@@ -1,7 +1,6 @@
 var normalised_height = 1000;
 var normalised_area = 100000;
-var polyDeg = 6;
-var max_error = 1e6;
+
 
 function convertVacuumFromAir(lambda) {
     for (var i = 0; i < lambda.length; i++) {
@@ -26,25 +25,13 @@ function convertSingleVacuumFromAir(lambda) {
  *
  * @param lambda
  * @param intensity
- * @param variance
  */
-function convertLambdaToLogLambda(lambda, intensity, variance) {
-    var logLambda = linearScale(Math.log(lambda[0])/Math.LN10, Math.log(lambda[lambda.length - 1])/Math.LN10, lambda.length);
+function convertLambdaToLogLambda(lambda, intensity, numel) {
+    if (typeof numel === 'undefined') numel = arraySize;
+    var logLambda = linearScale(startPower, endPower, numel);
     var rescale = logLambda.map(function(x) { return Math.pow(10, x);});
     var newIntensity = interpolate(rescale, lambda, intensity);
-    if (variance != null) {
-        var newVariance = interpolate(rescale, lambda, variance);
-    }
-    for (var i = 0; i < intensity.length; i++) {
-        lambda[i] = logLambda[i];
-        intensity[i] = newIntensity[i];
-        if (variance != null) {
-            variance[i] = newVariance[i];
-            if (variance[i] == 0) {
-                variance[i] = max_error;
-            }
-        }
-    }
+    return {lambda: logLambda, intensity: newIntensity};
 }
 function fastSmooth(y, num) {
     if (num == 0) {
@@ -346,6 +333,17 @@ function polyFit(lambda, intensity) {
     return r;
 }
 
+/**
+ * Checks to see
+ * @param intensity
+ * @param variance
+ * @param index
+ */
+function badIndex(intensity, variance, index) {
+    var i = intensity[index];
+    var v = variance[index];
+    return isNaN(i) || isNaN(v) || i == null || v == null || i > maxVal || i < minVal || v < 0;
+}
 
 /**
  * Replaces NaNs with an average over numPoints to either side.
@@ -354,13 +352,13 @@ function polyFit(lambda, intensity) {
  * @param variance
  * @param numPoints
  */
-function removeBlanks(intensity, variance, numPoints) {
+function removeBadPixels(intensity, variance) {
     for (var i = 0; i < intensity.length; i++) {
-        if (isNaN(intensity[i])) {
+        if (badIndex(intensity, variance, i)) {
             var r = 0;
             var c = 0;
             for (var j = i - numPoints; j < (i + 1 + numPoints); j++) {
-                if (j >= 0 && j < intensity.length && !isNaN(intensity[j])) {
+                if (j >= 0 && j < intensity.length && !badIndex(intensity, variance, j)) {
                     c++;
                     r += intensity[j];
                 }
@@ -369,9 +367,6 @@ function removeBlanks(intensity, variance, numPoints) {
                 r = r / c;
             }
             intensity[i] = r;
-            variance[i] = max_error;
-        }
-        if (isNaN(variance[i]) || Math.abs(variance[i]) > max_error || variance[i] <= 0) {
             variance[i] = max_error;
         }
     }
@@ -383,8 +378,8 @@ function removeBlanks(intensity, variance, numPoints) {
  * @param intensity
  * @param variance
  */
-function removeCosmicRay(intensity, variance, factor, numPoints, numTimes) {
-    for (var n = 0; n < numTimes; n++) {
+function removeCosmicRay(intensity, variance) {
+    for (var n = 0; n < cosmicIterations; n++) {
         var rms = 0;
         var mean = 0;
         for (var i = 0; i < intensity.length; i++) {
@@ -397,7 +392,7 @@ function removeCosmicRay(intensity, variance, factor, numPoints, numTimes) {
         rms = rms / intensity.length;
         rms = Math.pow(rms, 0.5);
         for (var i = 0; i < intensity.length; i++) {
-            if (Math.abs(intensity[i] - mean) < factor * rms) {
+            if (Math.abs(intensity[i] - mean) < deviationFactor * rms) {
                 continue;
             }
             var maxNeighbour = 0;
@@ -407,11 +402,11 @@ function removeCosmicRay(intensity, variance, factor, numPoints, numTimes) {
             if (i < intensity.length - 1) {
                 maxNeighbour = Math.max(maxNeighbour, Math.abs(intensity[i + 1] - intensity[i]));
             }
-            if (maxNeighbour > factor * rms) {
+            if (maxNeighbour > deviationFactor * rms) {
                 var r = 0;
                 var c = 0;
-                for (var j = i - numPoints; j < (i + 1 + numPoints); j++) {
-                    if (j >= 0 && j < intensity.length && !isNaN(intensity[j]) && Math.abs(intensity[j]-mean) < rms) {
+                for (var j = i - pointCheck; j < (i + 1 + pointCheck); j++) {
+                    if (j >= 0 && j < intensity.length && Math.abs(intensity[j]-mean) < rms) {
                         c++;
                         r += intensity[j];
                     }
@@ -451,5 +446,282 @@ function rollingPointMean(intensity, variance, numPoints, falloff) {
     }
     for (var i = 0; i < intensity.length; i++) {
         intensity[i] = d[i];
+    }
+}
+function getMean(data) {
+    var r = 0;
+    for (var i = 0; i < data.length; i++) {
+        r += data[i];
+    }
+    return r / data.length;
+}
+function stdDevSubtract(data, subtract) {
+    var subtracted = data.map(function(x, ind) { return x - subtract[ind]; });
+    var mean = getMean(subtracted);
+    var r = 0;
+    for (var i = 0; i < subtracted.length; i++) {
+        r += (subtracted[i] - mean)*(subtracted[i] - mean);
+    }
+    return Math.sqrt(r / subtracted.length);
+}
+/**
+ * //TODO: ADD DOC
+ * @param lambda
+ * @param intensity
+ */
+function polyFitReject(lambda, intensity) {
+    var l = lambda.slice();
+    var int = intensity.slice();
+    for (var i = 0; i < polyFitInteractions; i++) {
+        var fit = polynomial2(l, int, polyDeg);
+        var stdDev = stdDevSubtract(int, fit.points);
+        var c = 0;
+        for (var j = 0; j < int.length; j++) {
+            if (Math.abs((int[j] - fit.points[j]) / stdDev) > polyFitRejectDeviation) {
+                int.splice(j, 1);
+                l.splice(j, 1);
+                fit.points.splice(j, 1);
+                j--;
+                c++;
+            }
+        }
+        if (c == 0) {
+            break;
+        }
+    }
+    var final = lambda.map(function(val) {
+        var r = 0;
+        for (var j = 0; j < fit.equation.length; j++) {
+            r += fit.equation[j] * Math.pow(val, j);
+        }
+        return r;
+    });
+
+    for (var i = 0; i < intensity.length; i++) {
+        intensity[i] -= final[i];
+    }
+
+    return final;
+}
+function subtract(data, subtract) {
+    for (var i = 0; i < data.length; i++) {
+        data[i] -= subtract[i];
+    }
+}
+function smoothAndSubtract(intensity) {
+    var medians = medianFilter(intensity, medianWidth);
+    var smoothed = boxCarSmooth(medians, smoothWidth);
+    subtract(intensity, smoothed);
+
+}
+
+function medianFilter(data, window) {
+    var result = [];
+    var win = [];
+    var num = (window - 1)/2;
+    for (var i = 0; i < num + 2; i++) {
+        win.push(data[0]);
+    }
+    for (var i = 0; i < num - 1; i++) {
+        win.push(data[i]);
+    }
+    for (var i = 0; i < data.length; i++) {
+        var index = i + num;
+        if (index >= data.length) {
+            win.push(data[data.length - 1]);
+        } else {
+            win.push(data[index]);
+        }
+        win.splice(0, 1);
+        result.push(win.slice().sort(function(a,b){return a-b;})[num]);
+    }
+    return result;
+}
+
+function boxCarSmooth(data, window) {
+    var result = [];
+    var win = [];
+    var running = 0;
+    var num = (window - 1)/2;
+    for (var i = 0; i < num + 2; i++) {
+        win.push(data[0]);
+        running += win[win.length - 1];
+    }
+    for (var i = 0; i < num - 1; i++) {
+        win.push(data[i]);
+        running += win[win.length - 1];
+    }
+    for (var i = 0; i < data.length; i++) {
+        var index = i + num;
+        if (index >= data.length) {
+            win.push(data[data.length - 1]);
+        } else {
+            win.push(data[index]);
+        }
+        running += win[win.length - 1];
+        running -= win.splice(0,1)[0];
+        result.push(running / window);
+    }
+    return result;
+}
+
+function cosineTaper(intensity, zeroPixelWidth, taperWidth) {
+    for (var i = 0; i < zeroPixelWidth; i++) {
+        var inverse = intensity.length - 1 - i;
+        intensity[i] = 0;
+        intensity[inverse] = 0;
+    }
+    var frac = 0.5 * Math.PI / taperWidth;
+    for (var i = 0; i < taperWidth; i++) {
+        var inverse = intensity.length - 1 - i;
+        var rad = i * frac;
+        intensity[i + zeroPixelWidth] *= Math.sin(rad);
+        intensity[inverse - zeroPixelWidth] *= Math.sin(rad);
+    }
+}
+
+function taperSpectra(intensity) {
+    cosineTaper(intensity, zeroPixelWidth, taperWidth);
+}
+function broadenError(data, window) {
+    var result = [];
+    var win = [];
+    var num = (window - 1)/2;
+
+    for (var i = 0; i < data.length; i++) {
+        if (data[i] < max_error) {
+            while (win.length < num + 2) {
+                win.push(data[i]);
+            }
+            break;
+        }
+    }
+    for (var i = 0; i < data.length; i++) {
+        if (win.length < window) {
+            if (data[i] < max_error) {
+                win.push(data[i]);
+            }
+        } else {
+            break;
+        }
+    }
+    for (var i = 0; i < data.length; i++) {
+        if (data[i] < max_error) {
+            var index = i + num;
+            while (index < data.length && data[index] >= max_error) {
+                index++;
+            }
+            if (index >= data.length) {
+                win.push(win[win.length - 1]);
+            } else {
+                win.push(data[index]);
+            }
+            win.splice(0, 1);
+            result.push(win.slice().sort(function(a,b){return b-a;})[0]);
+        } else {
+            result.push(data[i]);
+        }
+    }
+    for (var i = 0; i < result.length; i++) {
+        data[i] = result[i];
+    }
+}
+function maxMedianAdjust(data, window, errorMedianWeight) {
+    var result = [];
+    var win = [];
+    var num = (window - 1)/2;
+    for (var i = 0; i < data.length; i++) {
+        if (data[i] < max_error) {
+            while (win.length < num + 2) {
+                win.push(data[i]);
+            }
+            break;
+        }
+    }
+    for (var i = 0; i < data.length; i++) {
+        if (win.length < window) {
+            if (data[i] < max_error) {
+                win.push(data[i]);
+            }
+        } else {
+            break;
+        }
+    }
+    for (var i = 0; i < data.length; i++) {
+        if (data[i] < max_error) {
+            var index = i + num;
+            while (index < data.length && data[index] >= max_error) {
+                index++;
+            }
+            if (index >= data.length) {
+                win.push(win[win.length - 1]);
+            } else {
+                win.push(data[index]);
+            }
+            win.splice(0, 1);
+            result.push(errorMedianWeight * win.slice().sort(function(a,b){return a-b;})[num]);
+        } else {
+            result.push(data[i]);
+        }
+    }
+    for (var i = 0; i < result.length; i++) {
+        data[i] = result[i];
+    }
+    for (var i = 0; i < data.length; i++) {
+        if (result[i] > data[i]) {
+            data[i] = result[i];
+        }
+    }
+}
+function adjustError(variance) {
+    broadenError(variance, broadenWindow);
+    maxMedianAdjust(variance, errorMedianWindow, errorMedianWeight);
+}
+
+function divideByError(intensity, variance) {
+    for (var i = 0; i < intensity.length; i++) {
+        intensity[i] = intensity[i] / (variance[i] * variance[i]);
+    }
+}
+function absMean(data) {
+    var running = 0;
+    for (var i = 0; i < data.length; i++) {
+        running += Math.abs(data[i]);
+    }
+    return running / data.length;
+}
+function absMax(data) {
+    return data.map(function(x) { return Math.abs(x); }).sort(function(a,b){return b-a;})[0];
+}
+function normaliseMeanDev(intensity, clipValue) {
+    var running = true;
+    while (running) {
+        var meanDeviation = absMean(intensity);
+        var clipVal = (clipValue + 0.01) * meanDeviation;
+        if (absMax(intensity) > clipVal) {
+            for (var i = 0; i < intensity.length; i++) {
+                if (intensity[i] > clipVal) {
+                    intensity[i] = clipVal;
+                } else if (intensity[i] < -clipVal) {
+                    intensity[i] = -clipVal;
+                }
+            }
+        } else {
+            running = false;
+        }
+    }
+    for (var i = 0; i < intensity.length; i++) {
+        intensity[i] /= meanDeviation;
+    }
+}
+
+function normalise(intensity) {
+    normaliseMeanDev(intensity, clipValue);
+}
+function circShift(data, num) {
+    var temp = data.slice();
+    var l = data.length;
+    for (var i = 0; i < l; i++) {
+        data[i] = temp[(i + num) % l];
     }
 }

@@ -1,5 +1,18 @@
 function TemplateManager() {
-    this.templates = [];
+    /**
+     * The list of templates in the application.
+     *
+     * id -                 string id of template. Important that this should not change.
+     * name -               name of the template for display
+     * shift -              true if the spectrum is in atmosphere and needs to be shifted to vacuum
+     * redshift -           the redshift offset the template has
+     * start_lambda -       start wavelength of the template
+     * end_lambda -         end wavelength of the template
+     * z_start -> z_end -   the redshift range this template is applicable for
+     * log_linear -         whether or not this template is linear in log space or not
+     * weights -            associated weights to apply when matching
+     * spec -               the spectrum itself
+     */
     this.templates = [{
         id: '1',
         name: 'A Star',
@@ -145,13 +158,6 @@ function TemplateManager() {
     }
     this.processTemplates();
 }
-
-
-/*TemplateManager.prototype.getPlottingShiftedLinearLambda = function (index, z, lambda) {
-    var t = this.templates[index];
-    var newLambda = this.getShiftedLinearLambda(index, z);
-    return interpolate(lambda, newLambda, t.spec_linear);
-};*/
 TemplateManager.prototype.getTemplate = function (id, z, withContinuum) {
     var t = this.templatesHash[id];
     var lambda = linearScaleFactor(t.start_lambda_linear, t.end_lambda_linear, (1 + z) / (1 + t.redshift) - 1, t.lambda_linear.length);
@@ -161,17 +167,14 @@ TemplateManager.prototype.getTemplate = function (id, z, withContinuum) {
         return [lambda, t.spec_linear];
     }
 };
-/*TemplateManager.prototype.getShiftedLinearLambda = function (index, z) {
-    var t = this.templates[index];
-    return linearScaleFactor(t.start_lambda_linear, t.end_lambda_linear, (1 + z) / (1 + t.redshift) - 1, t.lambda_linear.length);
-};*/
-/*TemplateManager.prototype.getTemplateLambda = function (index) {
-    return this.templates[index].lambda;
-};*/
 TemplateManager.prototype.processTemplates = function () {
     for (var i = 0; i < this.templates.length; i++) {
         var t = this.templates[i];
+
+        // Create the array of wavelengths
         t.lambda = linearScale(t.start_lambda, t.end_lambda, t.spec.length);
+
+        // Ensure all wavelengths are in vacuum
         if (t.shift != null && t.shift == true) {
             if (t.log_linear) {
                 convertVacuumFromAirWithLogLambda(t.lambda);
@@ -179,80 +182,37 @@ TemplateManager.prototype.processTemplates = function () {
                 convertVacuumFromAir(t.lambda);
             }
         }
+
+        // Create all the linear values to be used when plotting the templates
         if (!t.log_linear) {
-            convertLambdaToLogLambda(t.lambda, t.spec, t.variance);
-            t.start_lambda = t.lambda[0];
-            t.end_lambda = t.lambda[t.lambda.length - 1];
+            t.lambda_linear = t.lambda;
+            t.lambda = t.lambda.map(function(x) { return Math.log(x)/Math.LN10; });
+        } else {
+            t.lambda_linear = t.lambda.map(function(x) { return Math.pow(10, x); });
         }
-        t.specWithContinuum = t.spec.slice(0);
-        subtractPolyFit(t.lambda, t.spec);
-        normaliseViaArea(t.spec);
-        normaliseViaArea(t.specWithContinuum, null, 700000);
-        t.start_lambda_linear = Math.pow(10, t.lambda[0]);
-        t.end_lambda_linear = Math.pow(10, t.lambda[t.lambda.length - 1]);
-        t.lambda_linear = linearScale(t.start_lambda_linear, t.end_lambda_linear, t.spec.length);
-        var tempLambda = [];
-        for (var j = 0; j < t.lambda.length; j++) {
-            tempLambda.push(Math.pow(10, t.lambda[j]));
-        }
-        t.spec_linear = interpolate(t.lambda_linear, tempLambda, t.spec);
-        t.specWithContinuum_linear = interpolate(t.lambda_linear, tempLambda, t.specWithContinuum);
+        t.specWithContinuum_linear = t.spec.slice();
+        t.spec_linear = t.specWithContinuum_linear.slice();
+        subtractPolyFit(t.lambda_linear, t.spec_linear);
+
+
+        // We will create the data to be used for matching only when called for, so the UI does not waste time.
+
     }
 };
-/*TemplateManager.prototype.getName = function (i) {
- if (i == null) return "";
- return this.templates[i].name;
- }
- TemplateManager.prototype.getID = function (i) {
- if (i == null) return "";
- return this.templates[i].id;
- }
- TemplateManager.prototype.get = function (i) {
- if (i < 0 || i > this.templates.length) return null;
- return this.templates[i];
- };
- TemplateManager.prototype.getAll = function () {
- return this.templates;
- };
- TemplateManager.prototype.getIndexFromID = function (id) {
- for (var i = 0; i < this.templates.length; i++) {
- if (this.templates[i].id == id) {
- return i;
- }
- }
- return null;
- };
- TemplateManager.prototype.getViaID = function (id) {
- for (var i = 0; i < this.templates.length; i++) {
- if (this.templates[i].id == id) {
- return this.templates[i];
- }
- }
- return null;
- };
- TemplateManager.prototype.getTemplatesAsJson = function () {
- var data = [
- {index: -1, id: 0, name: "Select a template"}
- ];
- for (var i = 0; i < this.templates.length; i++) {
- data.push({index: i, id: this.templates[i].id, name: this.templates[i].name});
- }
- return data;
- };*/
-TemplateManager.prototype.shiftToMatchSpectra = function (logLambda) {
-    var spacing = logLambda[1] - logLambda[0];
-    var start = logLambda[0];
-
+TemplateManager.prototype.shiftToMatchSpectra = function () {
+    var logLambda = linearScale(startPower, endPower, arraySize);
     for (var i = 0; i < this.templates.length; i++) {
         var t = this.templates[i];
-        t.interpolatedStart = start - Math.ceil((start - t.start_lambda) / spacing) * spacing;
-        t.interpolatedEnd = start + Math.ceil((t.end_lambda - start) / spacing) * spacing;
-        t.interpolatedLambda = linearScale(t.interpolatedStart, t.interpolatedEnd, 1 + (t.interpolatedEnd - t.interpolatedStart) / spacing);
-        t.interpolatedSpec = interpolate(t.interpolatedLambda, linearScale(t.start_lambda, t.end_lambda, t.spec.length), t.spec);
-        t.totalWeight = 0;
-        for (var j = 0; j < t.interpolatedSpec.length; j++) {
-            t.totalWeight += Math.abs(t.interpolatedSpec[j]);
-        }
 
+        polyFitReject(t.lambda, t.spec);
+        smoothAndSubtract(t.spec);
+        taperSpectra(t.spec);
+
+        t.lambda = logLambda;
+        t.spec = interpolate(logLambda, t.lambda, t.spec);
+
+        t.fft = new FFT(t.spec.length, t.spec.length);
+        t.fft.forward(t.spec);
+        t.fft.conjugate();
     }
 };

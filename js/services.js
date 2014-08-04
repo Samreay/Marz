@@ -240,7 +240,7 @@ angular.module('servicesZ', ['dialogs.main'])
             spectra.processedLambda = results.lambda;
             spectra.processedIntensity = results.intensity;
             spectra.processedContinuum = results.continuum;
-            spectra.processedLambdaPlot = results.lambda.map(function(x) { return Math.pow(10, x); });
+            spectra.processedLambdaPlot = results.lambda; //.map(function(x) { return Math.pow(10, x); });
             spectra.processedVariance = results.variance;
             spectra.isProcessing = false;
             spectra.isProcessed = true;
@@ -786,7 +786,7 @@ angular.module('servicesZ', ['dialogs.main'])
             self.fits.getDataUnit(typeIndex).getColumn("TYPE", function(data) {
                 var ind = 0;
                 for (var i = 0; i < data.length; i++) {
-                    if (data[i] == "P") {
+                    if (data[i] == "P" && ind == 0) {
                         spectra.push({index: ind++, fitsIndex: i, id: i+1, lambda: lambda.slice(0), intensity: [], variance: [], miniRendered: 0});
                     }
                 }
