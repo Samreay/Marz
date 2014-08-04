@@ -786,7 +786,7 @@ angular.module('servicesZ', ['dialogs.main'])
             self.fits.getDataUnit(typeIndex).getColumn("TYPE", function(data) {
                 var ind = 0;
                 for (var i = 0; i < data.length; i++) {
-                    if (data[i] == "P" && ind == 0) {
+                    if (data[i] == "P") {
                         spectra.push({index: ind++, fitsIndex: i, id: i+1, lambda: lambda.slice(0), intensity: [], variance: [], miniRendered: 0});
                     }
                 }
