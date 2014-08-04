@@ -21,7 +21,7 @@ function Spectra(id, lambda, intensity, variance, sky, skyAverage, name, ra, dec
     if (this.intensity != null) {
         this.intensityPlot = this.intensity.slice();
         this.processedLambdaPlot = null;
-        normaliseViaShift(this.intensityPlot, 0, 600, null);
+//        normaliseViaShift(this.intensityPlot, 0, 600, null);
     }
 
     this.processedLambda = null;

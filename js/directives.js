@@ -709,6 +709,8 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                 });
                 $scope.$watch('detailed.smooth', function() {
                     smoothData('data');
+                    getBounds();
+                    addTemplateData();
                     redraw();
                 });
                 $scope.$watchCollection('[detailed.width, detailed.height, detailed.spectralLines, detailed.lockedBounds]', function() {

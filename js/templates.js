@@ -162,7 +162,7 @@ function TemplateManager() {
 }
 TemplateManager.prototype.getTemplateFromId = function(id) {
     return this.templatesHash[id];
-}
+};
 TemplateManager.prototype.getTemplate = function (id, z, withContinuum) {
     var t = this.templatesHash[id];
     var lambda = linearScaleFactor(t.start_lambda_linear, t.end_lambda_linear, (1 + z) / (1 + t.redshift) - 1, t.lambda_linear.length);

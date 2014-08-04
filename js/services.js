@@ -912,10 +912,10 @@ angular.module('servicesZ', ['dialogs.main'])
     self.drawOverviewOnCanvas = function(spectra, canvas) {
         var width = canvas.clientWidth;
         if (spectra.intensity.length > 0) {
-            var lambda = self.condenseToXPixels(spectra.lambda, width);
-            var intensity = self.condenseToXPixels(spectra.intensityPlot, width);
-            var processedLambda = self.condenseToXPixels(spectra.processedLambdaPlot, width);
-            var processedIntensity = self.condenseToXPixels(spectra.processedContinuum, width);
+            var hasProcessed = !(spectra.processedLambdaPlot == null || typeof spectra.processedLambdaPlot === 'undefined');
+
+            var lambda = self.condenseToXPixels(!hasProcessed ? spectra.lambda : spectra.processedLambdaPlot, width);
+            var intensity = self.condenseToXPixels(!hasProcessed ? spectra.intensityPlot : spectra.processedContinuum, width);
             var r = null;
             if (spectra.getFinalTemplateID() != null) {
                 r = templatesService.getTemplateAtRedshift(spectra.getFinalTemplateID(), spectra.getFinalRedshift(), false);
@@ -927,19 +927,15 @@ angular.module('servicesZ', ['dialogs.main'])
             }
             self.clearPlot(canvas);
             var toBound = [];
+            var toBound2 = [];
             toBound.push([lambda, intensity]);
-            toBound.push([processedLambda, processedIntensity]);
-            if (tempIntensity != null) {
-                toBound.push([lambda, tempIntensity]);
-            }
             var bounds = self.getMaxes(toBound);
             this.plotZeroLine(canvas, "#C4C4C4", bounds);
             self.plot(lambda, intensity, ui.colours.raw, canvas, bounds);
-            if (processedIntensity != null) {
-                self.plot(processedLambda, processedIntensity, ui.colours.processed, canvas, bounds);
-            }
             if (tempIntensity != null) {
-                self.plot(lambda, tempIntensity, ui.colours.matched, canvas, bounds);
+                toBound2.push([lambda, tempIntensity]);
+                var bounds2 = self.getMaxes(toBound2);
+                self.plot(lambda, tempIntensity, ui.colours.matched, canvas, [bounds[0], bounds[1], bounds2[2], bounds2[2] + (2*(bounds2[3] - bounds2[2]))]);
             }
         }
     };
