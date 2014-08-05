@@ -21,7 +21,7 @@ angular.module('servicesZ', ['dialogs.main'])
                     oldRedshift: "0",
                     matchedActive: true,
                     matchedIndex: null,
-                    smooth: "2",
+                    smooth: "5",
                     width: 300,
                     spectraFocus: null,
                     spectralLines: true,
