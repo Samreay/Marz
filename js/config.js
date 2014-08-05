@@ -2,7 +2,7 @@
 // CONFIG FOR PIXEL MASKING
 var minVal = -1e4;          // Intensity less than this is bad
 var maxVal = 1e6;           // Intensity greater than this is bad
-var numPoints = 3;          // When bad, averages over this many pixels to either side.
+var numPoints = 4;          // When bad, averages over this many pixels to either side.
 var max_error = 1e10;
 
 // CONFIG FOR COSMIC RAY DETECTION
@@ -15,7 +15,7 @@ var polyFitInteractions = 15;
 var polyFitRejectDeviation = 3.5;
 
 // CONFIG FOR CONTINUUM SUBTRACTION
-var polyDeg = 4;
+var polyDeg = 6;
 var medianWidth = 51;
 var smoothWidth = 121;
 

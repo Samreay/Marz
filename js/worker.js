@@ -7,6 +7,11 @@ var self = this;
  * in the message data, it processes the data. If the flag is not set, it will match the data and
  * return the results of the matching.
  */
+if (!shifted_temp) {
+    templateManager.shiftToMatchSpectra();
+    shifted_temp = true;
+}
+
 self.addEventListener('message', function(event) {
 
     var data = event.data;
@@ -35,9 +40,9 @@ self.process = function(data) {
 self.processData = function(lambda, intensity, variance) {
     removeBadPixels(intensity, variance);
     removeCosmicRay(intensity, variance);
-    var continuum = polyFitReject(lambda, intensity);
-    add(continuum, intensity);
-    return continuum;
+    var res = intensity.slice();
+    polyFitReject(lambda, intensity);
+    return res;
 };
 
 /**
@@ -57,25 +62,39 @@ self.matchTemplates = function(lambda, intensity, variance, type) {
 
     //TODO: By this section need to ensure the templates are shifted and interpolated,
     //TODO: and that the variance has been factored into the intensity as per autoz.
+    var quasarIntensity = intensity.slice();
+
     smoothAndSubtract(intensity);
     taperSpectra(intensity);
     adjustError(variance);
     divideByError(intensity, variance);
     normalise(intensity);
 
+
+
+    rollingPointMean(quasarIntensity, 11, 0.95);
+    taperSpectra(quasarIntensity);
+    normalise(quasarIntensity);
+
+
+//    console.log("intensity=" + JSON.stringify(intensity) + ";quasarIntensity="+JSON.stringify(quasarIntensity)+";");
+//    console.log("quasarIntensity="+JSON.stringify(quasarIntensity)+";");
+
     var result = convertLambdaToLogLambda(lambda, intensity, arraySize);
+    var quasarResult = convertLambdaToLogLambda(lambda, quasarIntensity, arraySize);
+    var quasarIntensity = quasarResult.intensity;
     lambda = result.lambda;
     intensity = result.intensity;
 
 
-    if (!shifted_temp) {
-        templateManager.shiftToMatchSpectra();
-        shifted_temp = true;
-    }
 
 
     var templateResults = templateManager.templates.map(function(template) {
-        return self.matchTemplate(template, lambda, intensity);
+        if (template.id == '12') {
+            return self.matchTemplate(template, lambda, quasarIntensity);
+        } else {
+            return self.matchTemplate(template, lambda, intensity);
+        }
     });
     return self.coalesceResults(templateResults, type);
 };
@@ -89,6 +108,7 @@ self.matchTemplate = function(template, lambda, intensity) {
     final = Array.prototype.slice.call(final);
     circShift(final, final.length/2);
     final = pruneResults(final, template);
+//    if (template.id == '12') console.log("final=" + JSON.stringify(final) + ";");
     var finalPeaks = normaliseXCorr(final);
     return {
         id: template.id,

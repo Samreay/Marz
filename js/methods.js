@@ -354,18 +354,21 @@ function removeBadPixels(intensity, variance) {
     for (var i = 0; i < intensity.length; i++) {
         if (badIndex(intensity, variance, i)) {
             var r = 0;
+            var e = 0;
             var c = 0;
             for (var j = i - numPoints; j < (i + 1 + numPoints); j++) {
                 if (j >= 0 && j < intensity.length && !badIndex(intensity, variance, j)) {
                     c++;
                     r += intensity[j];
+                    e += variance[j];
                 }
             }
             if (c != 0) {
                 r = r / c;
+                e = e / c;
             }
             intensity[i] = r;
-            variance[i] = max_error;
+            variance[i] = e;
         }
     }
 }
@@ -419,9 +422,7 @@ function removeCosmicRay(intensity, variance) {
     }
 }
 
-function rollingPointMean(intensity, variance, numPoints, falloff) {
-    var rolling = 0;
-    //var error = 0; //TODO: SCIENCE: Appropriate dealing with error. Max of 5, average, apply uncertainty calcs
+function rollingPointMean(intensity, numPoints, falloff) {
     var d = [];
     var weights = [];
     var total = 0;
