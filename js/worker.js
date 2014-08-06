@@ -86,29 +86,28 @@ self.matchTemplates = function(lambda, intensity, variance, type) {
     lambda = result.lambda;
     intensity = result.intensity;
 
-
-
+    var fft = new FFT(intensity.length, intensity.length);
+    fft.forward(intensity);
+    var quasarFFT = new FFT(quasarIntensity.length, quasarIntensity.length);
+    quasarFFT.forward(quasarIntensity);
 
     var templateResults = templateManager.templates.map(function(template) {
         if (template.id == '12') {
-            return self.matchTemplate(template, lambda, quasarIntensity);
+            return self.matchTemplate(template, quasarFFT);
         } else {
-            return self.matchTemplate(template, lambda, intensity);
+            return self.matchTemplate(template, fft);
         }
     });
     return self.coalesceResults(templateResults, type);
 };
 
 
-self.matchTemplate = function(template, lambda, intensity) {
-    var fft = new FFT(intensity.length, intensity.length);
-    fft.forward(intensity);
-    fft.multiply(template.fft);
-    var final = fft.inverse();
+self.matchTemplate = function(template, fft) {
+    var fftNew = fft.multiply(template.fft);
+    var final = fftNew.inverse();
     final = Array.prototype.slice.call(final);
     circShift(final, final.length/2);
     final = pruneResults(final, template);
-//    if (template.id == '12') console.log("final=" + JSON.stringify(final) + ";");
     var finalPeaks = normaliseXCorr(final);
     return {
         id: template.id,

@@ -201,8 +201,6 @@ TemplateManager.prototype.processTemplates = function () {
         t.end_lambda_linear = t.lambda_linear[t.lambda_linear.length - 1];
 
         subtractPolyFit(t.lambda_linear, t.spec_linear);
-
-
         // We will create the data to be used for matching only when called for, so the UI does not waste time.
     }
 };
