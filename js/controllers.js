@@ -312,6 +312,9 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
                 $scope.settings.oldRedshift = $scope.settings.redshift;
             }
         };
+        $scope.$watch('ui.active.getHash()', function() {
+            $scope.currentlyMatching();
+        });
         $scope.getTemplatesList = function() {
             var data = [{id: '0', name: "Select a template"}];
             var t = templatesService.getTemplates();
@@ -351,9 +354,11 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
         };
         $scope.currentlyMatching = function() {
             var matches = $scope.getActive().getMatches($scope.bounds.maxMatches);
+            var matched = false;
             for (var i = 0; i < matches.length; i++) {
                 if ($scope.settings.redshift == matches[i].z && $scope.settings.templateId == matches[i].templateId) {
                     $scope.settings.matchedIndex = i;
+                    matched = true;
                     matches[i].index = i;
                     if (i < matches.length - 1) {
                         matches[i].next = matches[i + 1];
@@ -362,6 +367,9 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
                     }
                     return matches[i];
                 }
+            }
+            if (!matched) {
+                $scope.settings.matchedIndex = null;
             }
             return null;
         };

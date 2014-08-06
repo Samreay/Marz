@@ -11,7 +11,7 @@ angular.module('servicesZ', ['dialogs.main'])
                 detailed: {
                     bounds: {
                         redshiftMin: 0,
-                        redshiftMax: 4,
+                        redshiftMax: 4.5,
                         maxMatches: 5,
                         maxSmooth: 20
                     },
@@ -21,7 +21,7 @@ angular.module('servicesZ', ['dialogs.main'])
                     oldRedshift: "0",
                     matchedActive: true,
                     matchedIndex: null,
-                    smooth: "2",
+                    smooth: "5",
                     width: 300,
                     spectraFocus: null,
                     spectralLines: true,
@@ -240,7 +240,7 @@ angular.module('servicesZ', ['dialogs.main'])
             spectra.processedLambda = results.lambda;
             spectra.processedIntensity = results.intensity;
             spectra.processedContinuum = results.continuum;
-            spectra.processedLambdaPlot = results.lambda.map(function(x) { return Math.pow(10, x); });
+            spectra.processedLambdaPlot = results.lambda; //.map(function(x) { return Math.pow(10, x); });
             spectra.processedVariance = results.variance;
             spectra.isProcessing = false;
             spectra.isProcessed = true;
@@ -250,7 +250,7 @@ angular.module('servicesZ', ['dialogs.main'])
             if (spectra == null || spectra.name != results.name) return;
             spectra.automaticResults = results.results.coalesced;
             spectra.templateResults = results.results.templates;
-            spectra.automaticBestResults = self.getBestResults(results.results.coalesced);
+            spectra.automaticBestResults = results.results.coalesced; // TODO: REMOVE BEST RESULTS, ONLY HAVE AUTOMATIC RESULTS
             spectra.isMatching = false;
             spectra.isMatched = true;
             if (saveAutomatically) {
@@ -912,10 +912,10 @@ angular.module('servicesZ', ['dialogs.main'])
     self.drawOverviewOnCanvas = function(spectra, canvas) {
         var width = canvas.clientWidth;
         if (spectra.intensity.length > 0) {
-            var lambda = self.condenseToXPixels(spectra.lambda, width);
-            var intensity = self.condenseToXPixels(spectra.intensityPlot, width);
-            var processedLambda = self.condenseToXPixels(spectra.processedLambdaPlot, width);
-            var processedIntensity = self.condenseToXPixels(spectra.processedContinuum, width);
+            var hasProcessed = !(spectra.processedLambdaPlot == null || typeof spectra.processedLambdaPlot === 'undefined');
+
+            var lambda = self.condenseToXPixels(!hasProcessed ? spectra.lambda : spectra.processedLambdaPlot, width);
+            var intensity = self.condenseToXPixels(!hasProcessed ? spectra.intensityPlot : spectra.processedContinuum, width);
             var r = null;
             if (spectra.getFinalTemplateID() != null) {
                 r = templatesService.getTemplateAtRedshift(spectra.getFinalTemplateID(), spectra.getFinalRedshift(), false);
@@ -927,19 +927,15 @@ angular.module('servicesZ', ['dialogs.main'])
             }
             self.clearPlot(canvas);
             var toBound = [];
+            var toBound2 = [];
             toBound.push([lambda, intensity]);
-            toBound.push([processedLambda, processedIntensity]);
-            if (tempIntensity != null) {
-                toBound.push([lambda, tempIntensity]);
-            }
             var bounds = self.getMaxes(toBound);
             this.plotZeroLine(canvas, "#C4C4C4", bounds);
             self.plot(lambda, intensity, ui.colours.raw, canvas, bounds);
-            if (processedIntensity != null) {
-                self.plot(processedLambda, processedIntensity, ui.colours.processed, canvas, bounds);
-            }
             if (tempIntensity != null) {
-                self.plot(lambda, tempIntensity, ui.colours.matched, canvas, bounds);
+                toBound2.push([lambda, tempIntensity]);
+                var bounds2 = self.getMaxes(toBound2);
+                self.plot(lambda, tempIntensity, ui.colours.matched, canvas, [bounds[0], bounds[1], bounds2[2], bounds2[2] + (2*(bounds2[3] - bounds2[2]))]);
             }
         }
     };
