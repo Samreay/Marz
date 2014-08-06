@@ -249,6 +249,7 @@ angular.module('servicesZ', ['dialogs.main'])
             var spectra = data.spectraHash[results.id];
             if (spectra == null || spectra.name != results.name) return;
             spectra.automaticResults = results.results.coalesced;
+//            console.log(JSON.stringify(results.results.coalesced).replace(/},{/g,"}\n{"));
             spectra.templateResults = results.results.templates;
             spectra.automaticBestResults = results.results.coalesced; // TODO: REMOVE BEST RESULTS, ONLY HAVE AUTOMATIC RESULTS
             spectra.isMatching = false;

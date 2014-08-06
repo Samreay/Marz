@@ -72,7 +72,7 @@ self.matchTemplates = function(lambda, intensity, variance, type) {
 
 
 
-    rollingPointMean(quasarIntensity, 11, 0.95);
+    rollingPointMean(quasarIntensity, 3, 0.9);
     taperSpectra(quasarIntensity);
     normalise(quasarIntensity);
 

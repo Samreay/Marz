@@ -313,7 +313,9 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             }
         };
         $scope.$watch('ui.active.getHash()', function() {
-            $scope.currentlyMatching();
+            if ($scope.getActive()) {
+                $scope.currentlyMatching();
+            }
         });
         $scope.getTemplatesList = function() {
             var data = [{id: '0', name: "Select a template"}];
