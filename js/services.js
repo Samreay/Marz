@@ -125,8 +125,6 @@ angular.module('servicesZ', ['dialogs.main'])
                 saveAutomatically = cookie;
             }
         };
-        self.setDownloadAutomaticallyInitial();
-        self.setSaveAutomaticallyInitial();
         self.setDownloadAutomatically = function(value) {
             downloadAutomatically = value;
             cookieService.saveCookie(downloadAutomaticallyCookie, downloadAutomatically);
@@ -141,6 +139,8 @@ angular.module('servicesZ', ['dialogs.main'])
         self.getSaveAutomatically = function() {
             return saveAutomatically;
         };
+        self.setDownloadAutomaticallyInitial();
+        self.setSaveAutomaticallyInitial();
         self.hasSpectra = function() {
             return data.spectra.length > 0;
         };
