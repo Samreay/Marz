@@ -35,7 +35,8 @@ var clipValue = 25;
 // CONFIG FOR REBINNING
 var startPower = 2.8;
 var endPower = 4.3;
-var arraySize = 65536; // Must be a power of two
+//var arraySize = 65536; // Must be a power of two
+var arraySize = 32768; // Must be a power of two
 
 // CONFIG FOR XCORR NORMALISATION
 var trimAmount = 0.04;
