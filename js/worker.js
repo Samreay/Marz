@@ -145,6 +145,11 @@ self.coalesceResults = function(templateResults, type) {
     // Return only the ten best results
     coalesced.splice(10, coalesced.length - 1);
 
+    for (var k = 0; k < coalesced.length; k++) {
+        // Javascript only rounds to integer, so this should get four decimal places
+        coalesced[k].z =  Math.round(coalesced[k].z * 1e4) / 1e4;
+    }
+
     //TODO: Instead of just splicing, make sure the best results are a threshold value in redshift different
 
     //TODO: For each of those results we actually want to do a quadratic fit.

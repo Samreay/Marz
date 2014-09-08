@@ -436,7 +436,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     for (var i = 0; i < (zero - top) / labelHeight; i++) {
                         y = zero - (labelHeight * i) + 0.5;
                         if (onlyLabels) {
-                            c.fillText(convertCanvasYCoordinateToDataPoint(y + 0.5).toFixed(0), x, y);
+                            c.fillText(convertCanvasYCoordinateToDataPoint(y + 0.5).toFixed(1), x, y);
                         } else {
                             c.moveTo(left, y);
                             c.lineTo(left + width, y);
@@ -445,7 +445,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     for (var i = 1; i < (top + height - zero) / labelHeight; i++) {
                         y = zero + (labelHeight * i) + 0.5;
                         if (onlyLabels) {
-                            c.fillText(convertCanvasYCoordinateToDataPoint(y + 0.5).toFixed(0), x, y);
+                            c.fillText(convertCanvasYCoordinateToDataPoint(y + 0.5).toFixed(1), x, y);
                         } else {
                             c.moveTo(left, y);
                             c.lineTo(left + width, y);

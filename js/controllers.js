@@ -128,7 +128,7 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
                 $scope.$apply();
             }},
             {key: 'o', label: 'o', controller: "detailed", description: '[Detailed screen] Show the next automatic redshift result', fn: function($scope) {
-                $timeout($scope.nextMatchedDetails());
+                $timeout(function() { $scope.nextMatchedDetails()});
             }},
             {key: 's', label: 's', controller: "detailed", description: '[Detailed screen] Increase smoothing level', fn: function($scope) {
                 $scope.incrementSmooth();
@@ -392,6 +392,7 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             } else {
                 $scope.selectMatch(match.next);
             }
+            $scope.currentlyMatching();
             $scope.$apply();
         };
         $scope.selectMatch = function(match) {

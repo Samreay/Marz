@@ -345,7 +345,7 @@ function badIndex(intensity, variance, index) {
 
 /**
  * Replaces NaNs with an average over numPoints to either side.
- * Sets the variance to null so the point isnt counted.
+ * Sets the variance to null so the point isn't counted.
  * @param intensity
  * @param variance
  * @param numPoints

@@ -68,6 +68,7 @@ Spectra.prototype.getBestAutomaticResult = function() {
 };
 Spectra.prototype.getMatches = function(number) {
     if (number == null) return this.automaticBestResults;
+    if (this.automaticBestResults == null) return [];
     return this.automaticBestResults.slice(0, number);
 };
 Spectra.prototype.getManual = function() {
