@@ -1,4 +1,4 @@
-importScripts('../lib/regression.js', 'tools.js', 'methods.js', 'templates.js', 'classes.js', '../lib/dsp.js', 'config.js')
+importScripts('../lib/regression.js', 'tools.js',  'spectralLines.js', 'methods.js', 'templates.js', 'classes.js', '../lib/dsp.js', 'config.js')
 var templateManager = new TemplateManager();
 var shifted_temp = false;
 var self = this;
@@ -108,6 +108,10 @@ self.matchTemplate = function(template, fft) {
     final = Array.prototype.slice.call(final);
     circShift(final, final.length/2);
     final = pruneResults(final, template);
+    // UNCOMMENT SECTION BELOW TO GET XCOR RESULTS FOR QUASAR
+    /*if (template.id == '12') {
+        console.log("xcor = " + JSON.stringify(final) + ";");
+    }*/
     var finalPeaks = normaliseXCorr(final);
     return {
         id: template.id,

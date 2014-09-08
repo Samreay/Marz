@@ -40,3 +40,8 @@ var arraySize = 32768; // Must be a power of two
 
 // CONFIG FOR XCORR NORMALISATION
 var trimAmount = 0.04;
+
+// CONFIG FOR QUASAR WEIGHTING
+// CURRENTLY NOT UTILISED
+var baseWeight = 0.01;
+var gaussianWidth = 0.0003; // ANGSTROM

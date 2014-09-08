@@ -310,6 +310,7 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
                 $scope.settings.redshift = $scope.settings.oldRedshift;
             } else {
                 $scope.settings.oldRedshift = $scope.settings.redshift;
+                $scope.currentlyMatching();
             }
         };
         $scope.$watch('ui.active.getHash()', function() {

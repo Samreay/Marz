@@ -54,6 +54,7 @@ SpectralLines.prototype.addSpectralLine = function(id, label, name, wavelength, 
         label: label,
         name: name,
         wavelength: wavelength,
+        logWavelength: Math.log(wavelength)/Math.LN10,
         type: type,
         enabled: enabled
     });

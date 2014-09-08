@@ -511,7 +511,27 @@ function smoothAndSubtract(intensity) {
     var medians = medianFilter(intensity, medianWidth);
     var smoothed = boxCarSmooth(medians, smoothWidth);
     subtract(intensity, smoothed);
+}
 
+function applySpectralLineWeighting(lambda, spec) {
+    var spectralLines = new SpectralLines();
+    var lines = spectralLines.getAll();
+    var weights = [];
+    for (var i = 0; i < lambda.length; i++) {
+        weights.push(baseWeight);
+    }
+    for (var j = 0; j < lines.length; j++) {
+        for (var k = 0; k < weights.length; k++) {
+            weights[k] += Math.exp(-1*Math.pow(lambda[k] - lines[j].logWavelength, 2) / gaussianWidth);
+        }
+    }
+
+    for (var m = 0; m < spec.length; m++) {
+        spec[m] *= Math.min(1, weights[m]);
+    }
+
+//    console.log("weights = " + JSON.stringify(weights) + ";");
+//    console.log("spec = " + JSON.stringify(spec) + ";");
 }
 
 function medianFilter(data, window) {
