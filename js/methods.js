@@ -1,21 +1,43 @@
 var normalised_height = 1000;
 var normalised_area = 100000;
 
-
+/**
+ * In place converts an array of wavelengths (in Angstroms) from air wavelength
+ * to vacuum wavelength
+ *
+ * @param lambda an array of wavelengths
+ */
 function convertVacuumFromAir(lambda) {
     for (var i = 0; i < lambda.length; i++) {
         lambda[i] = lambda[i] * (1 + 2.735192e-4 + (131.4182/Math.pow(lambda[i], 2)) + (2.76249E8 /Math.pow(lambda[i], 4)));
     }
 }
+/**
+ * In place converts an array of log (base 10) wavelengths (log(Angstroms)) from air wavelength
+ * to vacuum wavelength
+ *
+ * @param lambda an array of log wavelengths
+ */
 function convertVacuumFromAirWithLogLambda(lambda) {
     for (var i = 0; i < lambda.length; i++) {
         var l = Math.pow(10, lambda[i]);
         lambda[i] = Math.log(l * (1 + 2.735192e-4 + (131.4182/Math.pow(l, 2)) + (2.76249E8 /Math.pow(l, 4))))/Math.LN10;
     }
 }
+/**
+ * Redshifts a singular wavelength
+ * @param lambda the wavelength to redshift
+ * @param z the redshift to apply
+ * @returns {number} the redshifted wavelength
+ */
 function shiftWavelength(lambda, z) {
     return (1+z)*lambda;
 }
+/**
+ * Converts a single wavelength in Angstroms from air to vacuum
+ * @param lambda the wavelength to convert
+ * @returns {number} the vacuum wavelength
+ */
 function convertSingleVacuumFromAir(lambda) {
     return lambda * (1 + 2.735192e-4 + (131.4182/Math.pow(lambda, 2)) + (2.76249E8 /Math.pow(lambda, 4)));
 }
@@ -33,7 +55,15 @@ function convertLambdaToLogLambda(lambda, intensity, numel) {
     var newIntensity = interpolate(rescale, lambda, intensity);
     return {lambda: logLambda, intensity: newIntensity};
 }
+
+/**
+ * Performs a fast smooth on the data via means of a rolling sum
+ * @param y the array of values which to smooth
+ * @param num the number of pixels either side to smooth (not the window size)
+ * @returns {Array} the smoothed values
+ */
 function fastSmooth(y, num) {
+    //TODO: LOOK AT THIS AGAIN, RESULTS FOR HIGH NUM SEEM WEIRD
     if (num == 0) {
         return y;
     }
@@ -79,7 +109,7 @@ function normaliseSection(xs, ys, xMin, xMax, yMin, height) {
     return {xs: xss, ys: yss};
 
 }
-//TODO: Log time complexity should be easy to do here
+//TODO: Log time complexity should be easy to do here if ordered
 function getXBounds(xs, xMin, xMax) {
     var start = null;
     var end = null;

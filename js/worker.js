@@ -2,6 +2,7 @@ importScripts('../lib/regression.js', 'tools.js',  'spectralLines.js', 'methods.
 var templateManager = new TemplateManager();
 var shifted_temp = false;
 var self = this;
+
 /**
  * This function listens to messages from the main client process. If the processing flag is set
  * in the message data, it processes the data. If the flag is not set, it will match the data and
@@ -12,10 +13,13 @@ if (!shifted_temp) {
     shifted_temp = true;
 }
 
+/**
+ * We need to add an event listener that listens for processing requests from the ProcessorService
+ */
 self.addEventListener('message', function(event) {
-
     var data = event.data;
     var result = null;
+    // Whether the data gets processed or matched depends on if a processing property is set
     if (data.processing) {
         self.process(data);
         result = data;
@@ -28,12 +32,25 @@ self.addEventListener('message', function(event) {
     }
     self.postMessage(result);
 });
+
+/**
+ * This function takes a data structure that has lambda, intensity and variance arrays set. It will add
+ * a continuum array (which is the intensity without subtraction) and modified intensity and variance arrays
+ * such that the continuum has been subtracted out
+ * @param data
+ * @returns the input data data structure with a continuum property added
+ */
 self.process = function(data) {
     data.continuum = self.processData(data.lambda, data.intensity, data.variance);
     return data;
 };
+
 /**
  * Preprocesses the data to make it easier for a user to find a manual redshift.
+ *
+ * Involves flagging and removing bad pixels, along with flagging and removing bad pixels.
+ *
+ * Continuum subtraction is done via rejected polynomial fitting.
  *
  * Returns the continuum, so that users can toggle it on or off.
  */
@@ -51,46 +68,50 @@ self.processData = function(lambda, intensity, variance) {
  * This function will get the matching results for every available template, and then coalesce them
  * into a singular data structure which is then returned to the user.
  *
+ * It first continues processing the spectra, before Fourier transforming them, and passing the transforms
+ * to a template matching function (which is found below), before calling the coalesce function and returning
+ * its results
+ *
  * @param lambda
  * @param intensity
  * @param variance
- * @param type (eg AGN_reverberation)
+ * @param type (eg 'AGN_reverberation')
  * @returns a data structure of results, containing both the fit at each redshift for each template, and an
  * ordered list of best results.
  */
 self.matchTemplates = function(lambda, intensity, variance, type) {
 
-    //TODO: By this section need to ensure the templates are shifted and interpolated,
-    //TODO: and that the variance has been factored into the intensity as per autoz.
+    // As the quasar spectra is matched differently, Ill create a duplicate for the quasar
     var quasarIntensity = intensity.slice();
+    rollingPointMean(quasarIntensity, 3, 0.9);
+    taperSpectra(quasarIntensity);
+    normalise(quasarIntensity);
 
+    // The intensity variable is what will match every other template
     smoothAndSubtract(intensity);
     taperSpectra(intensity);
     adjustError(variance);
     divideByError(intensity, variance);
     normalise(intensity);
 
-
-
-    rollingPointMean(quasarIntensity, 3, 0.9);
-    taperSpectra(quasarIntensity);
-    normalise(quasarIntensity);
-
-
+    // Uncomment the below lines if you want to inspect the intensity and quasarIntensity variables
+    // You can copy and paste the output straight into MATLAB
 //    console.log("intensity=" + JSON.stringify(intensity) + ";quasarIntensity="+JSON.stringify(quasarIntensity)+";");
-//    console.log("quasarIntensity="+JSON.stringify(quasarIntensity)+";");
 
+    // This rebins (oversampling massively) into an equispaced log array. To change the size and range of
+    // this array, have a look at the config.js file.
     var result = convertLambdaToLogLambda(lambda, intensity, arraySize);
     var quasarResult = convertLambdaToLogLambda(lambda, quasarIntensity, arraySize);
-    var quasarIntensity = quasarResult.intensity;
-    lambda = result.lambda;
+    quasarIntensity = quasarResult.intensity;
     intensity = result.intensity;
 
+    // Fourier transform both the intensity and quasarIntensity variables
     var fft = new FFT(intensity.length, intensity.length);
     fft.forward(intensity);
     var quasarFFT = new FFT(quasarIntensity.length, quasarIntensity.length);
     quasarFFT.forward(quasarIntensity);
 
+    // For each template, match the appropriate transform
     var templateResults = templateManager.templates.map(function(template) {
         if (template.id == '12') {
             return self.matchTemplate(template, quasarFFT);
@@ -101,7 +122,15 @@ self.matchTemplates = function(lambda, intensity, variance, type) {
     return self.coalesceResults(templateResults, type);
 };
 
-
+/**
+ * Determines the cross correlation (and peaks in it) between a spectra and a template
+ *
+ * @param template A template data structure from the template manager. Will contain a pre-transformed
+ * template spectrum (this is why initialising TemplateManager is so slow).
+ * @param fft the Fourier transformed spectra
+ * @returns {{id: String, zs: Array, xcor: Array, peaks: Array}} a data structure containing the id of the template, the redshifts of the template, the xcor
+ * results of the template and a list of peaks in the xcor array.
+ */
 self.matchTemplate = function(template, fft) {
     var fftNew = fft.multiply(template.fft);
     var final = fftNew.inverse();
@@ -121,6 +150,17 @@ self.matchTemplate = function(template, fft) {
     };
 };
 
+/**
+ * Coalesces the results from all templates into a singular list by adding in the
+ * weighting that comes from the prior spectra type. This function is NOT finished
+ * (see the null value of the templates variable in the return), because I have not
+ * yet had the chance to add in the cross correlation function above the detailed
+ * graph as Chris Lidman requested.
+ *
+ * @param templateResults an array of results from the {matchTemplate} function
+ * @param type
+ * @returns {{coalesced: Array, templates: null}}
+ */
 self.coalesceResults = function(templateResults, type) {
     // Adjust for optional weighting
     var coalesced = [];
@@ -148,17 +188,17 @@ self.coalesceResults = function(templateResults, type) {
 
     // Return only the ten best results
     coalesced.splice(10, coalesced.length - 1);
+    //TODO: Instead of just splicing, make sure the best results are a threshold value in redshift different
+
+    //TODO: For each of those results we actually want to do a quadratic fit.
+
 
     for (var k = 0; k < coalesced.length; k++) {
         // Javascript only rounds to integer, so this should get four decimal places
         coalesced[k].z =  Math.round(coalesced[k].z * 1e4) / 1e4;
     }
 
-    //TODO: Instead of just splicing, make sure the best results are a threshold value in redshift different
-
-    //TODO: For each of those results we actually want to do a quadratic fit.
-
-    //TODO: Add all info back in after shrinking down the zs array to < 5000 elements
+    //TODO: Add all info back in after shrinking down the zs array to < 5000 elements so we can get the xcor function
 
 //    var templates = [];
 //    for (var i = 0; i < templateResults.length; i++) {
