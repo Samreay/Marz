@@ -97,9 +97,23 @@ function fastSmooth(y, num) {
     }
     return d;
 }
+
+/**
+ * Normalises a set of arrays containing x and y coordinates respectively such that the
+ * returned result only contains elements between the bounds, and the y bounds are normalised
+ * to the input height relative to a minimum value.
+ *
+ * @param xs
+ * @param ys
+ * @param xMin
+ * @param xMax
+ * @param yMin
+ * @param height
+ * @returns {{xs: Array, ys: Array}}
+ */
 function normaliseSection(xs, ys, xMin, xMax, yMin, height) {
     var xBounds = getXBounds(xs, xMin, xMax);
-    var bounds = findMinAndMaxSubset(xs, ys, xBounds.start, xBounds.end);
+    var bounds = findMinAndMaxSubset(ys, xBounds.start, xBounds.end);
     var r = height/(bounds.max - bounds.min);
     var xss = xs.slice(xBounds.start, xBounds.end);
     var yss = ys.slice(xBounds.start, xBounds.end);
@@ -109,8 +123,18 @@ function normaliseSection(xs, ys, xMin, xMax, yMin, height) {
     return {xs: xss, ys: yss};
 
 }
-//TODO: Log time complexity should be easy to do here if ordered
+
+/**
+ * Takes an input array of x values and returns indexes corresponding to the first and last index
+ * that has the x value within the specific bounds
+ *
+ * @param xs
+ * @param xMin
+ * @param xMax
+ * @returns {{start: {Number}, end: {Number}}}
+ */
 function getXBounds(xs, xMin, xMax) {
+    //TODO: Log time complexity should be easy to do here if ordered
     var start = null;
     var end = null;
     for (var i = 0; i < xs.length; i++) {
@@ -133,6 +157,14 @@ function getXBounds(xs, xMin, xMax) {
     }
     return {start: start, end: end};
 }
+/**
+ * In place normalises the input array (and variance) such that the array
+ * is a specific area in size, and returns the calculated normalisation ratio.
+ * @param array
+ * @param variance
+ * @param val
+ * @returns {number}
+ */
 function normaliseViaArea(array, variance, val) {
     var a = val == null ? normalised_area : val;
     var area = getAreaInArray(array, 0, array.length - 1);
@@ -146,16 +178,38 @@ function normaliseViaArea(array, variance, val) {
     }
     return r;
 }
+/**
+ * In place scales an array to the scale factor given.
+ * @param array
+ * @param r
+ */
 function scale(array, r) {
     for (var i = 0; i < array.length; i++) {
         array[i] *= r;
     }
 }
+/**
+ * In place adds the second array argument onto the first, such that the result of
+ * the addition is found in the first array passed in.
+ * @param original
+ * @param addition
+ */
 function add(original, addition) {
     for (var i = 0; i < original.length; i++) {
         original[i] += addition[i];
     }
 }
+
+/**
+ * Normalises an input array to fit between the bottom and top limits via applying a linear ratio.
+ * An optional array can be passed in to the end that will also undergo normalisation to the same
+ * ratio as the first array if it is specified.
+ *
+ * @param array
+ * @param bottom
+ * @param top
+ * @param optional
+ */
 function normaliseViaShift(array, bottom, top, optional) {
     var min = 9e9;
     var max = -9e9;
@@ -176,6 +230,11 @@ function normaliseViaShift(array, bottom, top, optional) {
         array[j] = newVal;
     }
 }
+/**
+ * Loops through an array to find the minimum and maximum values in it
+ * @param array
+ * @returns {{min: number, max: number}}
+ */
 function findMinAndMax(array) {
     var min = 9e9;
     var max = -9e9;
@@ -189,7 +248,16 @@ function findMinAndMax(array) {
     }
     return {min: min, max: max};
 }
-function findMinAndMaxSubset(xs, ys, start, end) {
+/**
+ * Finds the minimum and maximum of an array between two index bounds
+ *
+ * @param xs
+ * @param ys
+ * @param start
+ * @param end
+ * @returns {{min: number, max: number}}
+ */
+function findMinAndMaxSubset(ys, start, end) {
     var min = 9e9;
     var max = -9e9;
     for (var j = start; j < end; j++) {
@@ -202,16 +270,12 @@ function findMinAndMaxSubset(xs, ys, start, end) {
     }
     return {min: min, max: max};
 }
-function getAverage(array) {
-    var c = 0;
-    for (var i = 0; i < array.length; i++) {
 
-    }
-}
-function normaliseAtMeanWithSpread(array, mean, spread) {
-    maxes = findMinAndMax(array);
-
-}
+/**
+ * Iterates through an array and replaces NaNs with the value immediately prior to the NaN,
+ * setting the first element to zero if it is NaN
+ * @param y
+ */
 function removeNaNs(y) {
     for (var i = 0; i < y.length; i++) {
         if (isNaN(y[i])) {
@@ -223,6 +287,11 @@ function removeNaNs(y) {
         }
     }
 }
+/**
+ * In place crops an array to the maximum value specified.
+ * @param array
+ * @param maxValue
+ */
 function cropSky(array, maxValue) {
     for (var i = 0; i < array.length; i++) {
         if (array[i] > maxValue) {
@@ -230,6 +299,11 @@ function cropSky(array, maxValue) {
         }
     }
 }
+/**
+ * Returns the average value in an array. Requires the array not contain NaNs.
+ * @param array
+ * @returns {number}
+ */
 function getAverage(array) {
     var sum = 0;
     for (var i = 0; i < array.length; i++) {
@@ -258,7 +332,13 @@ function getAreaInArray(array, start, end) {
     }
     return area;
 }
-
+/**
+ * Creates a linear scale of num points between and start and an end number
+ * @param start
+ * @param end
+ * @param num
+ * @returns {Array}
+ */
 function linearScale(start, end, num) {
     var result = [];
     for (var i = 0; i < num; i++) {
@@ -268,10 +348,27 @@ function linearScale(start, end, num) {
     }
     return result;
 }
+/**
+ * Returns a linear scale of num points between redshifted start and end values
+ * @param start
+ * @param end
+ * @param redshift
+ * @param num
+ * @returns {Array}
+ */
 function linearScaleFactor(start, end, redshift, num) {
     return linearScale(start*(1+redshift), end*(1+redshift), num);
 }
-
+/**
+ * Linearly interpolates a data set of xvals and yvals into the new x range found in xinterp.
+ * The interpolated y vals are returned, not modified in place.
+ *
+ * This function will NOT interpolate to zero the interpolation values do not overlap
+ * @param xinterp
+ * @param xvals
+ * @param yvals
+ * @returns {Array} Array of interpolated y values
+ */
 function interpolate(xinterp, xvals, yvals) {
     if (xinterp == null || xinterp.length < 2) {
         console.log("Don't use interpolate on a null, empty or single element array");
@@ -302,7 +399,14 @@ function interpolate(xinterp, xvals, yvals) {
     }
     return result;
 }
-
+/**
+ * Helper function for the interpolation method, which locates a linearly interpolated
+ * floating point index that corresponds to the position of value x inside array xs.
+ * @param xs
+ * @param x
+ * @param optionalStartIndex
+ * @returns {Number} the floating point effective index
+ */
 function findCorrespondingFloatIndex(xs, x, optionalStartIndex) {
     var s = optionalStartIndex;
     if (s == null) s = 0;
@@ -316,6 +420,13 @@ function findCorrespondingFloatIndex(xs, x, optionalStartIndex) {
     }
 }
 
+/**
+ * Returns the average value between a start and end index
+ * @param xvals
+ * @param start
+ * @param end
+ * @returns {number}
+ */
 function getAvgBetween(xvals, start, end) {
     var c = 0;
     var r = 0;
@@ -335,7 +446,13 @@ function getAvgBetween(xvals, start, end) {
         return r / c;
     }
 }
-
+/**
+ * In place subtracts a polynomial fit (polynomial degree set in config.js as polyDeg),
+ * and returns the array of values that form the polynomial
+ * @param lambda
+ * @param intensity
+ * @returns {Array}
+ */
 function subtractPolyFit(lambda, intensity) {
     var r = polyFit(lambda, intensity);
     for (var i = 0; i < intensity.length; i++) {
@@ -343,7 +460,13 @@ function subtractPolyFit(lambda, intensity) {
     }
     return r;
 }
-
+/**
+ * Calculates a polynomial fit to the input x and y data sets. Polynomial degree
+ * set in config.js as polyDeg.
+ * @param lambda
+ * @param intensity
+ * @returns {Array}
+ */
 function polyFit(lambda, intensity) {
     var data = [];
     var r = [];
@@ -362,7 +485,7 @@ function polyFit(lambda, intensity) {
 }
 
 /**
- * Checks to see
+ * Checks to see if the index is bad
  * @param intensity
  * @param variance
  * @param index
