@@ -83,12 +83,17 @@ self.matchTemplates = function(lambda, intensity, variance, type) {
 
     // As the quasar spectra is matched differently, Ill create a duplicate for the quasar
     var quasarIntensity = intensity.slice();
+//    console.log("quasar = " + JSON.stringify(quasarIntensity) + ";");
     rollingPointMean(quasarIntensity, 3, 0.9);
+//    console.log("quasar2 = " + JSON.stringify(quasarIntensity) + ";");
+
     taperSpectra(quasarIntensity);
     normalise(quasarIntensity);
 
     // The intensity variable is what will match every other template
+//    console.log("lambda = " + JSON.stringify(lambda) + ";");
     smoothAndSubtract(intensity);
+    var subtracted = intensity.slice();
     taperSpectra(intensity);
     adjustError(variance);
     divideByError(intensity, variance);
@@ -119,7 +124,7 @@ self.matchTemplates = function(lambda, intensity, variance, type) {
             return self.matchTemplate(template, fft);
         }
     });
-    return self.coalesceResults(templateResults, type);
+    return self.coalesceResults(templateResults, type, subtracted);
 };
 
 /**
@@ -138,10 +143,16 @@ self.matchTemplate = function(template, fft) {
     circShift(final, final.length/2);
     final = pruneResults(final, template);
     // UNCOMMENT SECTION BELOW TO GET XCOR RESULTS FOR QUASAR
-    /*if (template.id == '12') {
-        console.log("xcor = " + JSON.stringify(final) + ";");
+/*    if (template.id == '3') {
+        debugger;
     }*/
     var finalPeaks = normaliseXCorr(final);
+/*    if (template.id == '3') {
+        console.log("xcor3 = " + JSON.stringify(final) + ";");
+    }*/
+//    if (template.id == '10') {
+//        console.log("xcor4 = " + JSON.stringify(final) + ";");
+//    }
     return {
         id: template.id,
         zs: template.zs,
@@ -159,9 +170,9 @@ self.matchTemplate = function(template, fft) {
  *
  * @param templateResults an array of results from the {matchTemplate} function
  * @param type
- * @returns {{coalesced: Array, templates: null}}
+ * @returns {{coalesced: Array, templates: null, intensity: Array}}
  */
-self.coalesceResults = function(templateResults, type) {
+self.coalesceResults = function(templateResults, type, intensity) {
     // Adjust for optional weighting
     var coalesced = [];
     for (var i = 0; i < templateResults.length; i++) {
@@ -211,5 +222,5 @@ self.coalesceResults = function(templateResults, type) {
 //        templates.push({id: templateResults[i].id, z: chi2, chi2: zs});
 //
 //    }
-    return {coalesced: coalesced, templates: null};
+    return {coalesced: coalesced, templates: null, intensity: intensity};
 };

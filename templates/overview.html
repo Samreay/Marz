@@ -13,22 +13,22 @@
             <table class="overviewTable table table-striped table-bordered table-hover table-condensed">
                 <thead>
                 <tr>
-                    <th class="col-md-1" style="cursor: pointer;" ng-click="setSort('id'); sortOrder = !sortOrder">
+                    <th class="col-md-1" style="cursor: pointer;" ng-click="setSort('id')">
                         ID <span ng-show="isSortBy('id')"><i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': !sortOrder, 'glyphicon-chevron-down': sortOrder}"></i></span>
                     </th>
-                    <th class="col-md-2" style="cursor: pointer;" ng-click="setSort('type'); sortOrder = !sortOrder">
+                    <th class="col-md-2" style="cursor: pointer;" ng-click="setSort('type')">
                         Type <span ng-show="isSortBy('type')"><i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': !sortOrder, 'glyphicon-chevron-down': sortOrder}"></i></span>
                     </th>
-                    <th class="col-md-2" style="cursor: pointer;" ng-click="setSort('finalTemplateID'); sortOrder = !sortOrder">
+                    <th class="col-md-2" style="cursor: pointer;" ng-click="setSort('finalTemplateID');">
                         Template ID<span ng-show="isSortBy('finalTemplateID')"><i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': !sortOrder, 'glyphicon-chevron-down': sortOrder}"></i></span>
                     </th>
-                    <th class="col-md-4" style="cursor: pointer;" ng-click="setSort('finalTemplateName'); sortOrder = !sortOrder">
+                    <th class="col-md-4" style="cursor: pointer;" ng-click="setSort('finalTemplateName');">
                         Template<span ng-show="isSortBy('finalTemplateName')"><i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': !sortOrder, 'glyphicon-chevron-down': sortOrder}"></i></span>
                     </th>
-                    <th class="col-md-1" style="cursor: pointer;" ng-click="setSort('finalZ'); sortOrder = !sortOrder">
+                    <th class="col-md-1" style="cursor: pointer;" ng-click="setSort('finalZ');">
                         Redshift <span ng-show="isSortBy('finalZ')"><i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': !sortOrder, 'glyphicon-chevron-down': sortOrder}"></i></span>
                     </th>
-                    <th class="col-md-1" style="cursor: pointer;" ng-click="setSort('qop'); sortOrder = !sortOrder">
+                    <th class="col-md-1" style="cursor: pointer;" ng-click="setSort('qop');">
                         QOP <span ng-show="isSortBy('qop')"><i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-up': !sortOrder, 'glyphicon-chevron-down': sortOrder}"></i></span>
                     </th>
                 </tr>
@@ -38,7 +38,7 @@
                     <td>{{i.id}}</td>
                     <td>{{i.type}}</td>
                     <td>{{i.getFinalTemplateID()}}</td>
-                    <td>{{i.getFinalTemplateName()}}</td>
+                    <td>{{getName(i)}}</td>
                     <td>{{i.getFinalRedshift().toFixed(4)}}</td>
                     <td>{{i.qop}}</td>
                 </tr>

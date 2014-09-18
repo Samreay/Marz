@@ -909,9 +909,9 @@ function pruneResults(final, template) {
     return final.slice(template.startZIndex, template.endZIndex);
 }
 function subtractMeanReject(final, trimAmount) {
-    var num = Math.floor(trimAmount * final.length);
+    var num = Math.floor((trimAmount * final.length)/2);
     var sorted = final.slice().sort(function(a,b) { return a-b });
-    sorted.splice(num, sorted.length - num);
+    sorted = sorted.splice(num, sorted.length - (2*num));
     var mean = findMean(sorted);
     for (var i = 0; i < final.length; i++) {
         final[i] -= mean;

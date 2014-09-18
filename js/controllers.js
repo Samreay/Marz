@@ -258,11 +258,19 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             }
         }
     }])
-    .controller('OverviewController', ['$scope', 'spectraService', 'fitsFile', 'global', '$timeout', function($scope, spectraService, fitsFile, global, $timeout) {
+    .controller('OverviewController', ['$scope', 'spectraService', 'fitsFile', 'global', '$timeout', 'templatesService', function($scope, spectraService, fitsFile, global, $timeout, templatesService) {
         $scope.ui = global.ui;
         $scope.data = global.data;
         $scope.isLoading = function() {
             return fitsFile.isLoading();
+        };
+
+        $scope.getName = function(spectra) {
+            if (spectra.getFinalTemplateID()) {
+                return templatesService.getNameForTemplate(spectra.getFinalTemplateID());
+            } else {
+                return "";
+            }
         };
 
         // For the table section
@@ -270,6 +278,7 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
         $scope.sortField = 'id';
         $scope.setSort = function(sort) {
             $scope.sortField = sort;
+            $scope.sortOrder = !$scope.sortOrder;
         };
         $scope.isSortBy = function(sort) {
             return $scope.sortField == sort;
@@ -280,14 +289,46 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             if ($scope.sortField == 'type') {
                 result = spectra.type;
             } else if ($scope.sortField == 'finalTemplateID') {
-                result = parseInt(spectra.getFinalTemplateID());
-                if (isNaN(result)) result = "";
+                result = spectra.getFinalTemplateID();
+                if (result == null) {
+                    if ($scope.sortOrder) {
+                        result = "999";
+                    } else {
+                        result = "000"
+                    }
+                }
+                result = result.pad(3);
             } else if ($scope.sortField == 'finalTemplateName') {
-                result = spectra.getFinalTemplateName();// + ('' + spectra.id).pad(4);
+                if (spectra.getFinalTemplateID()) {
+                    result = templatesService.getNameForTemplate(spectra.getFinalTemplateID())
+                } else {
+                    if ($scope.sortOrder) {
+                        result = "zzz";
+                    } else {
+                        result = "000"
+                    }
+                }
             } else if ($scope.sortField == 'finalZ') {
                 result = spectra.getFinalRedshift();
+                if (result != null) {
+                    result = result.toFixed(4).pad(6);
+                } else {
+                    if ($scope.sortOrder) {
+                        result = "zzzzz";
+                    } else {
+                        result = "-----"
+                    }
+                }
+                result = result.pad(10);
             } else if ($scope.sortField == 'qop') {
                 result = spectra.qop;
+                if (spectra.getFinalRedshift() == null) {
+                    if ($scope.sortOrder) {
+                        result = "z";
+                    } else {
+                        result = "-"
+                    }
+                }
             }
             return result + nullRes;
         };

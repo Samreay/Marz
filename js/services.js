@@ -200,8 +200,8 @@ angular.module('servicesZ', ['dialogs.main'])
                     spectra.automaticResults[0].templateId = "" + vals[i].value;
                 } else if (vals[i].name == "AutomaticRedshift") {
                     spectra.automaticResults[0].z = parseFloat(vals[i].value);
-                } else if (vals[i].name == "AutomaticChi2") {
-                    spectra.automaticResults[0].chi2 = parseFloat(vals[i].value);
+                } else if (vals[i].name == "AutomaticXCor") {
+                    spectra.automaticResults[0].value = parseFloat(vals[i].value);
                 } else if (vals[i].name == "FinalTemplateID" && spectra.qop > 0) {
                     spectra.manualTemplateID = "" + vals[i].value;
                 } else if (vals[i].name == "FinalRedshift" && spectra.qop > 0) {
@@ -254,6 +254,7 @@ angular.module('servicesZ', ['dialogs.main'])
             spectra.automaticBestResults = results.results.coalesced; // TODO: REMOVE BEST RESULTS, ONLY HAVE AUTOMATIC RESULTS
             spectra.isMatching = false;
             spectra.isMatched = true;
+            spectra.processedIntensity = results.results.intensity;
             if (saveAutomatically) {
                 localStorageService.saveSpectra(spectra);
             }
@@ -277,7 +278,7 @@ angular.module('servicesZ', ['dialogs.main'])
             var best = [{
                 templateId: resultsList[0].id,
                 z: resultsList[0].top[0].z,
-                chi2: resultsList[0].top[0].chi2
+                value: resultsList[0].top[0].value
             }];
             var threshold = 0.05;
             var i;
@@ -286,11 +287,11 @@ angular.module('servicesZ', ['dialogs.main'])
                 var tr = resultsList[i];
                 for (var j = 0; j < tr.top.length; j++) {
                     var trr = tr.top[j];
-                    merged.push({id: tr.id, z: trr.z, chi2: trr.chi2});
+                    merged.push({id: tr.id, z: trr.z, value: trr.value});
                 }
             }
             merged.sort(function(a,b) {
-                return a.chi2 - b.chi2;
+                return a.value - b.value;
             });
 
             i = 0;
@@ -302,7 +303,7 @@ angular.module('servicesZ', ['dialogs.main'])
                     }
                 }
                 if (valid) {
-                    best.push({templateId: merged[i].id, z: merged[i].z, chi2: merged[i].chi2});
+                    best.push({templateId: merged[i].id, z: merged[i].z, value: merged[i].value});
                 }
                 i++;
             }
@@ -413,7 +414,7 @@ angular.module('servicesZ', ['dialogs.main'])
                 {name: "AutomaticTemplateID", value: spectra.getBestAutomaticResult().templateId},
                 {name: "AutomaticTemplateName", value:  templatesService.getNameForTemplate(spectra.getBestAutomaticResult().templateId)},
                 {name: "AutomaticRedshift", value: spectra.getBestAutomaticResult().z.toFixed(5)},
-                {name: "AutomaticChi2", value: spectra.getBestAutomaticResult().chi2},
+                {name: "AutomaticXCor", value: spectra.getBestAutomaticResult().value.toFixed(4)},
                 {name: "FinalTemplateID", value: spectra.getFinalTemplateID()},
                 {name: "FinalTemplateName", value: templatesService.getNameForTemplate(spectra.getFinalTemplateID())},
                 {name: "FinalRedshift", value: spectra.getFinalRedshift().toFixed(5)},
@@ -423,7 +424,7 @@ angular.module('servicesZ', ['dialogs.main'])
         self.convertResultToMimicSpectra = function(result) {
             var spectra = new Spectra(result["SpectraID"], null, null, null, null, null, result["SpectraName"],
                 result["SpectraRA"], result["SpectraDec"],result["SpectraMagnitude"], result["SpectraType"], result.filename);
-            spectra.automaticBestResults = [{templateId: result["AutomaticTemplateID"], z: result["AutomaticRedshift"], chi2: result["AutomaticChi2"]}];
+            spectra.automaticBestResults = [{templateId: result["AutomaticTemplateID"], z: result["AutomaticRedshift"], value: result["AutomaticXCor"]}];
             spectra.qop = result["QOP"];
             if (spectra.qop > 0) {
                 spectra.manualTemplateID = result["FinalTemplateID"];
@@ -919,7 +920,7 @@ angular.module('servicesZ', ['dialogs.main'])
             var intensity = self.condenseToXPixels(!hasProcessed ? spectra.intensityPlot : spectra.processedContinuum, width);
             var r = null;
             if (spectra.getFinalTemplateID() != null) {
-                r = templatesService.getTemplateAtRedshift(spectra.getFinalTemplateID(), spectra.getFinalRedshift(), false);
+                r = templatesService.getTemplateAtRedshift(spectra.getFinalTemplateID(), spectra.getFinalRedshift(), true);
             }
             if (r == null || r[0] == null || r[1] == null) {
                 var tempIntensity = null;

@@ -2,10 +2,9 @@ String.prototype.endsWith = function(suffix) {
     return this.indexOf(suffix, this.length - suffix.length) !== -1;
 };
 
-
-String.prototype.pad = function(size) {
-    return ('000000000' + this).substr(-size)
-}
+String.prototype.pad = function(width) {
+    return this.length >= width ? this : new Array(width - this.length + 1).join('0') + this;
+};
 
 function isInt(n) {
     return parseInt(n) === n

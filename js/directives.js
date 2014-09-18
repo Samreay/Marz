@@ -714,7 +714,6 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     redraw();
                 });
                 $scope.$watchCollection('[detailed.width, detailed.height, detailed.spectralLines, detailed.lockedBounds]', function() {
-                    console.log('Zoom out');
                     getBounds();
                     addTemplateData();
                     redraw();
