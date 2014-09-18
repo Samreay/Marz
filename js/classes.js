@@ -1,4 +1,4 @@
-function Spectra(id, lambda, intensity, variance, sky, skyAverage, name, ra, dec, magnitude, type, filename) {
+function Spectra(id, lambda, intensity, variance, sky, skyAverage, name, ra, dec, magnitude, type, filename, drawingService) {
     this.id = id;
     this.name = name;
     this.ra = ra;
@@ -34,13 +34,40 @@ function Spectra(id, lambda, intensity, variance, sky, skyAverage, name, ra, dec
     this.automaticBestResults = null;
     this.manualRedshift = null;
     this.manualTemplateID = null;
+    this.drawingService = drawingService;
 
     this.qop = 0;
+
+    this.imageZ = null;
+    this.imageTID = null;
+    this.image = this.getImageUrl();
 
     this.getHash = function() {
         return "" + this.id + this.name + this.getFinalRedshift() + this.getFinalTemplateID() + this.isProcessed + this.isMatched;
     }
 }
+Spectra.prototype.getImage = function() {
+    if (this.getFinalRedshift() != this.imageZ || this.imageTID != this.getFinalTemplateID()) {
+        this.imageTID = this.getFinalTemplateID();
+        this.imageZ = this.getFinalRedshift();
+        this.image = this.getImageUrl();
+    }
+    return this.image;
+
+};
+/*Spectra.prototype.getHtml = function() {
+      var html = "<di"
+};
+Spectra.prototype.getOverviewHTML = function() {
+
+};*/
+Spectra.prototype.getImageUrl = function() {
+    var canvas = document.createElement('canvas');
+    canvas.width = 318;
+    canvas.height = 118;
+    this.drawingService.drawOverviewOnCanvas(this, canvas);
+    return canvas.toDataURL();
+};
 Spectra.prototype.getTemplateResults = function() {
     return this.templateResults;
 };

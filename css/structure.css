@@ -5,11 +5,20 @@ html, body, .filler {
     height: 100%;
     position: relative;
 }
+.relative {
+    position: relative;
+}
 html, body {
     min-width: 1275px;
 }
 body {
     background-color: #FCFCFC;
+}
+.overview2 {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    right: 10px;
 }
 .splash {
     width: 100%;

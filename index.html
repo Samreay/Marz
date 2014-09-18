@@ -66,8 +66,16 @@
                 <ng-include src="'templates/sidebar.html'"></ng-include>
             </div>
             <div id="afterSideBarContainer">
-                <div class="spacing">
+                <div class="spacing relative">
                     <div id="content" ng-class="{filler: isDetailedView}" autoscroll="false" ui-view></div>
+                    <div ng-show="!isLoading() && graphDisplaying()" class="overview2" ng-controller="OverviewController">
+                        <div class="overview-item lined" ng-class="{activeSelect:isActive(i)}" ng-click="setActive(i)" ng-dblclick="goToDetailed(i)" ng-repeat="i in data.spectra track by i.getHash()">
+                            <div class="top-bar">
+                                <strong>ID: {{i.id}}</strong><p ng-show="i.hasRedshift()">z={{i.getFinalRedshift().toFixed(4)}} QOP: {{i.qop}}</p>
+                            </div>
+                            <img class="under-bar unselectable" data-ng-src="{{i.getImage()}}">
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

@@ -710,7 +710,7 @@ angular.module('servicesZ', ['dialogs.main'])
         };
 
     }])
-    .service('fitsFile', ['$q', 'global', 'spectraService', 'processorService', function($q, global, spectraService, processorService) {
+    .service('fitsFile', ['$q', 'global', 'spectraService', 'processorService', 'drawingService', function($q, global, spectraService, processorService, drawingService) {
         var self = this;
 
         var hasFitsFile = false;
@@ -890,7 +890,7 @@ angular.module('servicesZ', ['dialogs.main'])
             for (var j = 0; j < spectra.length; j++) {
                 var s = new Spectra(spectra[j].id, lambda.slice(0), spectra[j].intensity, spectra[j].variance,
                     isCoadd ? spectra[j].sky : sky, isCoadd ? spectra[j].skyAverage : skyAverage, spectra[j].name, spectra[j].ra, spectra[j].dec,
-                    spectra[j].magnitude, spectra[j].type, originalFilename);
+                    spectra[j].magnitude, spectra[j].type, originalFilename, drawingService);
                 spectraList.push(s);
             }
             isLoading = false;
@@ -912,7 +912,7 @@ angular.module('servicesZ', ['dialogs.main'])
         self.plot(arr, template.spec, ui.colours.template, canvas, bounds);
     };
     self.drawOverviewOnCanvas = function(spectra, canvas) {
-        var width = canvas.clientWidth;
+        var width = canvas.width;
         if (spectra.intensity.length > 0) {
             var hasProcessed = !(spectra.processedLambdaPlot == null || typeof spectra.processedLambdaPlot === 'undefined');
 
@@ -927,12 +927,12 @@ angular.module('servicesZ', ['dialogs.main'])
             } else {
                 var tempIntensity = self.condenseToXPixels(interpolate(spectra.lambda, r[0], r[1]), width);
             }
-            self.clearPlot(canvas);
+            //self.clearPlot(canvas);
             var toBound = [];
             var toBound2 = [];
             toBound.push([lambda, intensity]);
             var bounds = self.getMaxes(toBound);
-            this.plotZeroLine(canvas, "#C4C4C4", bounds);
+            self.plotZeroLine(canvas, "#C4C4C4", bounds);
             self.plot(lambda, intensity, ui.colours.raw, canvas, bounds);
             if (tempIntensity != null) {
                 toBound2.push([lambda, tempIntensity]);

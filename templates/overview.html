@@ -1,13 +1,5 @@
 <div ng-if="isLoading()" class="spinner"></div>
 <div ng-if="!isLoading()">
-    <div ng-if="ui.graphicalLayout">
-        <div class="overview-item lined" ng-class="{activeSelect:isActive(i)}" ng-click="setActive(i)" ng-dblclick="goToDetailed(i)" ng-repeat="i in data.spectra track by i.id">
-            <div class="top-bar">
-                <strong>ID: {{i.id}}</strong><p ng-show="i.hasRedshift()">z={{i.getFinalRedshift().toFixed(4)}} QOP: {{i.qop}}</p>
-            </div>
-            <canvas class="under-bar unselectable" overview-item="i"></canvas>
-        </div>
-    </div>
     <div ng-if="!ui.graphicalLayout">
         <div class="table-responsive">
             <table class="overviewTable table table-striped table-bordered table-hover table-condensed">

@@ -258,9 +258,12 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             }
         }
     }])
-    .controller('OverviewController', ['$scope', 'spectraService', 'fitsFile', 'global', '$timeout', 'templatesService', function($scope, spectraService, fitsFile, global, $timeout, templatesService) {
+    .controller('OverviewController', ['$scope', 'spectraService', 'fitsFile', 'global', '$timeout', 'templatesService', '$state', function($scope, spectraService, fitsFile, global, $timeout, templatesService, $state) {
         $scope.ui = global.ui;
         $scope.data = global.data;
+        $scope.graphDisplaying = function() {
+            return $state.current.name == 'overview' && $scope.ui.graphicalLayout;
+        };
         $scope.isLoading = function() {
             return fitsFile.isLoading();
         };
