@@ -9,7 +9,10 @@ html, body, .filler {
     position: relative;
 }
 html, body {
-    min-width: 1275px;
+    min-width: 940px;
+}
+.detailed-control {
+    min-width: 1150px;
 }
 body {
     background-color: #FCFCFC;

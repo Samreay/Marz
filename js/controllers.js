@@ -649,10 +649,13 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
         $scope.data = global.data;
         $scope.addFiles = function(files) {
             for (var i = 0; i < files.length; i++) {
+                if (files[i].name.endsWith('txt') || files[i].name.endsWith('csv')) {
+                    resultsLoaderService.loadResults(files[i]);
+                }
+            }
+            for (var i = 0; i < files.length; i++) {
                 if (files[i].name.endsWith('fits')) {
                     $scope.data.fits.push(files[i]);
-                } else if (files[i].name.endsWith('txt') || files[i].name.endsWith('csv')) {
-                    resultsLoaderService.loadResults(files[i]);
                 }
             }
         };
