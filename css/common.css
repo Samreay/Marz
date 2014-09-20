@@ -68,6 +68,12 @@ p.fill-height {
     display: inline-block;
     margin: 0 0 0 15px;
 }
+.top-bar h4 {
+    display: inline;
+}
+.top-bar h4 .label {
+    margin-top: 3px;
+}
 .under-bar {
     width: 100%;
     height: calc(100% - 30px);

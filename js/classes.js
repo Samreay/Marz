@@ -9,9 +9,12 @@ function Spectra(id, lambda, intensity, variance, sky, skyAverage, name, ra, dec
     this.lambda = lambda;
     this.intensity = intensity;
     this.variance = variance;
-    this.variancePlot = variance.slice();
-    removeNaNs(this.variancePlot);
-    normaliseViaShift(this.variancePlot, 0, 50, null);
+    this.variancePlot = variance;
+    if (variance != null) {
+        this.variancePlot = variance.slice();
+        removeNaNs(this.variancePlot);
+        normaliseViaShift(this.variancePlot, 0, 50, null);
+    }
 
     this.sky = sky;
     this.skyAverage = skyAverage;
@@ -44,7 +47,7 @@ function Spectra(id, lambda, intensity, variance, sky, skyAverage, name, ra, dec
 
     this.imageZ = null;
     this.imageTID = null;
-    this.image = this.getImageUrl();
+    this.image = null;
 
     this.getHash = function() {
         return "" + this.id + this.name + this.getFinalRedshift() + this.getFinalTemplateID() + this.isProcessed + this.isMatched;
@@ -57,7 +60,7 @@ Spectra.prototype.getDEC = function() {
     return this.dec * 180 / Math.PI;
 };
 Spectra.prototype.getImage = function() {
-    if (this.getFinalRedshift() != this.imageZ || this.imageTID != this.getFinalTemplateID()) {
+    if (this.getFinalRedshift() != this.imageZ || this.imageTID != this.getFinalTemplateID() || this.image == null) {
         this.imageTID = this.getFinalTemplateID();
         this.imageZ = this.getFinalRedshift();
         this.image = this.getImageUrl();

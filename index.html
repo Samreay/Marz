@@ -71,7 +71,9 @@
                     <div ng-show="!isLoading() && graphDisplaying()" class="overview2" ng-controller="OverviewController">
                         <div class="overview-item lined" ng-class="{activeSelect:isActive(i)}" ng-click="setActive(i)" ng-dblclick="goToDetailed(i)" ng-repeat="i in data.spectra track by i.getHash()">
                             <div class="top-bar">
-                                <strong>ID: {{i.id}}</strong><p ng-show="i.hasRedshift()">z={{i.getFinalRedshift().toFixed(4)}} QOP: {{i.qop}}</p>
+                                <strong>ID: {{i.id}}</strong>
+                                <p ng-show="i.hasRedshift()">z={{i.getFinalRedshift().toFixed(4)}}</p>
+                                <h4 style="display: inline;"><span class="pull-right {{getQOPLabel(i)}}">QOP: {{i.qop}}</span></h4>
                             </div>
                             <img class="under-bar unselectable" data-ng-src="{{i.getImage()}}">
                         </div>

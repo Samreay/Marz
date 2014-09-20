@@ -267,7 +267,21 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
         $scope.isLoading = function() {
             return fitsFile.isLoading();
         };
-
+        $scope.getQOPLabel = function(spectra) {
+            var string = "label label-"
+            switch (spectra.qop) {
+                case 4:
+                    return string + "success";
+                case 3:
+                    return string + "info";
+                case 2:
+                    return string + "warning";
+                case 1:
+                    return string + "danger";
+                default:
+                    return string + "default";
+            }
+        };
         $scope.getName = function(spectra) {
             if (spectra.getFinalTemplateID()) {
                 return templatesService.getNameForTemplate(spectra.getFinalTemplateID());

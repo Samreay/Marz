@@ -7,7 +7,7 @@ angular.module('servicesZ', ['dialogs.main'])
                 dataSelection: {
                     processed: true,
                     matched: true,
-                    variance: true
+                    variance: false
                 },
                 detailed: {
                     bounds: {
