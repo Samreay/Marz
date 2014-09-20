@@ -147,11 +147,15 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
                 $scope.$apply();
             }},
             {key: 'down', label: 'down', controller: "detailed", description: '[Detailed screen] Selects the next template', fn: function($scope) {
-                $scope.nextTemplate();
+                if(document.activeElement != $('#templateInput')[0]) {
+                    $scope.nextTemplate();
+                }
                 $scope.$apply();
             }},
             {key: 'up', label: 'up', controller: "detailed", description: '[Detailed screen] Selects the previous template', fn: function($scope) {
-                $scope.previousTemplate();
+                if(document.activeElement != $('#templateInput')[0]) {
+                    $scope.previousTemplate();
+                }
                 $scope.$apply();
             }},
             {key: 'shift+y', label: 'shift+y', controller: "detailed", description: '[Detailed screen] Sets the current focus to Lyb', fn: function($scope) {
