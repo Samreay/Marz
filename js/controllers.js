@@ -657,10 +657,60 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             }
         };
     }])
-    .controller('SidebarController', ['$scope', 'spectraService', 'fitsFile', '$state', 'global', 'resultsLoaderService', '$timeout',
-        function($scope, spectraService, fitsFile, $state, global, resultsLoaderService, $timeout) {
+    .filter('overviewFilter', ['global', function(global) {
+        return function(inputs) {
+            if (inputs.length == 0) return inputs;
+            var f = global.filters;
+            var q = parseInt(f.qopFilter);
+            var r = f.redshiftFilter.split(':');
+            return _.filter(inputs, function(spectra) {
+                if (f.typeFilter !== '*' && spectra.type !== f.typeFilter) return false;
+                if (f.templateFilter !== '*' && spectra.getFinalTemplateID() !== f.templateFilter) return false;
+                if (f.redshiftFilter !== '*' && (spectra.getFinalRedshift() == null || !(spectra.getFinalRedshift() >= parseFloat(r[0]) && spectra.getFinalRedshift() <= parseFloat(r[1])))) return false;
+                if (f.qopFilter !== '*' && spectra.qop !== q) return false;
+                return true;
+            })
+        }
+    }])
+    .controller('SidebarController', ['$scope', 'spectraService', 'fitsFile', '$state', 'global', 'resultsLoaderService', '$timeout', 'templatesService',
+        function($scope, spectraService, fitsFile, $state, global, resultsLoaderService, $timeout, templatesService) {
         $scope.ui = global.ui;
         $scope.data = global.data;
+
+        $scope.filters = global.filters;
+
+        $scope.qops = [
+            {value: '*', label: "Any QOP"},
+            {value: 4, label: "QOP 4"},
+            {value: 3, label: "QOP 3"},
+            {value: 2, label: "QOP 2"},
+            {value: 1, label: "QOP 1"},
+            {value: 6, label: "QOP 6"},
+            {value: 0, label: "QOP 0"}
+        ];
+        $scope.temps = [{value: '*', label: "Any template"}];
+        angular.forEach(templatesService.getTemplates(), function(template) {
+            $scope.temps.push({value: template.id, label: template.name});
+        });
+        $scope.types = [{value: '*', label: "Any type"}];
+        $scope.$watch('data.types.length', function() {
+            angular.forEach(global.data.types, function(type) {
+                $scope.types.push({value: type, label: type});
+            });
+        });
+        $scope.redshifts = [
+            {value: '*', label: 'All redshifts'},
+            {value: '-0.002:0.005', label: 'Stellar redshifts [-0.002:0.1]'},
+            {value: '0.005:0.3', label: 'Close galaxy redshifts [0:0.3]'},
+            {value: '0.3:1.5', label: 'Distant galaxy redshifts [0.3:1.5]'},
+            {value: '0.005:1.5', label: 'All galaxy redshifts [0:1.5]'},
+            {value: '1:9', label: 'Distant redshifts [1:9]'}
+        ];
+        $scope.resetFilters = function() {
+            _.forOwn(global.filters, function(obj) {
+                global.filters[obj] = '*';
+            })
+        };
         $scope.addFiles = function(files) {
             for (var i = 0; i < files.length; i++) {
                 if (files[i].name.endsWith('txt') || files[i].name.endsWith('csv')) {

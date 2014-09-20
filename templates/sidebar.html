@@ -23,6 +23,13 @@
                     </div>
                 </div>
             </div>
+            <div class="top-spacing" ng-if="showTabular()">
+                <b>Filter Spectra:</b>
+                <select class="input-sm form-control" ng-model="filters['typeFilter']" required ng-options="opt.value as opt.label for opt in types"></select>
+                <select class="input-sm form-control" ng-model="filters['templateFilter']" required ng-options="opt.value as opt.label for opt in temps"></select>
+                <select class="input-sm form-control" ng-model="filters['redshiftFilter']" required ng-options="opt.value as opt.label for opt in redshifts"></select>
+                <select class="input-sm form-control" ng-model="filters['qopFilter']" required ng-options="opt.value as opt.label for opt in qops"></select>
+            </div>
             <div ng-if="showSave()" class="top-spacing">
                 <b>Save result:</b>
                 <button class="btn btn-block btn-sm btn-success" ng-click="saveManual(4)" tooltip="Saved!"  tooltip-append-to-body="true" tooltip-trigger="focus" tooltip-placement="right">Great (4)</button>

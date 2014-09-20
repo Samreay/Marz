@@ -84,3 +84,6 @@ p.fill-height {
     -webkit-user-select: none;
     -o-user-select: none;
 }
+.overview-selector p {
+    display: inline;
+}

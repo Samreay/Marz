@@ -26,7 +26,7 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr ng-class="{activeSelect:isActive(i)}" ng-click="setActive(i)" ng-dblclick="goToDetailed(i)" ng-repeat="i in data.spectra | orderBy:sortOverview:!sortOrder">
+                <tr ng-class="{activeSelect:isActive(i)}" ng-click="setActive(i)" ng-dblclick="goToDetailed(i)" ng-repeat="i in data.spectra | overviewFilter | orderBy:sortOverview:!sortOrder">
                     <td>{{i.id}}</td>
                     <td>{{i.type}}</td>
                     <td>{{i.getFinalTemplateID()}}</td>

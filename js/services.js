@@ -43,9 +43,16 @@ angular.module('servicesZ', ['dialogs.main'])
             },
             data: {
                 fits: [],
+                types: [],
                 fitsFileName: null,
                 spectra: [],
                 spectraHash: {}
+            },
+            filters: {
+                typeFilter: '*',
+                templateFilter: '*',
+                redshiftFilter: '*',
+                qopFilter: '*'
             },
             personal: {
                 initials: ""
@@ -844,6 +851,7 @@ angular.module('servicesZ', ['dialogs.main'])
         };
         var getComments = function(q) {
             self.fits.getDataUnit(typeIndex).getColumn("COMMENT", function(data) {
+                global.data.types.length = 0;
                 for (var i = 0; i < spectra.length; i++) {
                     var j = spectra[i].fitsIndex;
                     spectra[i].type = data[j].split(' ')[0];
@@ -853,6 +861,8 @@ angular.module('servicesZ', ['dialogs.main'])
                         for (var k = i; k < spectra.length; k++) {
                             spectra[k].index--;
                         }
+                    } else if (global.data.types.indexOf(spectra[i].type) == -1) {
+                        global.data.types.push(spectra[i].type);
                     }
                 }
                 getSky(q);
