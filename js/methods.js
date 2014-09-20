@@ -48,9 +48,11 @@ function convertSingleVacuumFromAir(lambda) {
  * @param lambda
  * @param intensity
  */
-function convertLambdaToLogLambda(lambda, intensity, numel) {
+function convertLambdaToLogLambda(lambda, intensity, numel, quasar) {
     if (typeof numel === 'undefined') numel = arraySize;
-    var logLambda = linearScale(startPower, endPower, numel);
+    var s = quasar ? startPowerQ : startPower;
+    var e = quasar ? endPowerQ : endPower;
+    var logLambda = linearScale(s, e, numel);
     var rescale = logLambda.map(function(x) { return Math.pow(10, x);});
     var newIntensity = interpolate(rescale, lambda, intensity);
     return {lambda: logLambda, intensity: newIntensity};
@@ -852,7 +854,8 @@ function adjustError(variance) {
 
 function divideByError(intensity, variance) {
     for (var i = 0; i < intensity.length; i++) {
-        intensity[i] = intensity[i] / (variance[i] * variance[i]);
+//        intensity[i] = intensity[i] / (variance[i] * variance[i]);
+        intensity[i] = intensity[i] / variance[i];
     }
 }
 function findMean(data) {

@@ -41,6 +41,7 @@ angular.module('servicesZ', ['dialogs.main'])
                 }
             },
             data: {
+                fits: [],
                 fitsFileName: null,
                 spectra: [],
                 spectraHash: {}
@@ -264,6 +265,11 @@ angular.module('servicesZ', ['dialogs.main'])
             if (global.ui.active == spectra) {
                 global.ui.detailed.templateId = spectra.getFinalTemplateID();
                 global.ui.detailed.redshift = spectra.getFinalRedshift();
+            }
+            if (self.isFinishedMatching()) {
+                if (global.data.fits.length > 0) {
+                    global.data.fits.shift();
+                }
             }
         };
         self.setManualResults = function(spectra, templateId, redshift, qop) {
@@ -551,9 +557,9 @@ angular.module('servicesZ', ['dialogs.main'])
         self.setDefaultNumberOfCores = function() {
             var initialNumberProcessors = navigator.hardwareConcurrency;
             if (typeof(initialNumberProcessors) === "undefined") {
-                initialNumberProcessors = 3;
+                initialNumberProcessors = 4;
             }
-            self.setNumberProcessors(initialNumberProcessors);
+            self.setNumberProcessors(initialNumberProcessors - 1);
         };
         self.setDefaultNumberOfCoresInitial = function() {
             var initialNumberProcessors = cookieService.getCookie('numCores');

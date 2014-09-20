@@ -1,4 +1,3 @@
-
 // CONFIG FOR PIXEL MASKING
 var minVal = -1e4;          // Intensity less than this is bad
 var maxVal = 1e6;           // Intensity greater than this is bad
@@ -33,8 +32,10 @@ var clipValue = 25;
 
 
 // CONFIG FOR REBINNING
-var startPower = 2.8;
-var endPower = 4.3;
+var startPowerQ = 2.8;
+var endPowerQ = 4.6;
+var startPower = 3.3;
+var endPower = 4.1;
 //var arraySize = 65536; // Must be a power of two
 var arraySize = 32768; // Must be a power of two
 

@@ -80,6 +80,7 @@ self.processData = function(lambda, intensity, variance) {
  * ordered list of best results.
  */
 self.matchTemplates = function(lambda, intensity, variance, type) {
+//    console.log("lambda=" + JSON.stringify(lambda) + ";\nintensity=" + JSON.stringify(intensity) + ";\nvariance=" + JSON.stringify(variance) + ";");
 
     // As the quasar spectra is matched differently, Ill create a duplicate for the quasar
     var quasarIntensity = intensity.slice();
@@ -99,14 +100,15 @@ self.matchTemplates = function(lambda, intensity, variance, type) {
     divideByError(intensity, variance);
     normalise(intensity);
 
+//    console.log("intensity2=" + JSON.stringify(intensity) + ";");
     // Uncomment the below lines if you want to inspect the intensity and quasarIntensity variables
     // You can copy and paste the output straight into MATLAB
 //    console.log("intensity=" + JSON.stringify(intensity) + ";quasarIntensity="+JSON.stringify(quasarIntensity)+";");
 
     // This rebins (oversampling massively) into an equispaced log array. To change the size and range of
     // this array, have a look at the config.js file.
-    var result = convertLambdaToLogLambda(lambda, intensity, arraySize);
-    var quasarResult = convertLambdaToLogLambda(lambda, quasarIntensity, arraySize);
+    var result = convertLambdaToLogLambda(lambda, intensity, arraySize, false);
+    var quasarResult = convertLambdaToLogLambda(lambda, quasarIntensity, arraySize, true);
     quasarIntensity = quasarResult.intensity;
     intensity = result.intensity;
 
@@ -147,11 +149,11 @@ self.matchTemplate = function(template, fft) {
         debugger;
     }*/
     var finalPeaks = normaliseXCorr(final);
-/*    if (template.id == '3') {
-        console.log("xcor3 = " + JSON.stringify(final) + ";");
+   /* if (template.id == '9') {
+        console.log("xcor3 = " + JSON.stringify(final) + ";\nzs=" + JSON.stringify(template.zs) + ";");
     }*/
-//    if (template.id == '10') {
-//        console.log("xcor4 = " + JSON.stringify(final) + ";");
+//    if (template.id == '6') {
+//        console.log("xcor2 = " + JSON.stringify(final) + ";");
 //    }
     return {
         id: template.id,

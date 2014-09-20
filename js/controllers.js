@@ -543,7 +543,7 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
 
         $scope.getValues = function() {
             $scope.downloadAutomatically = spectraService.getDownloadAutomatically();
-            $scope.numberOfCores = processorService.getNumberProcessors() + 1;
+            $scope.numberOfCores = processorService.getNumberProcessors();
             $scope.saveAutomatically = spectraService.getSaveAutomatically();
         };
         $scope.getValues();
@@ -556,7 +556,7 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
         };
         $scope.updateNumberProcessors = function() {
             if (isInt($scope.numberOfCores)) {
-                processorService.setNumberProcessors($scope.numberOfCores - 1);
+                processorService.setNumberProcessors($scope.numberOfCores);
             }
         };
         $scope.resetToDefaults = function() {
@@ -648,19 +648,20 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
         $scope.ui = global.ui;
         $scope.data = global.data;
         $scope.addFiles = function(files) {
-            if (files.length > 2) {
-                console.log("Loading in more than two files at once.");
-                return;
-            }
             for (var i = 0; i < files.length; i++) {
                 if (files[i].name.endsWith('fits')) {
-                    fitsFile.loadInFitsFile(files[i]).then(function() { console.log('Fits file loaded')});
-                    $state.go('overview');
+                    $scope.data.fits.push(files[i]);
                 } else if (files[i].name.endsWith('txt') || files[i].name.endsWith('csv')) {
                     resultsLoaderService.loadResults(files[i]);
                 }
             }
         };
+        $scope.$watch('data.fits.length', function(newValue) {
+            if (newValue > 0) {
+                fitsFile.loadInFitsFile($scope.data.fits[0]).then(function() { console.log('Fits file loaded')});
+            }
+        });
+
         $scope.showSave = function() {
             return $state.current.name == 'detailed';
         };
