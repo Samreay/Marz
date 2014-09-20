@@ -6,7 +6,8 @@ angular.module('servicesZ', ['dialogs.main'])
                 graphicalLayout: true,
                 dataSelection: {
                     processed: true,
-                    matched: true
+                    matched: true,
+                    variance: true
                 },
                 detailed: {
                     bounds: {
@@ -37,7 +38,7 @@ angular.module('servicesZ', ['dialogs.main'])
                     matched: "#AA0000",
                     sky: "#009DFF",
                     template: '#8C0623',
-                    variance: '#B731E8'
+                    variance: '#E3A700' //B731E8
                 }
             },
             data: {
@@ -243,6 +244,9 @@ angular.module('servicesZ', ['dialogs.main'])
             spectra.processedContinuum = results.continuum;
             spectra.processedLambdaPlot = results.lambda; //.map(function(x) { return Math.pow(10, x); });
             spectra.processedVariance = results.variance;
+            spectra.processedVariancePlot = results.variance.slice();
+            removeNaNs(spectra.processedVariancePlot);
+            normaliseViaShift(spectra.processedVariancePlot, 0, 50, null);
             spectra.isProcessing = false;
             spectra.isProcessed = true;
         };

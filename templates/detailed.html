@@ -19,6 +19,9 @@
                 <div class="form-group" style="height: 30px">
                     <toggle-switch style="width: 170px" model="settings.continuum" knob-label="Continuum"></toggle-switch>
                 </div>
+                <div class="form-group" style="height: 30px">
+                    <toggle-switch class="variance" style="width: 170px" model="ui.dataSelection.variance" knob-label="Variance"></toggle-switch>
+                </div>
                 <div class="form-group">
                     <div class="btn-group">
                         <button class="btn btn-default btn-sm" ng-click="resetToAutomatic()">Reset auto</button>
@@ -52,10 +55,10 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <div class="input-group input-group-sm" style="width:434px">
+                    <div class="input-group input-group-sm" style="width:534px">
                         <span class="input-group-addon">Redshift</span>
                         <input type="text" id="redshiftInput" class="form-control" ng-change="changedRedshift()" ng-model="settings.redshift">
-                        <span class="input-group-addon" style="width:294px"><input  type="range" min={{settings.bounds.redshiftMin}} max="{{settings.bounds.redshiftMax}}" step="0.0001" ng-change="changedRedshift()" ng-model="settings.redshift"></span>
+                        <span class="input-group-addon" style="width:394px"><input  type="range" min={{settings.bounds.redshiftMin}} max="{{settings.bounds.redshiftMax}}" step="0.0001" ng-change="changedRedshift()" ng-model="settings.redshift"></span>
                     </div>
                 </div>
             </li>

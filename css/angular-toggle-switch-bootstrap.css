@@ -74,6 +74,26 @@
     text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
 }
 
+
+.variance.switch .switch-left {
+    background-image: -moz-linear-gradient(top, #ad6600, #e39901);
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#ad6600), to(#e39901));
+    background-image: -webkit-linear-gradient(top, #ad6600, #e39901);
+    background-image: -o-linear-gradient(top, #ad6600, #e39901);
+    background-image: linear-gradient(to bottom, #ad6600, #e39901);
+    background-repeat: repeat-x;
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff870400', endColorstr='#ffcc4236', GradientType=0);
+    border-color: #e39901 #e39901 #ad6600;
+    border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
+    background-color: #e39901;
+    /* Darken IE7 buttons by default so they stand out more given they won't have borders */
+
+    filter: progid:DXImageTransform.Microsoft.gradient(enabled = false);
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+}
+
+
+
 .switch .switch-right {
     background-color: #f0f0f0;
     background-image: -moz-linear-gradient(top, #e6e6e6, #ffffff);

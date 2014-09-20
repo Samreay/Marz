@@ -9,6 +9,10 @@ function Spectra(id, lambda, intensity, variance, sky, skyAverage, name, ra, dec
     this.lambda = lambda;
     this.intensity = intensity;
     this.variance = variance;
+    this.variancePlot = variance.slice();
+    removeNaNs(this.variancePlot);
+    normaliseViaShift(this.variancePlot, 0, 50, null);
+
     this.sky = sky;
     this.skyAverage = skyAverage;
     this.intensitySubtractPlot = null;

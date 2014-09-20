@@ -469,6 +469,10 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                             yOffset = 20 // parseInt(templatePixelOffset);
                         } else if (data[j].id == 'sky') {
                             yOffset = height + top;
+                        } else if (data[j].id == 'variance') {
+                            yOffset = top + 5;
+                            c.moveTo(left, top + 5);
+                            c.lineTo(left + width, top + 5);
                         } else if (data[j].id == "data") {
                             yOffset = -20;
 //                            yOffset = top + ((height-top-bottom)* (1 - 1/spacingFactor));
@@ -479,10 +483,12 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                         }
                         for (var i = start; i < xs.length; i++) {
                             x = convertDataXToCanvasCoordinate(xs[i]);
-                            if (data[j].id != "sky") {
-                                y = convertDataYToCanvasCoordinate(ys[i]) - yOffset;
-                            } else {
+                            if (data[j].id == "sky") {
                                 y = yOffset - ys[i];
+                            } else if (data[j].id == "variance") {
+                                y = yOffset + ys[i];
+                            } else {
+                                y = convertDataYToCanvasCoordinate(ys[i]) - yOffset;
                             }
 
                             if (disconnect == true) {
@@ -639,6 +645,12 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                             break;
                         }
                     }
+                    for (var i = 0; i < data.length; i++) {
+                        if (data[i].id == 'variance') {
+                            data.splice(i, 1);
+                            break;
+                        }
+                    }
                     if (global.ui.active != null) {
                         var ys = null;
                         var xs = null;
@@ -653,6 +665,14 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                             colour = global.ui.colours.raw;
                         }
                         data.push({id: 'data', bound: true, colour: colour, x: xs, y: ys});
+                        if (global.ui.dataSelection.variance) {
+                            if (global.ui.dataSelection.processed && global.ui.active.processedVariancePlot != null) {
+                                ys = global.ui.active.processedVariancePlot;
+                            } else {
+                                ys = global.ui.active.variancePlot;
+                            }
+                            data.push({id: 'variance', bound: false, colour: global.ui.colours.variance, x: xs, y: ys});
+                        }
                         smoothData('data');
                     }
                 };
@@ -693,6 +713,10 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                 $scope.$watchCollection('[detailed.redshift, detailed.templateId, ui.dataSelection.matched, detailed.continuum]', function() {
                     getBounds();
                     addTemplateData();
+                    redraw();
+                });
+                $scope.$watch('ui.dataSelection.variance', function() {
+                    addBaseData();
                     redraw();
                 });
                 $scope.$watch('ui.dataSelection.sky', function() {
