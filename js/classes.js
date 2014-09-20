@@ -46,6 +46,12 @@ function Spectra(id, lambda, intensity, variance, sky, skyAverage, name, ra, dec
         return "" + this.id + this.name + this.getFinalRedshift() + this.getFinalTemplateID() + this.isProcessed + this.isMatched;
     }
 }
+Spectra.prototype.getRA = function() {
+    return this.ra * 180 / Math.PI;
+};
+Spectra.prototype.getDEC = function() {
+    return this.dec * 180 / Math.PI;
+};
 Spectra.prototype.getImage = function() {
     if (this.getFinalRedshift() != this.imageZ || this.imageTID != this.getFinalTemplateID()) {
         this.imageTID = this.getFinalTemplateID();

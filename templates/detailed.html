@@ -3,8 +3,8 @@
         <div class="panel-heading">
             <strong>ID</strong> {{getActive().id}}
             <strong>NAME</strong> {{getActive().name}}
-            <strong>RA</strong> {{getActive().ra.toFixed(6)}}
-            <strong>DEC</strong> {{getActive().dec.toFixed(6)}}
+            <strong>RA</strong> {{getActive().getRA().toFixed(3)}}
+            <strong>DEC</strong> {{getActive().getDEC().toFixed(3)}}
             <strong>MAGNITUDE</strong> {{getActive().magnitude.toFixed(2)}}
             <strong>TYPE</strong> {{getActive().type}}
         </div>
