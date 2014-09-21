@@ -115,6 +115,10 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
                 $scope.saveManual(4);
                 $scope.$apply();
             }},
+            {key: '6', label: '6', controller: "detailed", description: '[Detailed screen] Save with manual QOP of 6', fn: function() {
+                $scope.saveManual(6);
+                $scope.$apply();
+            }},
             {key: 'z', label: 'z', controller: "detailed", description: '[Detailed screen] Focus on redshift input', fn: function($scope, e) {
                 $scope.setFocusToRedshift();
                 e.preventDefault();
@@ -457,7 +461,11 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             if (match == null) {
                 $scope.selectMatch($scope.getMatches()[0]);
             } else {
-                $scope.selectMatch(match.next);
+                if (match == match.next) {
+                        $scope.reanalyseSpectra()
+                    } else {
+                    $scope.selectMatch(match.next);
+                }
             }
             $scope.currentlyMatching();
             $scope.$apply();
