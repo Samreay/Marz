@@ -367,7 +367,7 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             });
         });
     }])
-    .controller('DetailedController', ['$scope', 'spectraService', 'global', 'templatesService', 'spectraLineService', 'processorService', function($scope, spectraService, global, templatesService, spectraLineService, processorService) {
+    .controller('DetailedController', ['$scope', 'spectraService', 'global', 'templatesService', 'spectraLineService', 'processorService', '$timeout', function($scope, spectraService, global, templatesService, spectraLineService, processorService, $timeout) {
         $scope.settings = global.ui.detailed;
         $scope.ui = global.ui;
         $scope.bounds = global.ui.detailed.bounds;
@@ -386,6 +386,19 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
         $scope.$watch('ui.active.getHash()', function() {
             if ($scope.getActive()) {
                 $scope.currentlyMatching();
+            }
+        });
+        $scope.debounce = null;
+        $scope.$watch('ui.active.id', function(oldV, newV) {
+            if (newV == null) return;
+            if ($scope.ui.active.isMatched == false) {
+                $scope.debounce = $scope.ui.active;
+                $timeout(function() {
+                    if ($scope.debounce == $scope.ui.active) {
+                        $scope.debounce = null;
+                        $scope.reanalyseSpectra(false)
+                    }
+                }, 1000);
             }
         });
         $scope.getTemplatesList = function() {
@@ -414,9 +427,9 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             return false;
         };
 
-        $scope.reanalyseSpectra = function() {
+        $scope.reanalyseSpectra = function(start) {
             if ($scope.hasActive()) {
-                processorService.addToPriorityQueue($scope.getActive());
+                processorService.addToPriorityQueue($scope.getActive(), start);
             }
         };
         $scope.showTopResults = function() {
@@ -462,7 +475,7 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
                 $scope.selectMatch($scope.getMatches()[0]);
             } else {
                 if (match == match.next) {
-                        $scope.reanalyseSpectra()
+                        $scope.reanalyseSpectra(true)
                     } else {
                     $scope.selectMatch(match.next);
                 }

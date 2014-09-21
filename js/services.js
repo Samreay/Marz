@@ -632,10 +632,12 @@ angular.module('servicesZ', ['dialogs.main'])
             }
             self.setRunning();
         };
-        self.addToPriorityQueue = function(spectra) {
+        self.addToPriorityQueue = function(spectra, start) {
             spectra.isMatched = false;
             priorityJobs.push(spectra);
-            self.processJobs();
+            if (start) {
+                self.processJobs();
+            }
         };
         self.hasIdleProcessor = function() {
             return self.getIdleProcessor() != null;
