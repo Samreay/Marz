@@ -87,3 +87,7 @@ p.fill-height {
 .overview-selector p {
     display: inline;
 }
+
+.bold {
+    font-weight: bold;
+}

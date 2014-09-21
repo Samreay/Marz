@@ -375,6 +375,10 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
                 $scope.currentlyMatching();
             }
         };
+        $scope.bold = ['O2', 'Hb', 'Ha'];
+        $scope.isBold = function(line) {
+            return $scope.bold.indexOf(line.id) != -1;
+        };
         $scope.$watch('ui.active.getHash()', function() {
             if ($scope.getActive()) {
                 $scope.currentlyMatching();
@@ -498,7 +502,7 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
                 var currentWavelength = spectraLineService.getFromID(id).wavelength;
                 var desiredWavelength = $scope.settings.spectraFocus;
                 var z = desiredWavelength/currentWavelength - 1;
-                $scope.settings.redshift = "" + z;
+                $scope.settings.redshift = z.toFixed(4);
                 $scope.settings.oldRedshift = $scope.settings.redshift;
             }
         };
