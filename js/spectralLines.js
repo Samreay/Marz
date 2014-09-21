@@ -60,8 +60,8 @@ SpectralLines.prototype.addSpectralLine = function(id, label, name, wavelength, 
     });
 };
 SpectralLines.prototype.initialiseDefault = function() {
-    this.addSpectralLine('Lyb','Lyb', 'Lyman Beta',          1025.722, 0, 1, 1);
-    this.addSpectralLine('Lya','Lya', 'Lyman Alpha',         1215.670, 0, 1, 1);
+    this.addSpectralLine('Lyb','Ly\u03B2', 'Lyman Beta',          1025.722, 0, 1, 1);
+    this.addSpectralLine('Lya','Ly\u03B1', 'Lyman Alpha',         1215.670, 0, 1, 1);
     this.addSpectralLine('N5', 'N5',  'Nitrogen 5',          1240.14,  0, 1, 1);
     this.addSpectralLine('Si4','Si4', 'Silicon 4',           1400.0,   0, 1, 1);
     this.addSpectralLine('C4', 'CIV',  'Carbon 4',           1549.06,  0, 1, 1);
