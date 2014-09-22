@@ -134,6 +134,9 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             {key: 'o', label: 'o', controller: "detailed", description: '[Detailed screen] Show the next automatic redshift result', fn: function($scope) {
                 $timeout(function() { $scope.nextMatchedDetails()});
             }},
+            {key: 'u', label: 'u', controller: "detailed", description: '[Detailed screen] Fit the result within a localised window', fn: function($scope) {
+                $timeout(function() { $scope.fit()});
+            }},
             {key: 's', label: 's', controller: "detailed", description: '[Detailed screen] Increase smoothing level', fn: function($scope) {
                 $scope.incrementSmooth();
                 $scope.$apply();
@@ -371,6 +374,9 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
         $scope.settings = global.ui.detailed;
         $scope.ui = global.ui;
         $scope.bounds = global.ui.detailed.bounds;
+        $scope.waitingOnFit = false;
+        $scope.fitZ = null;
+        $scope.fitTID = null;
         $scope.changedRedshift = function() {
             if (isNaN($scope.settings.redshift)) {
                 $scope.settings.redshift = $scope.settings.oldRedshift;
@@ -378,6 +384,42 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
                 $scope.settings.oldRedshift = $scope.settings.redshift;
                 $scope.currentlyMatching();
             }
+        };
+        $scope.$watch('ui.active.fft', function(newV) {
+            if (newV != null && $scope.waitingOnFit) {
+                $scope.doFit();
+            }
+        });
+        $scope.fit = function() {
+            $scope.fitTID = $scope.ui.detailed.templateId;
+            $scope.fitZ = $scope.ui.detailed.redshift;
+            $scope.waitingOnFit = true;
+            if ($scope.ui.active != null) {
+                if ($scope.ui.active.fft == null) {
+                    $scope.reanalyseSpectra(true);
+                    return;
+                }
+            }
+            var tid = $scope.ui.detailed.templateId;
+            if (tid == null || tid === "0" || $scope.ui.active == null || $scope.ui.active.fft == null) {
+                $scope.waitingOnFit = false;
+            } else {
+
+                $scope.doFit();
+            }
+        };
+        $scope.doFit = function() {
+            if ($scope.fitTID == '0') {
+                $scope.fitTID = $scope.ui.detailed.templateId;
+            }
+            if ($scope.fitTID != '0') {
+                var template = templatesService.getFFTReadyTemplate($scope.fitTID);
+                var results = matchTemplate(template, ($scope.fitTID == '12' ? $scope.ui.active.quasarFFT : $scope.ui.active.fft));
+                var currentZ = parseFloat($scope.fitZ);
+                var bestZ = getFit(template.zs, results.xcor, currentZ);
+                $scope.ui.detailed.redshift = bestZ.toFixed(4);
+            }
+            $scope.waitingOnFit = false;
         };
         $scope.bold = ['O2', 'Hb', 'Ha'];
         $scope.isBold = function(line) {

@@ -46,3 +46,7 @@ var trimAmount = 0.04;
 // CURRENTLY NOT UTILISED
 var baseWeight = 0.01;
 var gaussianWidth = 0.0003; // ANGSTROM
+
+
+// FIT WINDOW FOR MANUAL FITTING
+var fitWindow = 100;

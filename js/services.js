@@ -266,6 +266,12 @@ angular.module('servicesZ', ['dialogs.main'])
             spectra.automaticBestResults = results.results.coalesced; // TODO: REMOVE BEST RESULTS, ONLY HAVE AUTOMATIC RESULTS
             spectra.isMatching = false;
             spectra.isMatched = true;
+            spectra.fft = new FFT(results.results.fft.real.length, results.results.fft.imag);
+            spectra.fft.real = results.results.fft.real;
+            spectra.fft.imag = results.results.fft.imag;
+            spectra.quasarFFT = new FFT(results.results.quasarFFT.real.length, results.results.quasarFFT.imag);
+            spectra.quasarFFT.real = results.results.quasarFFT.real;
+            spectra.quasarFFT.imag = results.results.quasarFFT.imag;
             spectra.processedIntensity = results.results.intensity;
             if (saveAutomatically) {
                 localStorageService.saveSpectra(spectra);
@@ -728,6 +734,14 @@ angular.module('servicesZ', ['dialogs.main'])
             return templates.templates;
         };
 
+        self.getFFTReadyTemplate = function(templateId) {
+            var t = templates.templatesHash[templateId];
+            if (t.fft == null) {
+                templates.shiftTemplate(t);
+            }
+            return t;
+        };
+
     }])
     .service('fitsFile', ['$q', 'global', 'spectraService', 'processorService', 'drawingService', function($q, global, spectraService, processorService, drawingService) {
         var self = this;
@@ -926,12 +940,12 @@ angular.module('servicesZ', ['dialogs.main'])
     var self = this;
     var ui = global.ui;
     self.drawTemplateOnCanvas = function(template, canvas) {
-        var arr = template.lambda;
+        var r = templatesService.getTemplateAtRedshift(template.id, 0, true);
         var bounds = self.getMaxes([
-            [arr, template.spec]
+            [r[0], r[1]]
         ]);
         self.clearPlot(canvas);
-        self.plot(arr, template.spec, ui.colours.template, canvas, bounds);
+        self.plot(r[0], r[1], ui.colours.template, canvas, bounds);
     };
     self.drawOverviewOnCanvas = function(spectra, canvas) {
         var width = canvas.width;

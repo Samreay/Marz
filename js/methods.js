@@ -965,3 +965,81 @@ function normaliseXCorr(final) {
     }
     return result;
 }
+
+
+function getFit(zs, xcor, val) {
+    var startIndex = binarySearch(zs, val)[0] - Math.floor(fitWindow/2);
+    var bestPeak = -9e9;
+    var bestIndex = -1;
+    for (var i = 0; i < fitWindow; i++) {
+        var index = startIndex + i;
+        if (index >=0 && index < xcor.length) {
+            if (xcor[index] > bestPeak) {
+                bestPeak = xcor[index];
+                bestIndex = index;
+            }
+        }
+    }
+    return zs[bestIndex];
+}
+
+function binarySearch(data, val) {
+    var highIndex = data.length - 1;
+    var lowIndex = 0;
+    while (highIndex > lowIndex) {
+        var index = Math.floor((highIndex + lowIndex) / 2);
+        var sub = data[index];
+        if (data[lowIndex] == val) {
+            return [lowIndex, lowIndex];
+        } else if (sub == val) {
+            return [index, index];
+        } else if (data[highIndex] == val) {
+            return [highIndex, highIndex];
+        } else if (sub > val) {
+            if (highIndex == index) {
+                return [lowIndex, highIndex];
+            }
+            highIndex = index
+        } else {
+            if (lowIndex == index) {
+                return [lowIndex, highIndex];
+            }
+            lowIndex = index
+        }
+    }
+    return [lowIndex, highIndex];
+}
+
+/**
+ * Determines the cross correlation (and peaks in it) between a spectra and a template
+ *
+ * @param template A template data structure from the template manager. Will contain a pre-transformed
+ * template spectrum (this is why initialising TemplateManager is so slow).
+ * @param fft the Fourier transformed spectra
+ * @returns {{id: String, zs: Array, xcor: Array, peaks: Array}} a data structure containing the id of the template, the redshifts of the template, the xcor
+ * results of the template and a list of peaks in the xcor array.
+ */
+function matchTemplate(template, fft) {
+    var fftNew = fft.multiply(template.fft);
+    var final = fftNew.inverse();
+    final = Array.prototype.slice.call(final);
+    circShift(final, final.length/2);
+    final = pruneResults(final, template);
+    // UNCOMMENT SECTION BELOW TO GET XCOR RESULTS FOR QUASAR
+    /*    if (template.id == '3') {
+     debugger;
+     }*/
+    var finalPeaks = normaliseXCorr(final);
+    /* if (template.id == '9') {
+     console.log("xcor3 = " + JSON.stringify(final) + ";\nzs=" + JSON.stringify(template.zs) + ";");
+     }*/
+//    if (template.id == '6') {
+//        console.log("xcor2 = " + JSON.stringify(final) + ";");
+//    }
+    return {
+        id: template.id,
+        zs: template.zs,
+        xcor: final,
+        peaks: finalPeaks
+    };
+}

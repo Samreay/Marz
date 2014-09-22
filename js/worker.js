@@ -121,47 +121,14 @@ self.matchTemplates = function(lambda, intensity, variance, type) {
     // For each template, match the appropriate transform
     var templateResults = templateManager.templates.map(function(template) {
         if (template.id == '12') {
-            return self.matchTemplate(template, quasarFFT);
+            return matchTemplate(template, quasarFFT);
         } else {
-            return self.matchTemplate(template, fft);
+            return matchTemplate(template, fft);
         }
     });
-    return self.coalesceResults(templateResults, type, subtracted);
+    return self.coalesceResults(templateResults, type, subtracted, fft, quasarFFT);
 };
 
-/**
- * Determines the cross correlation (and peaks in it) between a spectra and a template
- *
- * @param template A template data structure from the template manager. Will contain a pre-transformed
- * template spectrum (this is why initialising TemplateManager is so slow).
- * @param fft the Fourier transformed spectra
- * @returns {{id: String, zs: Array, xcor: Array, peaks: Array}} a data structure containing the id of the template, the redshifts of the template, the xcor
- * results of the template and a list of peaks in the xcor array.
- */
-self.matchTemplate = function(template, fft) {
-    var fftNew = fft.multiply(template.fft);
-    var final = fftNew.inverse();
-    final = Array.prototype.slice.call(final);
-    circShift(final, final.length/2);
-    final = pruneResults(final, template);
-    // UNCOMMENT SECTION BELOW TO GET XCOR RESULTS FOR QUASAR
-/*    if (template.id == '3') {
-        debugger;
-    }*/
-    var finalPeaks = normaliseXCorr(final);
-   /* if (template.id == '9') {
-        console.log("xcor3 = " + JSON.stringify(final) + ";\nzs=" + JSON.stringify(template.zs) + ";");
-    }*/
-//    if (template.id == '6') {
-//        console.log("xcor2 = " + JSON.stringify(final) + ";");
-//    }
-    return {
-        id: template.id,
-        zs: template.zs,
-        xcor: final,
-        peaks: finalPeaks
-    };
-};
 
 /**
  * Coalesces the results from all templates into a singular list by adding in the
@@ -174,7 +141,7 @@ self.matchTemplate = function(template, fft) {
  * @param type
  * @returns {{coalesced: Array, templates: null, intensity: Array}}
  */
-self.coalesceResults = function(templateResults, type, intensity) {
+self.coalesceResults = function(templateResults, type, intensity, fft, quasarFFT) {
     // Adjust for optional weighting
     var coalesced = [];
     for (var i = 0; i < templateResults.length; i++) {
@@ -224,5 +191,5 @@ self.coalesceResults = function(templateResults, type, intensity) {
 //        templates.push({id: templateResults[i].id, z: chi2, chi2: zs});
 //
 //    }
-    return {coalesced: coalesced, templates: null, intensity: intensity};
+    return {coalesced: coalesced, templates: null, intensity: intensity, fft: {real: fft.real, imag: fft.imag}, quasarFFT: {real: quasarFFT.real, imag: quasarFFT.imag}};
 };

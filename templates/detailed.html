@@ -44,7 +44,7 @@
                             <button class="btn btn-sm btn-default" btn-radio="$index" ng-click="selectMatch(i)" ng-model="settings.matchedIndex" ng-repeat="i in getMatches() track by $index">{{$index + 1}}</button>
                         </div>
                         <span class="input-group-btn" ng-if="!hasMatchingDetails()">
-                            <button class="btn btn-block btn-default" ng-click="reanalyseSpectra()">Reanalyse spectra</button>
+                            <button class="btn btn-block btn-default" ng-click="reanalyseSpectra(true)">Reanalyse spectra</button>
                         </span>
                     </div>
                 </div>
@@ -55,12 +55,13 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <div class="input-group input-group-sm" style="width:534px">
+                    <div class="input-group input-group-sm" style="width:504px">
                         <span class="input-group-addon">Redshift</span>
                         <input type="text" id="redshiftInput" class="form-control" ng-change="changedRedshift()" ng-model="settings.redshift">
-                        <span class="input-group-addon" style="width:394px"><input  type="range" min={{settings.bounds.redshiftMin}} max="{{settings.bounds.redshiftMax}}" step="0.0001" ng-change="changedRedshift()" ng-model="settings.redshift"></span>
+                        <span class="input-group-addon" style="width:364px"><input  type="range" min={{settings.bounds.redshiftMin}} max="{{settings.bounds.redshiftMax}}" step="0.0001" ng-change="changedRedshift()" ng-model="settings.redshift"></span>
                     </div>
                 </div>
+                <button class="form-group btn btn-primary btn-sm" style="display: inline-block;" ng-click="fit()">Perform Fit</button>
             </li>
             <li class="list-group-item form-inline">
                     <button class="form-group btn btn-primary btn-sm" style="display: inline-block;" ng-click="toggleSpectralLines()">{{getSpectralLinePhrase()}}</button>

@@ -206,51 +206,52 @@ TemplateManager.prototype.processTemplates = function () {
         }
         // We will create the data to be used for matching only when called for, so the UI does not waste time.
     }
+    this.logLambda = linearScale(startPower, endPower, arraySize);
+    this.logLambdaQ = linearScale(startPowerQ, endPowerQ, arraySize);
 };
 TemplateManager.prototype.shiftToMatchSpectra = function () {
-    var logLambda = linearScale(startPower, endPower, arraySize);
-    var logLambdaQ = linearScale(startPowerQ, endPowerQ, arraySize);
-
     for (var i = 0; i < this.templates.length; i++) {
-        var t = this.templates[i];
-        var ll = t.id == '12' ? logLambdaQ : logLambda;
-        polyFitReject(t.lambda, t.spec);
-        if (t.id != '12') {
-            smoothAndSubtract(t.spec);
-        }
-
-        taperSpectra(t.spec);
-        normalise(t.spec);
-
-        t.spec = interpolate(ll, t.lambda, t.spec);
-        t.lambda = ll;
-
-        t.fft = new FFT(t.spec.length, t.spec.length);
-        t.fft.forward(t.spec);
-        t.fft.conjugate();
-
-        var gap = t.lambda[1] - t.lambda[0];
-        var num = t.lambda.length / 2;
-        t.zs = t.lambda.map(function(x,i) {
-            return (Math.pow(10, (i - num) * gap) * (1 + t.redshift)) - 1
-        });
-
-        t.startZIndex = null;
-        t.endZIndex = null;
-
-        // Linear search through an ordered array is horrible, I should fix this.. in around 50 places.
-        for (var j = 0; j < t.zs.length; j++) {
-            if (t.startZIndex == null && t.zs[j] > t.z_start) {
-                t.startZIndex = j;
-            }
-            if (t.endZIndex == null && t.zs[j] > t.z_end) {
-                t.endZIndex = j;
-            }
-            if (t.endZIndex != null && t.startZIndex != null) {
-                break;
-            }
-        }
-
-        t.zs = t.zs.slice(t.startZIndex, t.endZIndex);
+        this.shiftTemplate(this.templates[i]);
     }
+};
+TemplateManager.prototype.shiftTemplate = function(t) {
+    var ll = t.id == '12' ? this.logLambdaQ : this.logLambda;
+    polyFitReject(t.lambda, t.spec);
+    if (t.id != '12') {
+        smoothAndSubtract(t.spec);
+    }
+
+    taperSpectra(t.spec);
+    normalise(t.spec);
+
+    t.spec = interpolate(ll, t.lambda, t.spec);
+    t.lambda = ll;
+
+    t.fft = new FFT(t.spec.length, t.spec.length);
+    t.fft.forward(t.spec);
+    t.fft.conjugate();
+
+    var gap = t.lambda[1] - t.lambda[0];
+    var num = t.lambda.length / 2;
+    t.zs = t.lambda.map(function(x,i) {
+        return (Math.pow(10, (i - num) * gap) * (1 + t.redshift)) - 1
+    });
+
+    t.startZIndex = null;
+    t.endZIndex = null;
+
+    // Linear search through an ordered array is horrible, I should fix this.. in around 50 places.
+    for (var j = 0; j < t.zs.length; j++) {
+        if (t.startZIndex == null && t.zs[j] > t.z_start) {
+            t.startZIndex = j;
+        }
+        if (t.endZIndex == null && t.zs[j] > t.z_end) {
+            t.endZIndex = j;
+        }
+        if (t.endZIndex != null && t.startZIndex != null) {
+            break;
+        }
+    }
+
+    t.zs = t.zs.slice(t.startZIndex, t.endZIndex);
 };
