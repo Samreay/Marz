@@ -967,8 +967,8 @@ function normaliseXCorr(final) {
 }
 
 
-function getFit(zs, xcor, val) {
-    var startIndex = binarySearch(zs, val)[0] - Math.floor(fitWindow/2);
+function getFit(template, xcor, val) {
+    var startIndex = binarySearch(template.zs, val)[0] - Math.floor(fitWindow/2);
     var bestPeak = -9e9;
     var bestIndex = -1;
     for (var i = 0; i < fitWindow; i++) {
@@ -980,7 +980,7 @@ function getFit(zs, xcor, val) {
             }
         }
     }
-    return zs[bestIndex];
+    return getRedshiftForNonIntegerIndex(template, fitAroundIndex(xcor, bestIndex));
 }
 
 function binarySearch(data, val) {
@@ -1042,4 +1042,17 @@ function matchTemplate(template, fft) {
         xcor: final,
         peaks: finalPeaks
     };
+}
+
+function fitAroundIndex(data, index) {
+    var d = data.slice(index - 1, index + 2).map(function(v,i) { return [index - 1 + i,v]; });
+    var e = polynomial(d).equation;
+    return -e[1]/(2*e[2]);
+}
+
+function getRedshiftForNonIntegerIndex(t, index) {
+    var gap = t.lambda[1] - t.lambda[0];
+    var num = t.lambda.length / 2;
+    var z = (Math.pow(10, (index + t.startZIndex - num) * gap) * (1 + t.redshift)) - 1;
+    return z;
 }

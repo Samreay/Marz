@@ -161,6 +161,7 @@ self.coalesceResults = function(templateResults, type, intensity, fft, quasarFFT
             tr.peaks[j].value = tr.peaks[j].value / w;
             tr.peaks[j].z = tr.zs[tr.peaks[j].index];
             tr.peaks[j].templateId = tr.id;
+            tr.peaks[j].xcor = tr.xcor;
             coalesced.push(tr.peaks[j]);
         }
     }
@@ -175,7 +176,14 @@ self.coalesceResults = function(templateResults, type, intensity, fft, quasarFFT
 
     for (var k = 0; k < coalesced.length; k++) {
         // Javascript only rounds to integer, so this should get four decimal places
-        coalesced[k].z =  Math.round(coalesced[k].z * 1e4) / 1e4;
+        var index = fitAroundIndex(coalesced[k].xcor, coalesced[k].index);
+        var res = getRedshiftForNonIntegerIndex(templateManager.getTemplateFromId(coalesced[k].templateId), index);
+        coalesced[k] = {
+            z:  Math.round(res * 1e4) / 1e4,
+            index: index,
+            templateId: coalesced[k].templateId,
+            value: coalesced[k].value
+        };
     }
 
     //TODO: Add all info back in after shrinking down the zs array to < 5000 elements so we can get the xcor function

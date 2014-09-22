@@ -252,6 +252,5 @@ TemplateManager.prototype.shiftTemplate = function(t) {
             break;
         }
     }
-
     t.zs = t.zs.slice(t.startZIndex, t.endZIndex);
 };
