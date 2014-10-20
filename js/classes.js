@@ -10,6 +10,7 @@ function Spectra(id, lambda, intensity, variance, sky, skyAverage, name, ra, dec
     this.intensity = intensity;
     this.variance = variance;
     this.variancePlot = variance;
+    this.comment = "";
     if (variance != null) {
         this.variancePlot = variance.slice();
         removeNaNs(this.variancePlot);
@@ -74,6 +75,12 @@ Spectra.prototype.getImage = function() {
 Spectra.prototype.getOverviewHTML = function() {
 
 };*/
+Spectra.prototype.getComment = function() {
+    return this.comment;
+};
+Spectra.prototype.setComment = function(comment) {
+    this.comment = comment;
+};
 Spectra.prototype.getImageUrl = function() {
     var canvas = document.createElement('canvas');
     canvas.width = 318;
@@ -98,7 +105,7 @@ Spectra.prototype.getIntensitySubtracted = function() {
     }
 };
 Spectra.prototype.hasRedshift = function() {
-    return this.automaticBestResults || this.manualRedshift;
+    return this.automaticBestResults != null || this.manualRedshift != null;
 };
 Spectra.prototype.getBestAutomaticResult = function() {
     if (this.automaticBestResults != null) {
@@ -123,9 +130,9 @@ Spectra.prototype.hasMatches = function() {
     return (this.automaticBestResults != null && this.automaticBestResults.length > 1);
 };
 Spectra.prototype.getFinalRedshift = function() {
-    if (this.manualRedshift) {
+    if (this.manualRedshift != null) {
         return this.manualRedshift;
-    } else if (this.automaticBestResults) {
+    } else if (this.automaticBestResults != null) {
         return this.automaticBestResults[0].z;
     } else {
         return null;

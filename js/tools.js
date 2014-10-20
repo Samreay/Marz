@@ -6,6 +6,42 @@ String.prototype.pad = function(width) {
     return this.length >= width ? this : new Array(width - this.length + 1).join('0') + this;
 };
 
+function range(start, stop, step) {
+    var result = [];
+    for (var i = start; i < stop; i += step) {
+        result.push(i);
+    }
+    return result;
+}
+
+
+function binarySearch(data, val) {
+    var highIndex = data.length - 1;
+    var lowIndex = 0;
+    while (highIndex > lowIndex) {
+        var index = Math.floor((highIndex + lowIndex) / 2);
+        var sub = data[index];
+        if (data[lowIndex] == val) {
+            return [lowIndex, lowIndex];
+        } else if (sub == val) {
+            return [index, index];
+        } else if (data[highIndex] == val) {
+            return [highIndex, highIndex];
+        } else if (sub > val) {
+            if (highIndex == index) {
+                return [lowIndex, highIndex];
+            }
+            highIndex = index
+        } else {
+            if (lowIndex == index) {
+                return [lowIndex, highIndex];
+            }
+            lowIndex = index
+        }
+    }
+    return [lowIndex, highIndex];
+}
+
 function isInt(n) {
     return parseInt(n) === n
 }

@@ -7,6 +7,7 @@
             <strong>DEC</strong> {{getActive().getDEC().toFixed(3)}}
             <strong>MAGNITUDE</strong> {{getActive().magnitude.toFixed(2)}}
             <strong>TYPE</strong> {{getActive().type}}
+            <strong>COMMENT</strong><input type="text" style="width: 180px; margin-left: 20px; border-radius: 0;" ng-model-options="{ debounce: 300 }" ng-model="spectraComment" class="input-sm" ng-change="updateSpectraComment()" placeholder="Enter a comment" />
         </div>
         <ul class="list-group">
             <li class="list-group-item form-inline">

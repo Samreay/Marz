@@ -1,15 +1,25 @@
 var normalised_height = 1000;
 var normalised_area = 100000;
 
+
+/**
+ * Converts a single wavelength in Angstroms from air to vacuum
+ * @param lambda the wavelength to convert
+ * @returns {number} the vacuum wavelength
+ */
+function convertSingleAirFromVacuum(lambda) {
+    return lambda / (1 + 2.735192e-4 + (131.4182/Math.pow(lambda, 2)) + (2.76249E8 /Math.pow(lambda, 4)));
+}
+
 /**
  * In place converts an array of wavelengths (in Angstroms) from air wavelength
  * to vacuum wavelength
  *
  * @param lambda an array of wavelengths
  */
-function convertVacuumFromAir(lambda) {
+function convertAirFromVacuum(lambda) {
     for (var i = 0; i < lambda.length; i++) {
-        lambda[i] = lambda[i] * (1 + 2.735192e-4 + (131.4182/Math.pow(lambda[i], 2)) + (2.76249E8 /Math.pow(lambda[i], 4)));
+        lambda[i] = convertSingleAirFromVacuum(lambda[i]);
     }
 }
 /**
@@ -18,12 +28,37 @@ function convertVacuumFromAir(lambda) {
  *
  * @param lambda an array of log wavelengths
  */
+function convertAirFromVacuumWithLogLambda(lambda) {
+    for (var i = 0; i < lambda.length; i++) {
+        var l = Math.pow(10, lambda[i]);
+        lambda[i] = Math.log(convertSingleAirFromVacuum(l))/Math.LN10;
+    }
+}
+
+var vacuum = range(500, 10000, 0.1);
+var air = vacuum.slice();
+convertAirFromVacuum(air);
+
+function convertSingleVacuumFromAir(lambda) {
+    var indexes = binarySearch(air, lambda);
+    if (indexes[0] == indexes[1]) {
+        return vacuum[indexes[0]];
+    } else {
+        return vacuum[indexes[0]] + (vacuum[indexes[1]] - vacuum[indexes[0]]) * (lambda - air[indexes[0]]) / (air[indexes[1]] - air[indexes[0]]);
+    }
+}
+function convertVacuumFromAir(lambda) {
+    for (var i = 0; i < lambda.length; i++) {
+        lambda[i] = convertSingleVacuumFromAir(lambda[i]);
+    }
+}
 function convertVacuumFromAirWithLogLambda(lambda) {
     for (var i = 0; i < lambda.length; i++) {
         var l = Math.pow(10, lambda[i]);
-        lambda[i] = Math.log(l * (1 + 2.735192e-4 + (131.4182/Math.pow(l, 2)) + (2.76249E8 /Math.pow(l, 4))))/Math.LN10;
+        lambda[i] = Math.log(convertSingleVacuumFromAir(l))/Math.LN10;
     }
 }
+
 /**
  * Redshifts a singular wavelength
  * @param lambda the wavelength to redshift
@@ -32,14 +67,6 @@ function convertVacuumFromAirWithLogLambda(lambda) {
  */
 function shiftWavelength(lambda, z) {
     return (1+z)*lambda;
-}
-/**
- * Converts a single wavelength in Angstroms from air to vacuum
- * @param lambda the wavelength to convert
- * @returns {number} the vacuum wavelength
- */
-function convertSingleVacuumFromAir(lambda) {
-    return lambda * (1 + 2.735192e-4 + (131.4182/Math.pow(lambda, 2)) + (2.76249E8 /Math.pow(lambda, 4)));
 }
 /**
  * Converts the equispaced linear scale of the given lambda into an equispaced log scale.
@@ -983,32 +1010,6 @@ function getFit(template, xcor, val) {
     return getRedshiftForNonIntegerIndex(template, fitAroundIndex(xcor, bestIndex));
 }
 
-function binarySearch(data, val) {
-    var highIndex = data.length - 1;
-    var lowIndex = 0;
-    while (highIndex > lowIndex) {
-        var index = Math.floor((highIndex + lowIndex) / 2);
-        var sub = data[index];
-        if (data[lowIndex] == val) {
-            return [lowIndex, lowIndex];
-        } else if (sub == val) {
-            return [index, index];
-        } else if (data[highIndex] == val) {
-            return [highIndex, highIndex];
-        } else if (sub > val) {
-            if (highIndex == index) {
-                return [lowIndex, highIndex];
-            }
-            highIndex = index
-        } else {
-            if (lowIndex == index) {
-                return [lowIndex, highIndex];
-            }
-            lowIndex = index
-        }
-    }
-    return [lowIndex, highIndex];
-}
 
 /**
  * Determines the cross correlation (and peaks in it) between a spectra and a template

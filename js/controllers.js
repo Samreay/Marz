@@ -370,13 +370,21 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             });
         });
     }])
-    .controller('DetailedController', ['$scope', 'spectraService', 'global', 'templatesService', 'spectraLineService', 'processorService', '$timeout', function($scope, spectraService, global, templatesService, spectraLineService, processorService, $timeout) {
+    .controller('DetailedController', ['$scope', 'spectraService', 'global', 'templatesService', 'spectraLineService', 'processorService', '$timeout', 'localStorageService', function($scope, spectraService, global, templatesService, spectraLineService, processorService, $timeout, localStorageService) {
         $scope.settings = global.ui.detailed;
         $scope.ui = global.ui;
         $scope.bounds = global.ui.detailed.bounds;
         $scope.waitingOnFit = false;
         $scope.fitZ = null;
         $scope.fitTID = null;
+        $scope.updateSpectraComment = function() {
+            if ($scope.getActive()) {
+                $scope.getActive().setComment($scope.spectraComment);
+                if (spectraService.getSaveAutomatically()) {
+                    localStorageService.saveSpectra($scope.getActive());
+                }
+            }
+        };
         $scope.changedRedshift = function() {
             if (isNaN($scope.settings.redshift)) {
                 $scope.settings.redshift = $scope.settings.oldRedshift;
@@ -431,8 +439,9 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             }
         });
         $scope.debounce = null;
-        $scope.$watch('ui.active.id', function(oldV, newV) {
+        $scope.$watch('ui.active.id', function(newV) {
             if (newV == null) return;
+            $scope.spectraComment = $scope.getActive().getComment();
             if ($scope.ui.active.isMatched == false) {
                 $scope.debounce = $scope.ui.active;
                 $timeout(function() {
