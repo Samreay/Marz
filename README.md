@@ -1,4 +1,4 @@
-# ThesisZ Redshifting Program
+# Marz Redshifting Program
 
 Thesis project for graduating software engineering for Samuel Hinton, for use in cosmological redshift surveys.
 
