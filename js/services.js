@@ -1,4 +1,7 @@
 angular.module('servicesZ', ['dialogs.main'])
+    .config(['$logProvider', function($logProvider) {
+        $logProvider.debugEnabled(window.location.hostname === "localhost");
+    }])
     .provider('global', function() {
         var dataStore = {
             ui: {
@@ -751,7 +754,7 @@ angular.module('servicesZ', ['dialogs.main'])
         };
 
     }])
-    .service('fitsFile', ['$q', 'global', 'spectraService', 'processorService', 'drawingService', function($q, global, spectraService, processorService, drawingService) {
+    .service('fitsFile', ['$q', 'global', 'spectraService', 'processorService', 'drawingService', '$log', function($q, global, spectraService, processorService, drawingService, $log) {
         var self = this;
 
         var hasFitsFile = false;
@@ -788,7 +791,9 @@ angular.module('servicesZ', ['dialogs.main'])
             originalFilename = file.name.replace(/\.[^/.]+$/, "");
             global.data.fitsFileName = originalFilename;
             filename = originalFilename.replace(/_/g, " ");
+            $log.debug("Loading FITs file");
             self.fits = new astro.FITS(file, function() {
+                $log.debug("Loaded FITs file");
                 parseFitsFile(q);
                 processorService.setPause();
             });
@@ -796,6 +801,7 @@ angular.module('servicesZ', ['dialogs.main'])
 
         };
         var parseFitsFile = function(q) {
+            $log.debug("Getting headers");
             var header0 = self.fits.getHDU(0).header;
 
             MJD = header0.get('UTMJD');
@@ -826,6 +832,7 @@ angular.module('servicesZ', ['dialogs.main'])
             getFibres(q);
         };
         var getFibres = function(q) {
+            $log.debug("Getting fibres");
             self.fits.getDataUnit(typeIndex).getColumn("TYPE", function(data) {
                 var ind = 0;
                 for (var i = 0; i < data.length; i++) {
@@ -837,6 +844,7 @@ angular.module('servicesZ', ['dialogs.main'])
             });
         };
         var getNames = function(q) {
+            $log.debug("Getting names");
             self.fits.getDataUnit(typeIndex).getColumn("NAME", function(data) {
                 for (var i = 0; i < spectra.length; i++) {
                     var j = spectra[i].fitsIndex;
@@ -846,6 +854,7 @@ angular.module('servicesZ', ['dialogs.main'])
             });
         };
         var getRA = function(q) {
+            $log.debug("Getting RA");
             self.fits.getDataUnit(typeIndex).getColumn("RA", function(data) {
                 for (var i = 0; i < spectra.length; i++) {
                     var j = spectra[i].fitsIndex;
@@ -855,6 +864,7 @@ angular.module('servicesZ', ['dialogs.main'])
             });
         };
         var getDec = function(q) {
+            $log.debug("Getting DEC");
             self.fits.getDataUnit(typeIndex).getColumn("DEC", function(data) {
                 for (var i = 0; i < spectra.length; i++) {
                     var j = spectra[i].fitsIndex;
@@ -865,6 +875,7 @@ angular.module('servicesZ', ['dialogs.main'])
         };
 
         var getMagnitudes = function(q) {
+            $log.debug("Getting magnitude");
             self.fits.getDataUnit(typeIndex).getColumn("MAGNITUDE", function(data) {
                 for (var i = 0; i < spectra.length; i++) {
                     var j = spectra[i].fitsIndex;
@@ -874,6 +885,7 @@ angular.module('servicesZ', ['dialogs.main'])
             });
         };
         var getComments = function(q) {
+            $log.debug("Getting comment");
             self.fits.getDataUnit(typeIndex).getColumn("COMMENT", function(data) {
                 global.data.types.length = 0;
                 for (var i = 0; i < spectra.length; i++) {
@@ -893,6 +905,7 @@ angular.module('servicesZ', ['dialogs.main'])
             });
         };
         var getSky = function(q) {
+            $log.debug("Getting Sky");
             self.fits.getDataUnit(skyIndex).getFrame(0, function(data) {
                 var d = Array.prototype.slice.call(data);
                 if (isCoadd) {
@@ -912,6 +925,7 @@ angular.module('servicesZ', ['dialogs.main'])
             });
         };
         var getSpectra = function(q) {
+            $log.debug("Getting spectra intensity");
             self.fits.getDataUnit(0).getFrame(0, function(data) {
                 var d = Array.prototype.slice.call(data);
                 for (var i = 0; i < spectra.length; i++) {
@@ -921,6 +935,7 @@ angular.module('servicesZ', ['dialogs.main'])
             })
         };
         var getVariances = function(q) {
+            $log.debug("Getting spectra variance");
             self.fits.getDataUnit(1).getFrame(0, function(data) {
                 var d = Array.prototype.slice.call(data);
                 for (var i = 0; i < spectra.length; i++) {
@@ -930,6 +945,7 @@ angular.module('servicesZ', ['dialogs.main'])
             });
         };
         var convertToUsableObjects = function(q) {
+            $log.debug("Creating javascript classes");
             var spectraList = [];
             for (var j = 0; j < spectra.length; j++) {
                 var s = new Spectra(spectra[j].id, lambda.slice(0), spectra[j].intensity, spectra[j].variance,
@@ -940,6 +956,7 @@ angular.module('servicesZ', ['dialogs.main'])
             isLoading = false;
             spectraService.setSpectra(spectraList);
             processorService.addSpectraListToQueue(spectraList);
+            $log.debug("Returning FITs object");
             q.resolve();
         }
 
