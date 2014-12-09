@@ -1079,9 +1079,9 @@ function matchTemplate(template, fft) {
 }
 
 function fitAroundIndex(data, index) {
-    var d = data.slice(index - 1, index + 2).map(function(v,i) { return [index - 1 + i,v]; });
+    var d = data.slice(index - 1, index + 2).map(function(v,i) { return [i - 1,v]; });
     var e = polynomial(d).equation;
-    return -e[1]/(2*e[2]);
+    return index + (-e[1]/(2*e[2]));
 }
 
 function getRedshiftForNonIntegerIndex(t, index) {
