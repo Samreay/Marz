@@ -88,21 +88,22 @@ self.matchTemplates = function(lambda, intensity, variance, type) {
 //    console.log("quasar = " + JSON.stringify(quasarIntensity) + ";");
     rollingPointMean(quasarIntensity, 3, 0.9);
 //    console.log("quasar2 = " + JSON.stringify(quasarIntensity) + ";");
-
     taperSpectra(quasarIntensity);
     medianAndBoxcarSmooth(quasarVariance, 20, 20);
     divideByError(quasarIntensity, quasarVariance);
+    taperSpectra(quasarIntensity);
     normalise(quasarIntensity);
 
     // The intensity variable is what will match every other template
 //    console.log("lambda = " + JSON.stringify(lambda) + ";");
+    taperSpectra(intensity);
     smoothAndSubtract(intensity);
     var subtracted = intensity.slice();
-    taperSpectra(intensity);
     adjustError(variance);
     divideByError(intensity, variance);
-    normalise(intensity);
 
+    taperSpectra(intensity);
+    normalise(intensity);
 //    console.log("intensity2=" + JSON.stringify(intensity) + ";");
     // Uncomment the below lines if you want to inspect the intensity and quasarIntensity variables
     // You can copy and paste the output straight into MATLAB
