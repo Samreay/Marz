@@ -848,7 +848,7 @@ angular.module('servicesZ', ['dialogs.main'])
             self.fits.getDataUnit(typeIndex).getColumn("NAME", function(data) {
                 for (var i = 0; i < spectra.length; i++) {
                     var j = spectra[i].fitsIndex;
-                    spectra[i].name = data[j].replace(/\s+/g, '');
+                    spectra[i].name = data[j].replace(/\s+/g, '').replace(/\u0000/g, "");
                 }
                 getRA(q);
             });
