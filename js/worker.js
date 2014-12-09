@@ -89,7 +89,8 @@ self.matchTemplates = function(lambda, intensity, variance, type) {
     rollingPointMean(quasarIntensity, 3, 0.9);
 //    console.log("quasar2 = " + JSON.stringify(quasarIntensity) + ";");
     taperSpectra(quasarIntensity);
-    medianAndBoxcarSmooth(quasarVariance, 20, 20);
+    quasarVariance = medianAndBoxcarSmooth(quasarVariance, 81, 25);
+    addMinMultiple(quasarVariance, 20);
     divideByError(quasarIntensity, quasarVariance);
     taperSpectra(quasarIntensity);
     normalise(quasarIntensity);

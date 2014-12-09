@@ -689,6 +689,29 @@ function subtract(data, subtract) {
         data[i] -= subtract[i];
     }
 }
+function add(data, add) {
+    for (var i = 0; i < data.length; i++) {
+        data[i] += add[i];
+    }
+}
+function addConstant(data, add) {
+    for (var i = 0; i < data.length; i++) {
+        data[i] += add;
+    }
+}
+function getMin(data) {
+    var min = 9e19;
+    for (var i = 0; i < data.length; i++) {
+        if (data[i] < min) {
+            min = data[i];
+        }
+    }
+    return min;
+}
+function addMinMultiple(data, multiple) {
+    var min = getMin(data);
+    addConstant(data, min * multiple);
+}
 function medianAndBoxcarSmooth(array, medianFilterWidth, boxCarWidth) {
     var medians = medianFilter(array, medianFilterWidth);
     var smoothed = boxCarSmooth(medians, boxCarWidth);
