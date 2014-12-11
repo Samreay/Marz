@@ -522,7 +522,7 @@ function polyFit(lambda, intensity) {
 function badIndex(intensity, variance, index) {
     var i = intensity[index];
     var v = variance[index];
-    return isNaN(i) || isNaN(v) || i == null || v == null || i > maxVal || i < minVal || v < 0;
+    return isNaN(i) || isNaN(v) || i == null || v == null || i > maxVal || i < minVal || v <= 0;
 }
 
 /**
@@ -550,7 +550,11 @@ function removeBadPixels(intensity, variance) {
                 e = e / c;
             }
             intensity[i] = r;
-            variance[i] = e;
+            if (e == 0) {
+                variance[i] = 9e19;
+            } else {
+                variance[i] = e;
+            }
         }
     }
 }
