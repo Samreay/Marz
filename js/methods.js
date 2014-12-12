@@ -875,13 +875,18 @@ function maxMedianAdjust(data, window, errorMedianWeight) {
     }
 }
 function adjustError(variance) {
+    for (var i = 0; i < variance.length; i++) {
+        variance[i] = Math.sqrt(variance[i]);
+    }
     broadenError(variance, broadenWindow);
     maxMedianAdjust(variance, errorMedianWindow, errorMedianWeight);
+    for (i = 0; i < variance.length; i++) {
+        variance[i] = variance[i] * variance[i];
+    }
 }
 
 function divideByError(intensity, variance) {
     for (var i = 0; i < intensity.length; i++) {
-//        intensity[i] = intensity[i] / (variance[i] * variance[i]);
         intensity[i] = intensity[i] / variance[i];
     }
 }
