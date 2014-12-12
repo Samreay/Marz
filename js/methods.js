@@ -689,6 +689,11 @@ function subtract(data, subtract) {
         data[i] -= subtract[i];
     }
 }
+function medianAndBoxcarSmooth(array, medianFilterWidth, boxCarWidth) {
+    var medians = medianFilter(array, medianFilterWidth);
+    var smoothed = boxCarSmooth(medians, boxCarWidth);
+    return smoothed;
+}
 function smoothAndSubtract(intensity) {
     var medians = medianFilter(intensity, medianWidth);
     var smoothed = boxCarSmooth(medians, smoothWidth);

@@ -84,11 +84,14 @@ self.matchTemplates = function(lambda, intensity, variance, type) {
 
     // As the quasar spectra is matched differently, Ill create a duplicate for the quasar
     var quasarIntensity = intensity.slice();
+    var quasarVariance = variance.slice();
 //    console.log("quasar = " + JSON.stringify(quasarIntensity) + ";");
     rollingPointMean(quasarIntensity, 3, 0.9);
 //    console.log("quasar2 = " + JSON.stringify(quasarIntensity) + ";");
 
     taperSpectra(quasarIntensity);
+    medianAndBoxcarSmooth(quasarVariance, 20, 20);
+    divideByError(quasarIntensity, quasarVariance);
     normalise(quasarIntensity);
 
     // The intensity variable is what will match every other template
