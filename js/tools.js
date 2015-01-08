@@ -5,7 +5,9 @@ String.prototype.endsWith = function(suffix) {
 String.prototype.pad = function(width) {
     return this.length >= width ? this : new Array(width - this.length + 1).join('0') + this;
 };
-
+String.prototype.spacePad = function(width) {
+    return this.length >= width ? this : this + new Array(width - this.length + 1).join(' ');
+};
 function range(start, stop, step) {
     var result = [];
     for (var i = start; i < stop; i += step) {
