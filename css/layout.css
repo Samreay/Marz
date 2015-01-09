@@ -1,6 +1,9 @@
 ::selection {
     background-color: transparent;
 }
+pre ::selection {
+    background-color: #cceeff;
+}
 input::selection {
     background-color: yellow;
 }
