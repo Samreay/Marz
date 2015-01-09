@@ -164,6 +164,9 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
                     $scope.previousTemplate();
                 }
                 $scope.$apply();
+            }},
+            {key: '.', label: '.', controller: "detailed", description: '[Detailed screen] Cycles spectral lines', fn: function($scope) {
+                $timeout(function() { $scope.nextSpectralLine(); });
             }}];
         _.forEach(spectraLineService.getAll(), function(line) {
             var elem = {
@@ -300,6 +303,7 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
         $scope.waitingOnFit = false;
         $scope.fitZ = null;
         $scope.fitTID = null;
+        $scope.lineSelected = null;
         $scope.updateSpectraComment = function() {
             if ($scope.getActive()) {
                 $scope.getActive().setComment($scope.spectraComment);
@@ -491,9 +495,21 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
         $scope.isWaitingForSpectralLine = function() {
             return $scope.settings.waitingForSpectra;
         };
+        $scope.nextSpectralLine = function() {
+            var next = spectraLineService.getNext($scope.lineSelected);
+            if (next != null) {
+                $scope.clickSpectralLine(next);
+            } else {
+                var lines = spectraLineService.getAll();
+                if (lines.length > 0) {
+                    $scope.clickSpectralLine(lines[0].id);
+                }
+            }
+        };
         $scope.clickSpectralLine = function(id) {
             if ($scope.settings.spectraFocus != null) {
                 $scope.settings.spectralLines = true;
+                $scope.lineSelected = id;
                 var currentWavelength = spectraLineService.getFromID(id).wavelength;
                 var desiredWavelength = $scope.settings.spectraFocus;
                 var z = desiredWavelength/currentWavelength - 1;

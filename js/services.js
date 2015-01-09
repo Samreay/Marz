@@ -340,6 +340,9 @@ angular.module('servicesZ', ['dialogs.main'])
     .service('spectraLineService', [function() {
         var self = this;
         var spectralLines = new SpectralLines();
+        self.getNext = function(id) {
+            return spectralLines.getNext(id);
+        };
         self.getAll = function() {
             return spectralLines.getAll();
         };

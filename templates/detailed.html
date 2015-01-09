@@ -65,12 +65,13 @@
                 <button class="form-group btn btn-primary btn-sm" style="display: inline-block;" ng-click="fit()">Perform Fit</button>
             </li>
             <li class="list-group-item form-inline">
-                    <button class="form-group btn btn-primary btn-sm" style="display: inline-block;" ng-click="toggleSpectralLines()">{{getSpectralLinePhrase()}}</button>
-                    <ul class="form-group list-unstyled list-inline" ng-class="{glowing:isWaitingForSpectralLine()}">
-                        <li class="sline lined" ng-class="{bold:isBold(i)}" ng-click="clickSpectralLine(i.id)" ng-repeat="i in getSpectralLines() track by i.id" popover-placement="bottom" popover="{{i.shortcut}}" popover-trigger="mouseenter">
-                            {{i.label}}
-                        </li>
-                    </ul>
+                <button class="form-group btn btn-primary btn-sm" style="display: inline-block;" ng-click="toggleSpectralLines()">{{getSpectralLinePhrase()}}</button>
+                <button class="form-group btn btn-info btn-sm" style="display: inline-block;" ng-click="nextSpectralLine()" popover-placement="bottom" popover="Shortcut: ." popover-trigger="mouseenter">Cycle spectral lines</button>
+                <ul class="form-group list-unstyled list-inline" ng-class="{glowing:isWaitingForSpectralLine()}">
+                    <li class="sline lined" ng-class="{bold:isBold(i)}" ng-click="clickSpectralLine(i.id)" ng-repeat="i in getSpectralLines() track by i.id" popover-placement="bottom" popover="{{i.shortcut}}" popover-trigger="mouseenter">
+                        {{i.label}}
+                    </li>
+                </ul>
             </li>
          </ul>
     </div>
