@@ -15,7 +15,7 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             $scope.initials = personalService.updateInitials();
         };
     }])
-    .controller('MainController', ['$scope', 'spectraService', 'global', '$state', '$timeout', function($scope, spectraService, global, $state, $timeout) {
+    .controller('MainController', ['$scope', 'spectraService', 'global', '$state', '$timeout', 'spectraLineService', function($scope, spectraService, global, $state, $timeout, spectraLineService) {
         window.onbeforeunload = function(){
             return 'Please ensure changes are all saved before leaving.';
         };
@@ -164,74 +164,19 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
                     $scope.previousTemplate();
                 }
                 $scope.$apply();
-            }},
-            {key: 'shift+y', label: 'shift+y', controller: "detailed", description: '[Detailed screen] Sets the current focus to Lyb', fn: function($scope) {
-                $timeout(function() { $scope.clickSpectralLine('Lyb'); });
-            }},
-            {key: 'shift+l', label: 'shift+l', controller: "detailed", description: '[Detailed screen] Sets the current focus to Lya', fn: function($scope) {
-                $timeout(function() { $scope.clickSpectralLine('Lya'); });
-            }},
-            {key: 'shift+t', label: 'shift+t', controller: "detailed", description: '[Detailed screen] Sets the current focus to N5', fn: function($scope) {
-                $timeout(function() { $scope.clickSpectralLine('N5'); });
-            }},
-            {key: 'shift+s', label: 'shift+s', controller: "detailed", description: '[Detailed screen] Sets the current focus to Si4', fn: function($scope) {
-                $timeout(function() { $scope.clickSpectralLine('Si4'); });
-            }},
-            {key: 'shift+c', label: 'shift+c', controller: "detailed", description: '[Detailed screen] Sets the current focus to CIV', fn: function($scope) {
-                $timeout(function() { $scope.clickSpectralLine('C4'); });
-            }},
-            {key: 'shift+v', label: 'shift+v', controller: "detailed", description: '[Detailed screen] Sets the current focus to CIII', fn: function($scope) {
-                $timeout(function() { $scope.clickSpectralLine('C3'); });
-            }},
-            {key: 'shift+m', label: 'shift+m', controller: "detailed", description: '[Detailed screen] Sets the current focus to MgII', fn: function($scope) {
-                $timeout(function() { $scope.clickSpectralLine('Mg2'); });
-            }},
-            {key: 'shift+o', label: 'shift+o', controller: "detailed", description: '[Detailed screen] Sets the current focus to [OII]', fn: function($scope) {
-                $timeout(function() { $scope.clickSpectralLine('O2'); });
-            }},
-            {key: 'shift+k', label: 'shift+k', controller: "detailed", description: '[Detailed screen] Sets the current focus to K', fn: function($scope) {
-                $timeout(function() { $scope.clickSpectralLine('K'); });
-            }},
-            {key: 'shift+h', label: 'shift+h', controller: "detailed", description: '[Detailed screen] Sets the current focus to H', fn: function($scope) {
-                $timeout(function() { $scope.clickSpectralLine('H'); });
-            }},
-            {key: 'shift+d', label: 'shift+d', controller: "detailed", description: '[Detailed screen] Sets the current focus to D', fn: function($scope) {
-                $timeout(function() { $scope.clickSpectralLine('D'); });
-            }},
-            {key: 'shift+g', label: 'shift+g', controller: "detailed", description: '[Detailed screen] Sets the current focus to G', fn: function($scope) {
-                $timeout(function() { $scope.clickSpectralLine('G'); });
-            }},
-            {key: 'shift+f', label: 'shift+f', controller: "detailed", description: '[Detailed screen] Sets the current focus to Hg', fn: function($scope) {
-                $timeout(function() { $scope.clickSpectralLine('Hg'); });
-            }},
-            {key: 'shift+b', label: 'shift+b', controller: "detailed", description: '[Detailed screen] Sets the current focus to Hb', fn: function($scope) {
-                $timeout(function() { $scope.clickSpectralLine('Hb'); });
-            }},
-            {key: 'shift+u', label: 'shift+u', controller: "detailed", description: '[Detailed screen] Sets the current focus to first [OIII]', fn: function($scope) {
-                $timeout(function() { $scope.clickSpectralLine('O3'); });
-            }},
-            {key: 'shift+i', label: 'shift+i', controller: "detailed", description: '[Detailed screen] Sets the current focus to second [OIII]', fn: function($scope) {
-                $timeout(function() { $scope.clickSpectralLine('O3d'); });
-            }},
-            {key: 'shift+j', label: 'shift+j', controller: "detailed", description: '[Detailed screen] Sets the current focus to Mg', fn: function($scope) {
-                $timeout(function() { $scope.clickSpectralLine('Mg'); });
-            }},
-            {key: 'shift+n', label: 'shift+n', controller: "detailed", description: '[Detailed screen] Sets the current focus to Na', fn: function($scope) {
-                $timeout(function() { $scope.clickSpectralLine('Na'); });
-            }},
-            {key: 'shift+a', label: 'shift+a', controller: "detailed", description: '[Detailed screen] Sets the current focus to Ha', fn: function($scope) {
-                $timeout(function() { $scope.clickSpectralLine('Ha'); });
-            }},
-            {key: 'shift+w', label: 'shift+w', controller: "detailed", description: '[Detailed screen] Sets the current focus to N2', fn: function($scope) {
-                $timeout(function() { $scope.clickSpectralLine('N2'); });
-            }},
-            {key: 'shift+z', label: 'shift+z', controller: "detailed", description: '[Detailed screen] Sets the current focus to S2', fn: function($scope) {
-                $timeout(function() { $scope.clickSpectralLine('S2'); });
-            }},
-            {key: 'shift+x', label: 'shift+x', controller: "detailed", description: '[Detailed screen] Sets the current focus to S2 doublet', fn: function($scope) {
-                $timeout(function() { $scope.clickSpectralLine('S2d'); });
-            }}
-        ];
+            }}];
+        _.forEach(spectraLineService.getAll(), function(line) {
+            var elem = {
+                key: line.shortcut,
+                label: line.shortcut,
+                controller: "detailed",
+                description: '[Detailed screen] Sets the current focus to ' + line.label,
+                fn: function($scope) {
+                    $timeout(function() { $scope.clickSpectralLine(line.id); });
+                }
+            };
+            $scope.keybinds.push(elem);
+        });
 
         $scope.addClickHandler = function(key, fn, scope) {
             KeyboardJS.on(key, function(e) {
