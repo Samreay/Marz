@@ -731,6 +731,13 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     addSkyData();
                     redraw();
                 });
+                $scope.$watch('detailed.lockedBounds', function() {
+                    if ($scope.detailed.lockedBounds == false) {
+                        getBounds();
+                        addTemplateData();
+                        redraw();
+                    }
+                });
                 $scope.$watch('getActiveHash()', function() {
                     addBaseData();
                     addSkyData();
