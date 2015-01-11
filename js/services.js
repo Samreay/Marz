@@ -203,7 +203,7 @@ angular.module('servicesZ', ['dialogs.main'])
             spectra.automaticResults = [{}];
             for (var i = 1; i < vals.length; i++) {
                 if (vals[i].name == "QOP") {
-                    spectra.qop = vals[i].value;
+                    spectra.qop = parseInt(vals[i].value);
                 }
             }
             for (var i = 1; i < vals.length; i++) {
@@ -471,7 +471,7 @@ angular.module('servicesZ', ['dialogs.main'])
                 result["RA"], result["DEC"],result["Mag"], result["Type"], result.filename);
             spectra.automaticBestResults = [{templateId: result["AutoTID"], z: result["AutoZ"], value: result["AutoXCor"]}];
             spectra.setComment(result["Comment"]);
-            spectra.qop = result["QOP"];
+            spectra.qop = parseInt(result["QOP"]);
             if (spectra.qop > 0) {
                 spectra.manualTemplateID = result["FinTID"];
                 spectra.manualRedshift = result["FinZ"];
