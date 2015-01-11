@@ -15,7 +15,7 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             $scope.initials = personalService.updateInitials();
         };
     }])
-    .controller('MainController', ['$scope', 'spectraService', 'global', '$state', '$timeout', 'spectraLineService', function($scope, spectraService, global, $state, $timeout, spectraLineService) {
+    .controller('MainController', ['$scope', 'spectraService', 'global', '$state', '$timeout', 'spectraLineService', 'browserService', function($scope, spectraService, global, $state, $timeout, spectraLineService, browserService) {
         window.onbeforeunload = function(){
             return 'Please ensure changes are all saved before leaving.';
         };
@@ -31,6 +31,9 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             } else {
                 return global.ui.active == spectra.id;
             }
+        };
+        $scope.isSupportedBrowser = function() {
+            return browserService.isSupported();
         };
         $scope.getActive = function() {
             if (global.ui.active == null) return null;

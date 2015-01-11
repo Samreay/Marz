@@ -105,6 +105,23 @@ angular.module('servicesZ', ['dialogs.main'])
         };
         self.getInitialsInitial();
     }])
+    .service('browserService', ['$window', function($window) {
+        var self = this;
+        var getBrowser = function() {
+            var userAgent = $window.navigator.userAgent;
+            var browsers = {chrome: /chrome/i, safari: /safari/i, firefox: /firefox/i, ie: /internet explorer/i};
+            for(var key in browsers) {
+                if (browsers[key].test(userAgent)) {
+                    return key;
+                }
+            }
+            return 'unknown';
+        };
+        self.isSupported = function() {
+            var browser = getBrowser();
+            return browser == "chrome" || browser == "firefox";
+        };
+    }])
     .service('spectraService', ['global', 'resultsGeneratorService', 'cookieService', 'localStorageService',
         function(global, resultsGeneratorService, cookieService, localStorageService) {
         var self = this;

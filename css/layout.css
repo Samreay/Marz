@@ -45,7 +45,15 @@ div[dropzone] h4 {
     margin-bottom: 10px;
     display: inline-block;
 }
-
+.browser.alert {
+    z-index: 99999;
+    position: absolute;
+    top: 0;
+    left: 600px;
+    right: 200px;
+    height: 50px;
+    overflow: hidden;
+}
 .activeSelect {
     background-color: #D3DFF5 !important;
     border: 1px solid #5E99FF;
