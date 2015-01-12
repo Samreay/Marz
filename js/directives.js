@@ -172,6 +172,8 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                 var yMin = -500;
                 var yMax = 1000;
 
+                var zoomXRatio = 0.8;
+
                 var height = 100;
                 var width = 300;
 
@@ -305,6 +307,60 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     currentMouseY = null;
                     redraw();
                 };
+                var isScrollingUp = function(e) {
+                    if (e.originalEvent) {
+                        e = e.originalEvent;
+                    }
+                    //pick correct delta variable depending on event
+                    var delta = (e.wheelDelta) ? e.wheelDelta : -e.deltaY;
+                    return (e.detail || delta > 0);
+                };
+                var zoomIn = function(res) {
+                    if (res.inside) {
+                        var r0 = (res.dataX - xMin) / (xMax - xMin);
+                        var r1 = (res.dataY - yMin) / (yMax - yMin);
+                        var w = xMax - xMin;
+                        var h = yMax - yMin;
+                        xMin = res.dataX - r0 * w * zoomXRatio;
+                        xMax = xMin + (w * zoomXRatio);
+                        yMin = res.dataY - r1 * h * zoomXRatio;
+                        yMax = yMin + (h * zoomXRatio);
+                        $scope.detailed.lockedBounds = true;
+                    }
+                    getBounds();
+                    addTemplateData();
+                    redraw();
+                };
+                var zoomOut = function(res) {
+                    if (res.inside) {
+                        var r0 = (res.dataX - xMin) / (xMax - xMin);
+                        var r1 = (res.dataY - yMin) / (yMax - yMin);
+                        var w = xMax - xMin;
+                        var h = yMax - yMin;
+                        xMin = res.dataX - r0 * w * (1/zoomXRatio);
+                        xMax = xMin + (w * (1/zoomXRatio));
+                        yMin = res.dataY - r1 * h * (1/zoomXRatio);
+                        yMax = yMin + (h * (1/zoomXRatio));
+                        $scope.detailed.lockedBounds = true;
+                        var rawData = null;
+                        if (data.length > 0) {
+                            for (var i = 0; i < data.length; i++) {
+                                if (data[i].id == 'data') {
+                                    rawData = data[i];
+                                }
+                            }
+                        }
+                        $scope.detailed.lockedBounds = true;
+                        if (rawData != null && rawData.x && rawData.x.length > 0) {
+                            if (xMin < rawData.x[0] || xMax > rawData.x[rawData.x.length - 1]) {
+                                $scope.detailed.lockedBounds = false;
+                            }
+                        }
+                    }
+                    getBounds();
+                    addTemplateData();
+                    redraw();
+                };
                 var handleEvent = function(e) {
                     var res = windowToCanvas(e);
                     e.preventDefault();
@@ -317,6 +373,12 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                         canvasMouseMove(res);
                     } else if (e.type == 'mouseout') {
                         mouseOut(res);
+                    } else if (e.type == 'mousewheel') {
+                        if (isScrollingUp(e)) {
+                            zoomIn(res);
+                        } else {
+                            zoomOut(res);
+                        }
                     }
                 };
                 var refreshSettings = function () {
@@ -632,6 +694,8 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                 $element.bind("touchstart",handleEvent);
                 $element.bind("touchend",  handleEvent);
                 $element.bind("touchmove", handleEvent);
+                $element.bind("mousewheel", handleEvent);
+
 
 
                 var smoothData = function(id) {
