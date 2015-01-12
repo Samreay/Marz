@@ -420,7 +420,7 @@ angular.module('servicesZ', ['dialogs.main'])
             });
         };
         self.getFilename = function() {
-            return global.data.fitsFileName + "_" + personalService.getInitials() + ".txt";
+            return global.data.fitsFileName + "_" + personalService.getInitials() + ".mz";
         };
         self.getResultsCSV = function() {
             var results = self.getResultsArray();

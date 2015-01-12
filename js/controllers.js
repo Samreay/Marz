@@ -735,7 +735,7 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
         };
         $scope.addFiles = function(files) {
             for (var i = 0; i < files.length; i++) {
-                if (files[i].name.endsWith('txt') || files[i].name.endsWith('csv') || files[i].name.endsWith('html')) {
+                if (!files[i].name.endsWith('fits')) {
                     resultsLoaderService.loadResults(files[i]);
                 }
             }
