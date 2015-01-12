@@ -150,6 +150,7 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             }},
             {key: 'r', label: 'r', controller: "detailed", description: '[Detailed screen] Reset graph zoom to extents', fn: function($scope) {
                 global.ui.detailed.lockedBounds = false;
+                global.ui.detailed.lockedBoundsCounter++;
                 $scope.$apply();
             }},
             {key: 'l', label: 'l', controller: "detailed", description: '[Detailed screen] Toggles spectral lines', fn: function($scope) {
@@ -307,6 +308,10 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
         $scope.fitZ = null;
         $scope.fitTID = null;
         $scope.lineSelected = null;
+        $scope.isBig = function() {
+            var height = angular.element("#bigtest").height();
+            return height > 500;
+        };
         $scope.updateSpectraComment = function() {
             if ($scope.getActive()) {
                 $scope.getActive().setComment($scope.spectraComment);

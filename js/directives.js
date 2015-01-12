@@ -439,14 +439,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                         yMin = -500;
                         yMax = 1000;
                     } else {
-
-                        /*if (yMin < 0) {
-                            yMin *= spacingFactor;
-                        } else {
-                            yMin /= spacingFactor;
-                        }*/
                         yMin = yMax - spacingFactor*(yMax - yMin);
-
                     }
                     recalculateFocus();
                 };
@@ -795,7 +788,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     addSkyData();
                     redraw();
                 });
-                $scope.$watch('detailed.lockedBounds', function() {
+                $scope.$watchCollection('[detailed.lockedBoundsCounter, detailed.lockedBounds]', function() {
                     if ($scope.detailed.lockedBounds == false) {
                         getBounds();
                         addTemplateData();
@@ -816,7 +809,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     addTemplateData();
                     redraw();
                 });
-                $scope.$watchCollection('[detailed.width, detailed.height, detailed.spectralLines, detailed.lockedBounds]', function() {
+                $scope.$watchCollection('[detailed.width, detailed.height, detailed.spectralLines]', function() {
                     getBounds();
                     addTemplateData();
                     redraw();

@@ -31,6 +31,7 @@ angular.module('servicesZ', ['dialogs.main'])
                     spectralLines: true,
                     waitingForSpectra: false,
                     lockedBounds: false,
+                    lockedBoundsCounter: 1,
                     skyHeight: 50
 
                 },
