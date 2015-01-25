@@ -117,6 +117,15 @@ SpectralLines.prototype.getNext = function(id) {
     }
     return null;
 };
+SpectralLines.prototype.getPrevious = function(id) {
+    if (id == null) return null;
+    for (var i = 0; i < this.lines.length; i++) {
+        if (this.lines[i].id == id) {
+            return this.lines[(i + this.lines.length - 1) % this.lines.length].id;
+        }
+    }
+    return null;
+};
 SpectralLines.prototype.toggle = function(id) {
     for (var i = 0; i < this.lines.length; i++) {
         if (this.lines[i].id == id) {

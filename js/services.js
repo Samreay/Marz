@@ -361,6 +361,9 @@ angular.module('servicesZ', ['dialogs.main'])
         self.getNext = function(id) {
             return spectralLines.getNext(id);
         };
+        self.getPrevious = function(id) {
+            return spectralLines.getPrevious(id);
+        };
         self.getAll = function() {
             return spectralLines.getAll();
         };

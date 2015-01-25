@@ -169,8 +169,11 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
                 }
                 $scope.$apply();
             }},
-            {key: '.', label: '.', controller: "detailed", description: '[Detailed screen] Cycles spectral lines', fn: function($scope) {
+            {key: '.', label: '.', controller: "detailed", description: '[Detailed screen] Cycles spectral lines forward', fn: function($scope) {
                 $timeout(function() { $scope.nextSpectralLine(); });
+            }},
+            {key: 'comma', label: ',', controller: "detailed", description: '[Detailed screen] Cycles spectral lines back', fn: function($scope) {
+                $timeout(function() { $scope.previousSpectralLine(); });
             }}];
         _.forEach(spectraLineService.getAll(), function(line) {
             var elem = {
@@ -507,6 +510,17 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             var next = spectraLineService.getNext($scope.lineSelected);
             if (next != null) {
                 $scope.clickSpectralLine(next);
+            } else {
+                var lines = spectraLineService.getAll();
+                if (lines.length > 0) {
+                    $scope.clickSpectralLine(lines[0].id);
+                }
+            }
+        };
+        $scope.previousSpectralLine = function() {
+            var prev = spectraLineService.getPrevious($scope.lineSelected);
+            if (prev != null) {
+                $scope.clickSpectralLine(prev);
             } else {
                 var lines = spectraLineService.getAll();
                 if (lines.length > 0) {
