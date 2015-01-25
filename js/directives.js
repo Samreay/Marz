@@ -159,8 +159,8 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                 var data = [];
                 var template = null;
 
-                var labelWidth = 70;
-                var labelHeight = 40;
+                var labelWidth = 120;
+                var labelHeight = 70;
                 var labelFont = '10pt Verdana';
                 var labelFill = '#222';
 
@@ -487,12 +487,20 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     c.textAlign = 'center';
                     c.textBaseline="top";
 
+                    var startX = convertCanvasXCoordinateToDataPoint(left);
+                    var endX = convertCanvasXCoordinateToDataPoint(left + width);
+                    var xRange = endX - startX;
+                    var numLabels = width / labelWidth;
+                    var xStep = xRange / numLabels;
+                    var exponent = parseFloat(Math.log10(xStep / 3).toExponential(0))
+                    xStep = Math.max(1, Math.floor(xStep / Math.pow(10, exponent))) * Math.pow(10, exponent);
+                    var firstX = startX - startX % xStep;
                     var y = top + height + 5;
                     c.beginPath()
-                    for (var i = 0; i < width / labelWidth; i++) {
-                        var x = left + (labelWidth * i) + 0.5;
+                    for (var i = firstX; i < endX; i += xStep) {
+                        var x = convertDataXToCanvasCoordinate(i) + 0.5;
                         if (onlyLabels) {
-                            c.fillText(convertCanvasXCoordinateToDataPoint(x).toFixed(0), x, y);
+                            c.fillText(parseFloat((i).toPrecision(4)), x, y);
                         } else {
                             c.moveTo(x, top);
                             c.lineTo(x, top + height);
@@ -500,27 +508,26 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     }
                     c.textAlign = 'right';
                     c.textBaseline="middle";
+
+                    var endY = convertCanvasYCoordinateToDataPoint(top);
+                    var startY = convertCanvasYCoordinateToDataPoint(top + height);
+                    var yRange = endY - startY;
+                    var numLabels = height / labelHeight;
+                    var yStep = yRange / numLabels;
+                    var exponent = parseFloat(Math.log10(yStep / 3).toExponential(0))
+                    yStep = Math.max(1, Math.floor(yStep / Math.pow(10, exponent))) * Math.pow(10, exponent);
+                    var firstY = startY - startY % yStep;
+
                     x = left - 10;
-                    var zero = convertDataYToCanvasCoordinate(0);
-                    if (zero < top) {
-                        zero = top;
-                    }
-                    if (zero > (top + height)) {
-                        zero = (top + height);
-                    }
-                    for (var i = 0; i < (zero - top) / labelHeight; i++) {
-                        y = zero - (labelHeight * i) + 0.5;
+                    for (var i = firstY; i < endY; i += yStep) {
+                        var y = convertDataYToCanvasCoordinate(i);
                         if (onlyLabels) {
-                            c.fillText(convertCanvasYCoordinateToDataPoint(y + 0.5).toFixed(1), x, y);
-                        } else {
-                            c.moveTo(left, y);
-                            c.lineTo(left + width, y);
-                        }
-                    }
-                    for (var i = 1; i < (top + height - zero) / labelHeight; i++) {
-                        y = zero + (labelHeight * i) + 0.5;
-                        if (onlyLabels) {
-                            c.fillText(convertCanvasYCoordinateToDataPoint(y + 0.5).toFixed(1), x, y);
+                            var lbl = parseFloat((i).toPrecision(4));
+                            if (Math.abs(lbl - 0) < 1e-10) {
+                                c.fillText('0', x, y);
+                            } else {
+                                c.fillText(lbl, x, y);
+                            }
                         } else {
                             c.moveTo(left, y);
                             c.lineTo(left + width, y);
@@ -679,10 +686,10 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     refreshSettings();
                     getBounds();
                     clearPlot();
-                    plotZeroLine();
-                    plotAxes();
                     plotAxesLabels(false);
+                    plotZeroLine();
                     renderPlots();
+                    plotAxes();
                     clearSurrounding();
                     plotAxesLabels(true);
                     drawZoomOut();
