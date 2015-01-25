@@ -180,7 +180,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                 var template = null;
 
                 var labelWidth = 100;
-                var labelHeight = 70;
+                var labelHeight = 60;
                 var labelFont = '10pt Verdana';
                 var labelFill = '#222';
 
@@ -287,7 +287,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                         loc.bound.yMax = Math.max(y1, y2);
                         loc.bound.lockedBounds = true;
                     } else {
-                        if (loc.bound && loc.bound.callout == false && loc.x > (loc.bound.left + loc.bound.width - zoomOutWidth) && loc.y < zoomOutHeight) {
+                        if (loc.bound && loc.bound.callout == false && loc.x > (loc.bound.left + loc.bound.width - zoomOutWidth) && loc.y < (zoomOutHeight + 10)) {
                             loc.bound.lockedBounds = false;
                             redraw();
                         } else if (checkCanvasInRange(loc.bound, loc.x, loc.y)) {
@@ -644,7 +644,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                 };
                 var drawZoomOut = function(bound) {
                     if (!bound.callout) {
-                        var x = bound.left + bound.width - zoomOutWidth;
+                        var x = bound.left + bound.width + 20 - zoomOutWidth;
                         var y = bound.top - 15;
                         c.drawImage(zoomOutImg, x, y);
                     }
