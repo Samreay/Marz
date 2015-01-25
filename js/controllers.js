@@ -547,9 +547,9 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
         };
         $scope.getSpectralLinePhrase = function() {
             if ($scope.settings.spectralLines) {
-                return "Hide spectral lines";
+                return "Hide";
             } else {
-                return "Show spectral lines";
+                return "Show";
             }
         };
         $scope.setFocusToRedshift = function() {
