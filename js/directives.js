@@ -583,7 +583,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                             c.lineTo(bound.left + bound.width, bound.top + 5);
                             c.moveTo(bound.left, bound.top + 5)
                         } else if (data[j].id == "data") {
-                            yOffset = -20;
+                            yOffset = 0;
                         }
                         var start = 0;
                         if (data[j].id == "data") {
