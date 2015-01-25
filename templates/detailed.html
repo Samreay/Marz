@@ -62,7 +62,7 @@
                         <span class="input-group-addon" style="width:364px"><input  type="range" min={{settings.bounds.redshiftMin}} max="{{settings.bounds.redshiftMax}}" step="0.0001" ng-change="changedRedshift()" ng-model="settings.redshift"></span>
                     </div>
                 </div>
-                <button class="form-group btn btn-primary btn-sm" style="display: inline-block;" ng-click="fit()">Perform Fit</button>
+                <button class="form-group btn btn-primary btn-sm" style="display: inline-block;" ng-click="fit()" popover-placement="bottom" popover="Performs localised cross correlation fit. Shortcut: u" popover-trigger="mouseenter">Perform Fit</button>
             </li>
             <li class="list-group-item form-inline">
                 <button class="form-group btn btn-primary btn-sm" style="display: inline-block;" ng-click="toggleSpectralLines()">{{getSpectralLinePhrase()}}</button>

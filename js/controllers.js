@@ -172,7 +172,7 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             {key: '.', label: '.', controller: "detailed", description: '[Detailed screen] Cycles spectral lines forward', fn: function($scope) {
                 $timeout(function() { $scope.nextSpectralLine(); });
             }},
-            {key: 'comma', label: ',', controller: "detailed", description: '[Detailed screen] Cycles spectral lines back', fn: function($scope) {
+            {key: 'comma', label: 'comma', controller: "detailed", description: '[Detailed screen] Cycles spectral lines back', fn: function($scope) {
                 $timeout(function() { $scope.previousSpectralLine(); });
             }}];
         _.forEach(spectraLineService.getAll(), function(line) {
