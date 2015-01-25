@@ -63,8 +63,7 @@ SpectralLines.prototype.addSpectralLine = function(id, label, name, wavelength, 
 SpectralLines.prototype.initialiseDefault = function() {
     this.addSpectralLine('Lyb','Ly\u03B2', 'Lyman Beta',     1025.722, 0, 1, 1, 'shift+y');
     this.addSpectralLine('Lya','Ly\u03B1', 'Lyman Alpha',    1215.670, 0, 1, 1, 'shift+l');
-    this.addSpectralLine('N5', '[NV]',  'Nitrogen 5',          1240.14,  0, 1, 1, 'shift+t');
-
+    this.addSpectralLine('N5', '[NV]',  'Nitrogen 5',        1240.14,  0, 1, 1, 'shift+t');
     this.addSpectralLine('Si4','Si4', 'Silicon 4',           1400.0,   0, 1, 1, 'shift+s');
     this.addSpectralLine('C4', 'CIV',  'Carbon 4',           1549.06,  0, 1, 1, 'shift+c');
     this.addSpectralLine('C3', 'CIII',  'Carbon 3',          1908.73,  0, 1, 1, 'shift+v');
