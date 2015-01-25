@@ -9,6 +9,10 @@
                 <div ng-if="!isWaitingDrop()" class="capitalise">
                     <h4>{{getTitle()}}</h4>
                 </div>
+                <span class="btn btn-default btn-file">
+                    Browse <input type="file" id="files" name="files[]" on-files-selected/>
+                </span>
+
             </div>
             <div class="top-spacing" ng-if="showTabular()">
                 <b>Display Data As:</b>

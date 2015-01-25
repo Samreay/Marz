@@ -25,6 +25,18 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
             }
         }
     })
+    .directive('onFilesSelected', [function() {
+        return {
+            restrict: 'A',
+            link: function(scope, element, attr, ctrl) {
+                element.bind("change", function() {
+                    scope.$apply(function(){
+                        scope.addFiles(element[0].files);
+                    });
+                });
+            }
+        }
+    }])
     .directive('overviewItem', ['drawingService', 'global', function(drawingService, global) {
         return {
             restrict: "A",
