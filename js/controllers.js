@@ -556,19 +556,15 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             $('#redshiftInput').focus().select();
         };
         $scope.incrementSmooth = function() {
-            if ($scope.settings.rawSmooth < $scope.bounds.maxSmooth) {
-                $scope.settings.rawSmooth = "" + (parseInt($scope.settings.rawSmooth) + 1);
-            }
-            if ($scope.settings.processedSmooth < $scope.bounds.maxSmooth) {
-                $scope.settings.processedSmooth = "" + (parseInt($scope.settings.processedSmooth) + 1);
+            var smooth = parseInt($scope.settings.smooth);
+            if (smooth < $scope.bounds.maxSmooth) {
+                $scope.settings.smooth = "" + (smooth + 1);
             }
         };
         $scope.decrementSmooth = function() {
-            if ($scope.settings.rawSmooth > 0) {
-                $scope.settings.rawSmooth = "" + (parseInt($scope.settings.rawSmooth) - 1);
-            }
-            if ($scope.settings.processedSmooth > 0) {
-                $scope.settings.processedSmooth = "" + (parseInt($scope.settings.processedSmooth) - 1);
+            var smooth = parseInt($scope.settings.smooth);
+            if (smooth > 0) {
+                $scope.settings.smooth = "" + (smooth - 1);
             }
         };
         $scope.nextTemplate = function() {
