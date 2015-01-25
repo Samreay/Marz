@@ -140,8 +140,8 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                 var maxScale = 5;
 
                 var axesColour = '#444';
-                var zeroLineColour = '#444';
-                var stepColour = '#CCC';
+                var zeroLineColour = '#111';
+                var stepColour = '#DDD';
                 var dragInteriorColour = 'rgba(38, 147, 232, 0.2)';
                 var dragOutlineColour = 'rgba(38, 147, 232, 0.6)';
                 var spacingFactor = 2;
@@ -468,8 +468,8 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     }
                     c.strokeStyle = zeroLineColour;
                     c.beginPath();
-                    c.moveTo(left, y + 0.5);
-                    c.lineTo(left + width, y + 0.5);
+                    c.moveTo(left, Math.floor(y) + 0.5);
+                    c.lineTo(left + width, Math.floor(y) + 0.5);
                     c.stroke();
                 };
                 var plotAxes = function() {
