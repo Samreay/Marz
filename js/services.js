@@ -32,7 +32,7 @@ angular.module('servicesZ', ['dialogs.main'])
                     waitingForSpectra: false,
                     lockedBounds: false,
                     lockedBoundsCounter: 1,
-                    skyHeight: 50
+                    skyHeight: 75
 
                 },
                 colours: {
