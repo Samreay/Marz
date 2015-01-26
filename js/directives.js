@@ -691,9 +691,11 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                         if (checkDataXInRange(bound, lambda)) {
                             var x = 0.5 + Math.floor(convertDataXToCanvasCoordinate(bound, lambda));
                             c.beginPath();
+                            c.setLineDash([5, 3]);
                             c.moveTo(x, bound.top - 5);
                             c.lineTo(x, bound.top + bound.height);
                             c.stroke();
+                            c.setLineDash([0]);
                             c.beginPath();
                             c.moveTo(x, bound.top - 5);
                             c.lineTo(x - 20, bound.top - 10);
