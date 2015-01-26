@@ -179,7 +179,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                 var data = [];
                 var template = null;
 
-                var labelWidth = 100;
+                var labelWidth = 120;
                 var labelHeight = 60;
                 var labelFont = '10pt Verdana';
                 var labelFill = '#222';
@@ -504,8 +504,13 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     var xRange = endX - startX;
                     var numLabels = bound.width / labelWidth;
                     var xStep = xRange / numLabels;
-                    var exponent = Math.floor(Math.log10(xStep));
-                    xStep = Math.max(1, Math.floor(xStep / Math.pow(10, exponent))) * Math.pow(10, exponent);
+                    var base = 10;
+                    var exponent = Math.floor(Math.log(xStep)/Math.log(base));
+                    if (exponent == 0 && Math.floor(Math.log(xStep)/Math.log(5)) > 0) {
+                        base = 5;
+                        exponent = Math.floor(Math.log(xStep)/Math.log(5));
+                    }
+                    xStep = Math.max(1, Math.floor(xStep / Math.pow(base, exponent))) * Math.pow(base, exponent);
                     var firstX = startX - startX % xStep;
                     var y = bound.top + bound.height + 5;
                     c.beginPath()
@@ -526,8 +531,13 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     var yRange = endY - startY;
                     numLabels = bound.height / labelHeight;
                     var yStep = yRange / numLabels;
-                    exponent = Math.floor(Math.log10(yStep));
-                    yStep = Math.max(1, Math.floor(yStep / Math.pow(10, exponent))) * Math.pow(10, exponent);
+                    base = 10;
+                    exponent = Math.floor(Math.log(yStep)/Math.log(base));
+                    if (exponent == 0 && Math.floor(Math.log(yStep)/Math.log(5)) > 0) {
+                        base = 5;
+                        exponent = Math.floor(Math.log(yStep)/Math.log(5));
+                    }
+                    yStep = Math.max(1, Math.floor(yStep / Math.pow(base, exponent))) * Math.pow(base, exponent);
                     var firstY = startY - startY % yStep;
 
                     x = bound.left - 10;
