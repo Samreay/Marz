@@ -24,7 +24,7 @@
                         <p class="navbar-progress-text">File completion:</p>
                         <progress class="navbar-progress progress-striped active" max="quality.max">
                             <bar ng-repeat="bar in quality.bars" value="bar.value" type="{{bar.type}}">
-                                <span ng-hide="bar.value < 3">{{bar.label}}</span>
+                                <span ng-hide="bar.label < 3">{{bar.label}}</span>
                             </bar>
                         </progress>
                 </div>

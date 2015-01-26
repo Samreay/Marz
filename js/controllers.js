@@ -59,19 +59,7 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             return global.ui.active;
         };
         $scope.setActive = function(spectra) {
-            if (spectra == null) {
-                return;
-            }
-            global.ui.active = spectra;
-            var id = spectra.getFinalTemplateID();
-            var z = spectra.getFinalRedshift();
-            if (id != null && z != null) {
-                global.ui.detailed.templateId = id;
-                global.ui.detailed.redshift = z;
-            } else {
-                global.ui.detailed.templateId = "0";
-                global.ui.detailed.redshift = "0";
-            }
+            spectraService.setActive(spectra);
         };
         $scope.setPreviousSpectra = function() {
             $scope.setActive(spectraService.getPreviousSpectra($scope.getActive()));

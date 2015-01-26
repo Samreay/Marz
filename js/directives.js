@@ -132,7 +132,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
 
                 var callout = false;
                 var maxCallouts = 4;
-                var minCalloutWidth = 400;
+                var minCalloutWidth = 300;
                 var callouts = [[1000, 1100], [1200, 1260], [1500, 1600], [1850, 2000],
                     [2700, 2900], [3700, 3780], [3855, 4000], [4800, 5040], [6520, 6600], [6700, 6750]];
                 var defaultMin = 3300;

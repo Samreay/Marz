@@ -156,6 +156,7 @@ angular.module('servicesZ', ['dialogs.main'])
             self.addResult(newQop);
         };
         self.addResult = function(qop, increment) {
+            if (qop == 0) { return; }
             if (typeof increment === 'undefined') increment = 1;
             if (quality.barHash["" + qop] == null) {
                 if (increment > 0) {
@@ -163,7 +164,7 @@ angular.module('servicesZ', ['dialogs.main'])
                     quality.barHash["" + qop] = res;
                     quality.bars.push(res);
                     quality.bars.sort(function(a,b) {
-                        return a.qop < b.qop;
+                        return (a.qop % 6) < (b.qop % 6);
                     });
                 }
             } else {
@@ -251,6 +252,21 @@ angular.module('servicesZ', ['dialogs.main'])
         self.getNumberTotal = function() {
             return data.spectra.length;
         };
+        self.setActive = function(spectra) {
+            if (spectra == null) {
+                return;
+            }
+            global.ui.active = spectra;
+            var id = spectra.getFinalTemplateID();
+            var z = spectra.getFinalRedshift();
+            if (id != null && z != null) {
+                global.ui.detailed.templateId = id;
+                global.ui.detailed.redshift = z;
+            } else {
+                global.ui.detailed.templateId = "0";
+                global.ui.detailed.redshift = "0";
+            }
+        };
         self.setSpectra = function(spectraList) {
             data.spectra.length = 0;
             data.spectraHash = {};
@@ -263,6 +279,9 @@ angular.module('servicesZ', ['dialogs.main'])
                 if (result != null) {
                     self.loadLocalStorage(spectraList[i], result);
                 }
+            }
+            if (data.spectra.length > 0) {
+                self.setActive(data.spectra[0]);
             }
         };
         self.loadLocalStorage = function(spectra, vals) {
