@@ -40,7 +40,16 @@
                 <button class="btn btn-block btn-sm btn-info" ng-click="saveManual(3)" tooltip="Saved!"  tooltip-append-to-body="true" tooltip-trigger="focus" tooltip-placement="right">Good (3)</button>
                 <button class="btn btn-block btn-sm btn-warning" ng-click="saveManual(2)" tooltip="Saved!"  tooltip-append-to-body="true" tooltip-trigger="focus" tooltip-placement="right">Possible (2)</button>
                 <button class="btn btn-block btn-sm btn-danger" ng-click="saveManual(1)" tooltip="Saved!"  tooltip-append-to-body="true" tooltip-trigger="focus" tooltip-placement="right">Unknown (1)</button>
-                <button class="btn btn-block btn-sm btn-default" ng-click="saveManual(6)" tooltip="Saved!"  tooltip-append-to-body="true" tooltip-trigger="focus" tooltip-placement="right">It's a star! (6)</button>
+                <button class="btn btn-block btn-sm btn-primary" ng-click="saveManual(6)" tooltip="Saved!"  tooltip-append-to-body="true" tooltip-trigger="focus" tooltip-placement="right">It's a star! (6)</button>
+            </div>
+            <div ng-if="showSave()" class="top-spacing">
+                <b>Stepping options:</b>
+                <div class="checkbox checkbox-info checkbox-circle" style="margin-left: 5px;">
+                    <input type="checkbox" id="checkbox1" ng-model="ui.detailed.onlyQOP0">
+                    <label for="checkbox1">
+                        QOP 0 only
+                    </label>
+                </div>
             </div>
         </div>
         <div id="sidebar-list" class="top-spacing lined scroll-y" resize="windowResized" ng-style="listStyle()">

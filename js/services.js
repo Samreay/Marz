@@ -24,6 +24,7 @@ angular.module('servicesZ', ['dialogs.main'])
                         maxMatches: 5,
                         maxSmooth: 7
                     },
+                    onlyQOP0: true,
                     templateId: '0',
                     continuum: true,
                     redshift: "0",
@@ -55,7 +56,8 @@ angular.module('servicesZ', ['dialogs.main'])
                 types: [],
                 fitsFileName: null,
                 spectra: [],
-                spectraHash: {}
+                spectraHash: {},
+                history: []
             },
             filters: {
                 typeFilter: '*',
@@ -252,9 +254,36 @@ angular.module('servicesZ', ['dialogs.main'])
         self.getNumberTotal = function() {
             return data.spectra.length;
         };
-        self.setActive = function(spectra) {
+        self.setNextSpectra = function() {
+            if (global.ui.detailed.onlyQOP0) {
+                var original = global.ui.active;
+                var notBackToStart = true;
+                var s = original;
+                while (notBackToStart) {
+                    s = self.getNextSpectra(s, true);
+                    if (s.qop == 0) {
+                        self.setActive(s);
+                        return;
+                    } else if (s == original) {
+                        notBackToStart = false;
+                    }
+                }
+            } else {
+                self.setActive(self.getNextSpectra(global.ui.active));
+            }
+        };
+        self.setActive = function(spectra, addToHistory) {
+            if (typeof addToHistory === 'undefined') addToHistory = true;
             if (spectra == null) {
                 return;
+            }
+            if (addToHistory) {
+                global.data.history.push(spectra);
+                if (global.data.history.length > 1000) {
+                    global.data.history.shift();
+                }
+            } else {
+                global.data.history.pop();
             }
             global.ui.active = spectra;
             var id = spectra.getFinalTemplateID();
@@ -281,7 +310,12 @@ angular.module('servicesZ', ['dialogs.main'])
                 }
             }
             if (data.spectra.length > 0) {
-                self.setActive(data.spectra[0]);
+                if (global.ui.detailed.onlyQOP0) {
+                    self.setActive(data.spectra[data.spectra.length - 1]);
+                    self.setNextSpectra();
+                } else {
+                    self.setActive(data.spectra[0]);
+                }
             }
         };
         self.loadLocalStorage = function(spectra, vals) {
@@ -317,11 +351,16 @@ angular.module('servicesZ', ['dialogs.main'])
             if (id == null) return data.spectra;
             return data.spectraHash[id];
         };
-        self.getNextSpectra = function(spectra) {
-            if (spectra == null) return;
-            for (var i = 0; i < data.spectra.length - 1; i++) {
+        self.getNextSpectra = function(spectra, loop) {
+            if (typeof loop === 'undefined') loop = false;
+            if (spectra == null) return null;
+            for (var i = 0; i < data.spectra.length; i++) {
                 if (data.spectra[i] == spectra) {
-                    return data.spectra[i + 1];
+                    if (loop == false && i + 1 == data.spectra.length) {
+                        return null;
+                    } else {
+                        return data.spectra[(i + 1) % data.spectra.length];
+                    }
                 }
             }
             return null;

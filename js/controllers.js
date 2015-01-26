@@ -34,6 +34,8 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
                     return string + "warning";
                 case 1:
                     return string + "danger";
+                case 6:
+                    return string + "primary";
                 default:
                     return string + "default";
             }
@@ -58,14 +60,18 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             if (global.ui.active == null) return null;
             return global.ui.active;
         };
-        $scope.setActive = function(spectra) {
-            spectraService.setActive(spectra);
+        $scope.setActive = function(spectra, addToHistory) {
+            spectraService.setActive(spectra, addToHistory);
         };
         $scope.setPreviousSpectra = function() {
-            $scope.setActive(spectraService.getPreviousSpectra($scope.getActive()));
+            if (global.data.history.length > 1) {
+                $scope.setActive(global.data.history[global.data.history.length - 2], false);
+            } else {
+                $scope.setActive(spectraService.getPreviousSpectra($scope.getActive()));
+            }
         };
         $scope.setNextSpectra = function() {
-            $scope.setActive(spectraService.getNextSpectra($scope.getActive()));
+            spectraService.setNextSpectra();
         };
         $scope.hasActive = function() {
             return $scope.getActive() != null;
