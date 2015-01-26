@@ -376,8 +376,8 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                 };
                 var handleEvent = function(e) {
                     var res = windowToCanvas(e);
-                    e.preventDefault();
-                    e.stopPropagation();
+                    //e.preventDefault();
+                    //e.stopPropagation();
                     if (e.type == 'mousedown' || e.type == "touchstart") {
                         canvasMouseDown(res);
                     } else if (e.type == 'mouseup' || e.type == 'touchend') {
@@ -464,10 +464,13 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     }
                 };
                 var clearPlot = function() {
-                    c.save();
+                    /*c.save();
                     c.setTransform(1, 0, 0, 1, 0, 0);
                     c.clearRect(0, 0, canvas.width, canvas.height);
-                    c.restore();
+                    c.restore();*/
+                    c.rect(0, 0, canvas.width, canvas.height);
+                    c.fillStyle = "rgb(249, 249, 249)";
+                    c.fill();
                 };
                 var plotZeroLine = function(bound) {
                     var y = convertDataYToCanvasCoordinate(bound, 0);
