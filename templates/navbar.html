@@ -1,5 +1,5 @@
 <div id="header" ng-controller="NavbarController">
-    <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation" style="max-height: 50px; overflow: hidden;">
         <div class="container-fluid">
             <!-- Brand and toggle get grouped for better mobile display -->
             <div class="navbar-header">
@@ -20,9 +20,17 @@
                         {{i.name}}
                     </a></li>
                 </ul>
+                <div class="navbar-form navbar-left file-completion" ng-if="quality.max > 0">
+                        <p class="navbar-progress-text">File completion:</p>
+                        <progress class="navbar-progress progress-striped active" max="quality.max">
+                            <bar ng-repeat="bar in quality.bars" value="bar.value" type="{{bar.type}}">
+                                <span ng-hide="bar.value < 3">{{bar.label}}</span>
+                            </bar>
+                        </progress>
+                </div>
                 <form class="navbar-form navbar-right">
                     <div class="form-group">
-                        <input type="text" class="form-control" style="width: 140px;" placeholder="Enter your initials" ng-model="personal.initials" ng-change="changeInitials()">
+                        <input type="text" class="form-control" style="width: 100px;" placeholder="Enter initials" ng-model="personal.initials" ng-change="changeInitials()">
                     </div>
                 </form>
             </div>

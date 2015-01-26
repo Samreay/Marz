@@ -11,6 +11,7 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             return $state.current.name == state;
         };
         $scope.personal = global.personal;
+        $scope.quality = global.ui.quality;
         $scope.changeInitials = function() {
             $scope.initials = personalService.updateInitials();
         };
@@ -18,6 +19,24 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
     .controller('MainController', ['$scope', 'spectraService', 'global', '$state', '$timeout', 'spectraLineService', 'browserService', function($scope, spectraService, global, $state, $timeout, spectraLineService, browserService) {
         window.onbeforeunload = function(){
             return 'Please ensure changes are all saved before leaving.';
+        };
+        $scope.getQOPLabel = function(spectra) {
+            var string = "label label-"
+            if (spectra == null || spectra.qop == null) {
+                return string + "default";
+            }
+            switch (spectra.qop) {
+                case 4:
+                    return string + "success";
+                case 3:
+                    return string + "info";
+                case 2:
+                    return string + "warning";
+                case 1:
+                    return string + "danger";
+                default:
+                    return string + "default";
+            }
         };
         $scope.isDetailedView = function() {
             return $state.current.name == 'detailed';
@@ -210,21 +229,6 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
         };
         $scope.isLoading = function() {
             return fitsFile.isLoading();
-        };
-        $scope.getQOPLabel = function(spectra) {
-            var string = "label label-"
-            switch (spectra.qop) {
-                case 4:
-                    return string + "success";
-                case 3:
-                    return string + "info";
-                case 2:
-                    return string + "warning";
-                case 1:
-                    return string + "danger";
-                default:
-                    return string + "default";
-            }
         };
         $scope.getName = function(spectra) {
             if (spectra.getFinalTemplateID()) {

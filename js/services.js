@@ -12,6 +12,11 @@ angular.module('servicesZ', ['dialogs.main'])
                     matched: true,
                     variance: false
                 },
+                quality: {
+                    max: 0,
+                    bars: [],
+                    barHash: {}
+                },
                 detailed: {
                     bounds: {
                         redshiftMin: 0,
@@ -123,11 +128,54 @@ angular.module('servicesZ', ['dialogs.main'])
             return browser == "chrome" || browser == "firefox";
         };
     }])
-    .service('spectraService', ['global', 'resultsGeneratorService', 'cookieService', 'localStorageService',
-        function(global, resultsGeneratorService, cookieService, localStorageService) {
+    .service('qualityService', ['global', function(global) {
+        var self = this;
+        var quality = global.ui.quality;
+        var factor = 500;
+        var getType = function(qop) {
+            switch (qop) {
+                case 4: return "success";
+                case 3: return "info";
+                case 2: return "warning";
+                case 1: return "danger";
+                default: return "default";
+            }
+        };
+        self.setMax = function(max) {
+            //BUG: STUPID PROGRESS BAR CANT CALCULATE CORRECTLY
+            quality.max = 1 + max * factor;
+        };
+        self.clear = function() {
+            quality.bars = [];
+            quality.barHash = {};
+        };
+        self.changeSpectra = function(oldQop, newQop) {
+            if (oldQop != 0) {
+                self.addResult(oldQop, -1);
+            }
+            self.addResult(newQop);
+        };
+        self.addResult = function(qop, increment) {
+            if (typeof increment === 'undefined') increment = 1;
+            if (quality.barHash["" + qop] == null) {
+                if (increment > 0) {
+                    var res = {qop: qop, type: getType(qop), value: factor * increment, label: increment}
+                    quality.barHash["" + qop] = res;
+                    quality.bars.push(res);
+                    quality.bars.sort(function(a,b) {
+                        return a.qop < b.qop;
+                    });
+                }
+            } else {
+                quality.barHash["" + qop].value += factor * increment;
+                quality.barHash["" + qop].label += increment;
+            }
+        }
+    }])
+    .service('spectraService', ['global', 'resultsGeneratorService', 'cookieService', 'localStorageService', 'qualityService', function(global, resultsGeneratorService, cookieService, localStorageService, qualityService) {
         var self = this;
         var data = global.data;
-
+        var quality = global.ui.quality;
         var downloadAutomatically = null;
         var downloadAutomaticallyCookie = "downloadAutomatically";
         var saveAutomatically = null;
@@ -206,6 +254,8 @@ angular.module('servicesZ', ['dialogs.main'])
         self.setSpectra = function(spectraList) {
             data.spectra.length = 0;
             data.spectraHash = {};
+            qualityService.setMax(spectraList.length);
+            qualityService.clear();
             for (var i = 0; i < spectraList.length; i++) {
                 data.spectra.push(spectraList[i]);
                 data.spectraHash[spectraList[i].id] = spectraList[i];
@@ -222,6 +272,7 @@ angular.module('servicesZ', ['dialogs.main'])
             for (var i = 1; i < vals.length; i++) {
                 if (vals[i].name == "QOP") {
                     spectra.qop = parseInt(vals[i].value);
+                    qualityService.addResult(spectra.qop);
                 }
             }
             for (var i = 1; i < vals.length; i++) {
@@ -314,7 +365,9 @@ angular.module('servicesZ', ['dialogs.main'])
         self.setManualResults = function(spectra, templateId, redshift, qop) {
             spectra.manualTemplateID = templateId;
             spectra.manualRedshift = parseFloat(redshift);
+            var oldQop = spectra.qop;
             spectra.qop = qop;
+            qualityService.changeSpectra(oldQop, qop);
             if (saveAutomatically) {
                 localStorageService.saveSpectra(spectra);
             }

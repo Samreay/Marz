@@ -3,6 +3,7 @@
         <div class="panel-heading">
             <strong>ID</strong> {{getActive().id}}
             <strong>NAME</strong> {{getActive().name}}
+            <strong>QOP</strong><h4 style="display: inline; margin-left: 10px;"><span class="{{getQOPLabel(getActive())}}">{{getActive().qop}}</span></h4>
             <strong>RA</strong> {{getActive().getRA().toFixed(3)}}
             <strong>DEC</strong> {{getActive().getDEC().toFixed(3)}}
             <strong>MAGNITUDE</strong> {{getActive().magnitude.toFixed(2)}}
