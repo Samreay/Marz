@@ -137,12 +137,13 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                 var xcorPlotColour = "#333";
                 var xcorBound = {
                     top: 15,
-                    left: 60,
-                    right: 20,
+                    left: 5,
+                    right: 5,
                     bottom: 5,
                     height: xcorHeight,
                     width: 300,
-                    callout: true
+                    callout: true,
+                    xcorCallout: true
                 };
 
                 var callout = false;
@@ -270,12 +271,22 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     result.dataX = null;
                     result.dataY = null;
                     result.bound = null;
-                    for (var i = 0; i < bounds.length; i++) {
-                        if (checkCanvasInRange(bounds[i], result.x, result.y)) {
-                            result.dataX = convertCanvasXCoordinateToDataPoint(bounds[i], result.x);
-                            result.dataY = convertCanvasYCoordinateToDataPoint(bounds[i], result.y);
-                            result.bound = bounds[i];
-                            break;
+                    if (xcor) {
+                        if (result.x > xcorBound.left && result.x < xcorBound.left + xcorBound.width
+                            && result.y > xcorBound.top - 15 && result.y < xcorBound.top + xcorBound.height) {
+                            result.dataX = convertCanvasXCoordinateToDataPoint(xcorBound, result.x);
+                            result.dataY = convertCanvasYCoordinateToDataPoint(xcorBound, result.y);
+                            result.bound = xcorBound;
+                        }
+                    }
+                    if (result.bound == null) {
+                        for (var i = 0; i < bounds.length; i++) {
+                            if (checkCanvasInRange(bounds[i], result.x, result.y)) {
+                                result.dataX = convertCanvasXCoordinateToDataPoint(bounds[i], result.x);
+                                result.dataY = convertCanvasYCoordinateToDataPoint(bounds[i], result.y);
+                                result.bound = bounds[i];
+                                break;
+                            }
                         }
                     }
                     result.inside = (result.dataX != null && result.dataY != null);
@@ -286,6 +297,9 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     if (loc.inside) {
                         lastXDown = loc.x;
                         lastYDown = loc.y;
+                    }
+                    if (loc.bound && loc.bound.xcorCallout) {
+                        xcorEvent(loc.dataX);
                     }
                 };
                 var canvasMouseUp = function(loc) {
@@ -318,21 +332,31 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     lastYDown = null;
                     redraw()
                 };
+                var xcorEvent = function(z) {
+                    $scope.detailed.redshift = z.toFixed(4);
+                    $scope.$apply();
+                };
                 var canvasMouseMove = function(loc) {
                     if (!loc.inside) return;
                     currentMouseX = loc.x;
                     currentMouseY = loc.y;
-                    redraw();
-                    if (lastXDown != null && lastYDown != null) {
-                        if (distance(loc.x, loc.y, lastXDown, lastYDown) < minDragForZoom || loc.bound == null || loc.bound.callout) {
-                            return;
+                    if (loc.bound != null && loc.bound.xcorCallout != true) {
+                        redraw();
+                        if (lastXDown != null && lastYDown != null) {
+                            if (distance(loc.x, loc.y, lastXDown, lastYDown) < minDragForZoom || loc.bound == null || loc.bound.callout) {
+                                return;
+                            }
+                            c.strokeStyle = dragOutlineColour;
+                            c.fillStyle = dragInteriorColour;
+                            var w = loc.x - lastXDown;
+                            var h = loc.y - lastYDown;
+                            c.fillRect(lastXDown + 0.5, lastYDown, w, h);
+                            c.strokeRect(lastXDown + 0.5, lastYDown, w, h);
                         }
-                        c.strokeStyle = dragOutlineColour;
-                        c.fillStyle = dragInteriorColour;
-                        var w = loc.x - lastXDown;
-                        var h = loc.y - lastYDown;
-                        c.fillRect(lastXDown + 0.5, lastYDown, w, h);
-                        c.strokeRect(lastXDown + 0.5, lastYDown, w, h);
+                    } else if (loc.bound != null && loc.bound.xcorCallout == true) {
+                        if (lastXDown != null && lastXDown != null) {
+                            xcorEvent(loc.dataX);
+                        }
                     }
                 };
                 var mouseOut = function(loc) {
@@ -415,7 +439,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     canvas.height = canvas.clientHeight;
                     callout = canvas.height > 500;
                     xcor = xcorData && (canvas.height > 550);
-                    xcorBound.width = canvas.width - bounds[0].left - bounds[0].right;
+                    xcorBound.width = canvas.width - xcorBound.left - xcorBound.right;
                     xcorBound.height = xcorHeight - xcorBound.top - xcorBound.bottom;
                     bounds[0].top = xcor ? baseTop + xcorHeight : baseTop;
                     bounds[0].bottom =  callout ? Math.floor(canvas.height * 0.3) + baseBottom : baseBottom;
