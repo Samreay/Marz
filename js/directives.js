@@ -133,7 +133,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                 var callout = false;
                 var maxCallouts = 4;
                 var minCalloutWidth = 400;
-                var callouts = [[1000, 1100], [1200, 1260], [1350, 1600], [1850, 2000],
+                var callouts = [[1000, 1100], [1200, 1260], [1500, 1600], [1850, 2000],
                     [2700, 2900], [3700, 3780], [3855, 4000], [4800, 5040], [6520, 6600], [6700, 6750]];
                 var defaultMin = 3300;
                 var defaultMax = 7200;
@@ -594,7 +594,11 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                             c.lineTo(bound.left + bound.width, bound.top + 5);
                             c.moveTo(bound.left, bound.top + 5)
                         } else if (data[j].id == "data") {
-                            yOffset = 0;
+                            if (bound.callout) {
+                                yOffset = -5;
+                            } else {
+                                yOffset = 0;
+                            }
                         }
                         var start = 0;
                         if (data[j].id == "data") {
@@ -687,20 +691,20 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                         if (checkDataXInRange(bound, lambda)) {
                             var x = 0.5 + Math.floor(convertDataXToCanvasCoordinate(bound, lambda));
                             c.beginPath();
-                            c.moveTo(x, bound.top);
+                            c.moveTo(x, bound.top - 5);
                             c.lineTo(x, bound.top + bound.height);
                             c.stroke();
                             c.beginPath();
-                            c.moveTo(x, bound.top);
-                            c.lineTo(x - 20, bound.top - 5);
-                            c.lineTo(x - 20, bound.top - 20);
-                            c.lineTo(x + 20, bound.top - 20);
-                            c.lineTo(x + 20, bound.top - 5);
+                            c.moveTo(x, bound.top - 5);
+                            c.lineTo(x - 20, bound.top - 10);
+                            c.lineTo(x - 20, bound.top - 23);
+                            c.lineTo(x + 20, bound.top - 23);
+                            c.lineTo(x + 20, bound.top - 10);
                             c.closePath();
                             c.fillStyle = spectralLineColour;
                             c.fill();
                             c.fillStyle = spectralLineTextColour;
-                            c.fillText(lines[i].label, x, bound.top - 5);
+                            c.fillText(lines[i].label, x, bound.top - 9);
                         }
                     }
                 };
