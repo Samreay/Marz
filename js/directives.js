@@ -134,7 +134,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                 var maxCallouts = 4;
                 var minCalloutWidth = 400;
                 var callouts = [[1000, 1100], [1200, 1260], [1350, 1600], [1850, 2000],
-                    [2700, 2900], [3700, 3780], [3855, 4000], [4800, 5100], [6520, 6600], [6700, 6750]];
+                    [2700, 2900], [3700, 3780], [3855, 4000], [4800, 5040], [6520, 6600], [6700, 6750]];
                 var defaultMin = 3300;
                 var defaultMax = 7200;
                 var mainBound = {
@@ -143,7 +143,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     yMin: -500,
                     yMax: 1000,
                     top: 30,
-                    bottom: 50,
+                    bottom: 30,
                     left: 60,
                     right: 20,
                     width: 300,
@@ -287,7 +287,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                         loc.bound.yMax = Math.max(y1, y2);
                         loc.bound.lockedBounds = true;
                     } else {
-                        if (loc.bound && loc.bound.callout == false && loc.x > (loc.bound.left + loc.bound.width - zoomOutWidth) && loc.y < (zoomOutHeight + 10)) {
+                        if (loc.bound && loc.bound.callout == false && loc.x > (loc.bound.left + loc.bound.width - zoomOutWidth - 10) && loc.y < (zoomOutHeight + 10)) {
                             loc.bound.lockedBounds = false;
                             redraw();
                         } else if (checkCanvasInRange(loc.bound, loc.x, loc.y)) {
@@ -504,7 +504,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     var xRange = endX - startX;
                     var numLabels = bound.width / labelWidth;
                     var xStep = xRange / numLabels;
-                    var exponent = parseFloat(Math.log10(xStep / 3).toExponential(0))
+                    var exponent = Math.floor(Math.log10(xStep));
                     xStep = Math.max(1, Math.floor(xStep / Math.pow(10, exponent))) * Math.pow(10, exponent);
                     var firstX = startX - startX % xStep;
                     var y = bound.top + bound.height + 5;
@@ -524,9 +524,9 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     var endY = convertCanvasYCoordinateToDataPoint(bound, bound.top);
                     var startY = convertCanvasYCoordinateToDataPoint(bound, bound.top + bound.height);
                     var yRange = endY - startY;
-                    var numLabels = bound.height / labelHeight;
+                    numLabels = bound.height / labelHeight;
                     var yStep = yRange / numLabels;
-                    var exponent = parseFloat(Math.log10(yStep / 3).toExponential(0))
+                    exponent = Math.floor(Math.log10(yStep));
                     yStep = Math.max(1, Math.floor(yStep / Math.pow(10, exponent))) * Math.pow(10, exponent);
                     var firstY = startY - startY % yStep;
 
@@ -556,6 +556,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                         var xs = data[j].x;
                         var ys = data[j].y2 == null ? data[j].y : data[j].y2;
                         var disconnect = true;
+                        var oob = false;
                         var x = 0;
                         var y = 0;
                         var yOffset = 0;
@@ -617,6 +618,15 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                                 } else {
                                     y = convertDataYToCanvasCoordinate(bound, ys[i]) - yOffset;
                                 }
+                                if (y < bound.top) {
+                                    oob = true;
+                                    y = bound.top;
+                                } else if (y > (bound.top + bound.height)) {
+                                    oob = true;
+                                    y = (bound.top + bound.height);
+                                } else {
+                                    oob = false;
+                                }
                                 if (disconnect == true) {
                                     disconnect = false;
                                     if (i > 0) {
@@ -635,7 +645,11 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                                     c.lineTo(mx1, y);
                                 } else {
                                     c.lineTo(mx1, y);
-                                    c.lineTo(mx2, y);
+                                    if (oob) {
+                                        c.moveTo(mx2, y);
+                                    } else {
+                                        c.lineTo(mx2, y);
+                                    }
                                 }
                             }
                         }
