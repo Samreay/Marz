@@ -348,6 +348,15 @@ angular.module('servicesZ', ['dialogs.main'])
             normaliseViaShift(spectra.processedVariancePlot, 0, 50, null);
             spectra.isProcessing = false;
             spectra.isProcessed = true;
+
+            if (!self.isProcessing() && self.isFinishedMatching()) {
+                if (downloadAutomatically) {
+                    resultsGeneratorService.downloadResults();
+                }
+                if (global.data.fits.length > 0) {
+                    global.data.fits.shift();
+                }
+            }
         };
         self.setMatchedResults = function(results) {
             var spectra = data.spectraHash[results.id];

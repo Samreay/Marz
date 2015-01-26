@@ -740,20 +740,27 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
                 global.filters[obj] = '*';
             })
         };
+        $scope.numDrag = 0;
         $scope.addFiles = function(files) {
             for (var i = 0; i < files.length; i++) {
                 if (!files[i].name.endsWith('fits')) {
                     resultsLoaderService.loadResults(files[i]);
                 }
             }
+            var first = true;
             for (var i = 0; i < files.length; i++) {
                 if (files[i].name.endsWith('fits')) {
+                    $scope.numDrag++;
+                    if (first) {
+                        first = false;
+                        $scope.data.fits.length = 0;
+                    }
                     $scope.data.fits.push(files[i]);
                 }
             }
         };
-        $scope.$watch('data.fits.length', function(newValue) {
-            if (newValue > 0) {
+        $scope.$watchCollection('[numDrag, data.fits.length]', function() {
+            if ($scope.data.fits.length > 0) {
                 fitsFile.loadInFitsFile($scope.data.fits[0]).then(function() { console.log('Fits file loaded')});
             }
         });
