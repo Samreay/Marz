@@ -38,6 +38,7 @@ var startPower = 3.3;
 var endPower = 4.1;
 //var arraySize = 65536; // Must be a power of two
 var arraySize = 32768; // Must be a power of two
+var returnedMax = 1024;
 
 // CONFIG FOR XCORR NORMALISATION
 var trimAmount = 0.04;

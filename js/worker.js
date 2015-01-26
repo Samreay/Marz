@@ -161,6 +161,7 @@ self.coalesceResults = function(templateResults, type, intensity, fft, quasarFFT
                 w = 1;
             }
         }
+        tr.weight = w;
 
         for (var j = 0; j < tr.peaks.length; j++) {
             tr.peaks[j].value = tr.peaks[j].value / w;
@@ -174,9 +175,6 @@ self.coalesceResults = function(templateResults, type, intensity, fft, quasarFFT
 
     // Return only the ten best results
     coalesced.splice(10, coalesced.length - 1);
-    //TODO: Instead of just splicing, make sure the best results are a threshold value in redshift different
-
-    //TODO: For each of those results we actually want to do a quadratic fit.
 
 
     for (var k = 0; k < coalesced.length; k++) {
@@ -190,19 +188,40 @@ self.coalesceResults = function(templateResults, type, intensity, fft, quasarFFT
             value: coalesced[k].value
         };
     }
-
-    //TODO: Add all info back in after shrinking down the zs array to < 5000 elements so we can get the xcor function
-
-//    var templates = [];
-//    for (var i = 0; i < templateResults.length; i++) {
-//        var chi2 = [];
-//        var zs = [];
-//        for (var j = 0; j < templateResults[i].res.length; j++) {
-//            chi2.push(templateResults[i].res[j].chi2);
-//            zs.push(templateResults[i].res[j].z);
-//        }
-//        templates.push({id: templateResults[i].id, z: chi2, chi2: zs});
-//
-//    }
-    return {coalesced: coalesced, templates: null, intensity: intensity, fft: {real: fft.real, imag: fft.imag}, quasarFFT: {real: quasarFFT.real, imag: quasarFFT.imag}};
+    var templates = {};
+    for (var i = 0; i < templateResults.length; i++) {
+        var tr = templateResults[i];
+        var numCondense = Math.ceil(tr.zs.length / returnedMax);
+        var zs = [];
+        var xcor = [];
+        var c1 = 0;
+        var c2 = 0;
+        if (tr.zs.length > 1) {
+            for (var j = 0; j < tr.zs.length; j++) {
+                c1 += tr.zs[j];
+                c2 += tr.xcor[j];
+                if ((j + 1) % numCondense == 0) {
+                    zs.push(c1 / numCondense);
+                    xcor.push(c2 / numCondense);
+                    c1 = 0;
+                    c2 = 0;
+                }
+            }
+        } else {
+            zs = tr.zs;
+            xcor = tr.xcor;
+        }
+        templates[tr.id] = {
+            zs: zs,
+            xcor: xcor,
+            weight: w
+        };
+    }
+    return {
+        coalesced: coalesced,
+        templates: templates,
+        intensity: intensity,
+        fft: {real: fft.real, imag: fft.imag},
+        quasarFFT: {real: quasarFFT.real, imag: quasarFFT.imag}
+    };
 };

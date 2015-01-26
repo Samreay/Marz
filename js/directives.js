@@ -129,6 +129,21 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
             link: function($scope, $element, $attr) {
                 $scope.ui = global.ui;
                 $scope.detailed = global.ui.detailed;
+                var annotationColour = "#F00";
+                var xcor = true;
+                var xcorData = null;
+                var xcorHeight = 50;
+                var xcorLineColour = "#F00";
+                var xcorPlotColour = "#333";
+                var xcorBound = {
+                    top: 15,
+                    left: 60,
+                    right: 20,
+                    bottom: 5,
+                    height: xcorHeight,
+                    width: 300,
+                    callout: true
+                };
 
                 var callout = false;
                 var maxCallouts = 4;
@@ -153,6 +168,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                 };
                 var bounds = [mainBound];
                 var baseBottom = 30;
+                var baseTop = 30;
                 var templateScale = '1';
                 var minScale = 0.2;
                 var maxScale = 5;
@@ -398,6 +414,10 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     canvas.width = canvas.clientWidth;
                     canvas.height = canvas.clientHeight;
                     callout = canvas.height > 500;
+                    xcor = xcorData && (canvas.height > 550);
+                    xcorBound.width = canvas.width - bounds[0].left - bounds[0].right;
+                    xcorBound.height = xcorHeight - xcorBound.top - xcorBound.bottom;
+                    bounds[0].top = xcor ? baseTop + xcorHeight : baseTop;
                     bounds[0].bottom =  callout ? Math.floor(canvas.height * 0.3) + baseBottom : baseBottom;
                     bounds[0].width = canvas.width - bounds[0].left - bounds[0].right;
                     bounds[0].height = canvas.height - bounds[0].top - bounds[0].bottom;
@@ -472,7 +492,8 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     c.fillStyle = "rgb(249, 249, 249)";
                     c.fill();
                 };
-                var plotZeroLine = function(bound) {
+                var plotZeroLine = function(bound, colour) {
+                    if (typeof colour === "undefined") colour = zeroLineColour;
                     var y = convertDataYToCanvasCoordinate(bound, 0);
                     if (y > (bound.top + bound.height) || y < bound.top) {
                         return;
@@ -483,8 +504,9 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     c.lineTo(bound.left + bound.width, Math.floor(y) + 0.5);
                     c.stroke();
                 };
-                var plotAxes = function(bound) {
-                    c.strokeStyle = axesColour;
+                var plotAxes = function(bound, colour) {
+                    if (typeof colour === "undefined") colour = axesColour;
+                    c.strokeStyle = colour;
                     c.beginPath();
                     c.moveTo(bound.left - 0.5, bound.top + 0.5);
                     c.lineTo(bound.left - 0.5, bound.top + bound.height + 0.5);
@@ -561,6 +583,78 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     if (!onlyLabels) {
                         c.stroke();
                     }
+                };
+                var annotatePlot = function(name, bound) {
+                    plotText(name, bound.left, 0, annotationColour);
+                };
+                var plotText = function(text, x, y, colour) {
+                    c.textAlign = 'left';
+                    c.textBaseline = 'top';
+                    c.font = labelFont;
+                    c.strokeStyle = colour;
+                    c.fillStyle = colour;
+                    c.fillText(text, x, y);
+
+                };
+                var plotZLine = function(bound) {
+                    var z = parseFloat($scope.detailed.redshift)
+                    if (z < bound.xMin || z > bound.xMax) {
+                        return;
+                    }
+                    var x = bound.left + bound.width * (z - bound.xMin) / (bound.xMax - bound.xMin);
+                    var btm = binarySearch(xcorData.zs, z);
+                    var xc = 0;
+                    if (btm[0] == btm[1]) {
+                        xc = xcorData.xcor[btm[0]];
+                    } else {
+                        var part = findCorrespondingFloatIndex(xcorData.zs, z, btm[0]) - btm[0];
+                        xc = xcorData.xcor[btm[0]] * (part - 1) + part * xcorData.xcor[btm[1]]
+                    }
+                    xc = xc / xcorData.weight;
+                    c.beginPath();
+                    c.setLineDash([2, 2]);
+                    c.strokeStyle = xcorLineColour;
+                    c.moveTo(x, bound.top);
+                    c.lineTo(x, bound.top + bound.height);
+                    c.stroke()
+                    c.setLineDash([0]);
+                    c.textAlign = 'left';
+                    c.textBaseline = 'top';
+                    c.font = labelFont;
+                    c.strokeStyle = xcorLineColour;
+                    c.fillStyle = xcorLineColour;
+                    c.fillText($scope.detailed.redshift, Math.max(x, bound.left + 40), 0);
+
+
+                };
+                var plotXcorData = function() {
+                    if (xcor) {
+//                        plotAxes(xcorBound, "#aaa");
+                        annotatePlot("XCor", xcorBound);
+                        if (xcorData != null && xcorData.zs != null && xcorData.xcor != null) {
+                            xcorBound.xMin = xcorData.zs[0];
+                            xcorBound.xMax = xcorData.zs[xcorData.zs.length - 1];
+                            xcorBound.yMin = getMin(xcorData.xcor);
+                            xcorBound.yMax = getMax(xcorData.xcor);
+                            plotZeroLine(xcorBound, "#999");
+                            renderLinearPlot(xcorBound, xcorData.zs, xcorData.xcor, xcorPlotColour);
+                            plotZLine(xcorBound);
+                        }
+                    }
+                };
+                var renderLinearPlot = function(bound, xs, ys, colour) {
+                    c.beginPath();
+                    c.strokeStyle = colour;
+                    for (var i = 0; i < xs.length; i++) {
+                        var x = bound.left + (xs[i]-bound.xMin)/(bound.xMax-bound.xMin) * (bound.width);
+                        var y = bound.top + bound.height - ((ys[i]-bound.yMin)*(bound.height)/(bound.yMax-bound.yMin));
+                        if (i == 0) {
+                            c.moveTo(x,y);
+                        } else {
+                            c.lineTo(x,y);
+                        }
+                    }
+                    c.stroke();
                 };
                 var renderPlots = function(bound) {
                     for (var j = 0; j < data.length; j++) {
@@ -838,6 +932,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     refreshSettings();
                     selectCalloutWindows();
                     clearPlot();
+                    plotXcorData();
                     for (var i = 0; i < bounds.length; i++) {
                         plotWindow(bounds[i]);
                     }
@@ -865,6 +960,13 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                 $scope.getActiveHash = function() {
                     if ($scope.ui.active == null) return "";
                     return $scope.ui.active.getHash();
+                };
+                var addXcorData = function() {
+                    if (global.ui.active == null || global.ui.active.templateResults == null) {
+                        xcorData = null;
+                    } else {
+                        xcorData = global.ui.active.templateResults[$scope.detailed.templateId];
+                    }
                 };
                 var addBaseData = function() {
                     for (var i = 0; i < data.length; i++) {
@@ -933,6 +1035,9 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     addBaseData();
                     redraw();
                 });
+                $scope.$watch('detailed.templateId', function() {
+                    addXcorData();
+                });
                 $scope.$watchCollection('[detailed.redshift, detailed.templateId, ui.dataSelection.matched, detailed.continuum]', function() {
                     addTemplateData();
                     redraw();
@@ -955,6 +1060,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     addBaseData();
                     addSkyData();
                     addTemplateData();
+                    addXcorData();
                     $scope.detailed.lockedBounds = false;
                     bounds[0].lockedBounds = false;
                     redraw();

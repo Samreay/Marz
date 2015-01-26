@@ -17,6 +17,8 @@ function range(start, stop, step) {
 }
 
 function getMax(array, lower, upper) {
+    if (typeof lower === "undefined") lower = 0;
+    if (typeof upper === "undefined") upper = array.length;
     var max = -9e19;
     for (var i = lower; i < upper; i++) {
         if (array[i] > max) {
@@ -26,6 +28,8 @@ function getMax(array, lower, upper) {
     return max;
 }
 function getMin(array, lower, upper) {
+    if (typeof lower === "undefined") lower = 0;
+    if (typeof upper === "undefined") upper = array.length;
     var min = 9e19;
     for (var i = lower; i < upper; i++) {
         if (array[i] < min) {
