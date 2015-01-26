@@ -12,6 +12,27 @@ input::selection {
     position: relative;
     overflow: hidden;
 }
+@media (max-width: 1000px) {
+    .file-completion {
+        display: none;
+    }
+}
+.navbar-form.navbar-left.file-completion {
+    width: calc(100% - 700px);
+}
+.progress.navbar-progress {
+    width: calc(100% - 140px);
+    margin-bottom: 0;
+    margin-top: 6px;
+    display: inline-block;
+}
+.navbar-progress-text {
+    width: 100px;
+    display: inline-block;
+    color: #aaa;
+    vertical-align: top;
+    margin: 6px 10px 0 20px;
+}
 .btn-file input[type=file] {
     position: absolute;
     top: 0;

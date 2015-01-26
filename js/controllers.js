@@ -11,6 +11,7 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             return $state.current.name == state;
         };
         $scope.personal = global.personal;
+        $scope.quality = global.ui.quality;
         $scope.changeInitials = function() {
             $scope.initials = personalService.updateInitials();
         };
@@ -18,6 +19,24 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
     .controller('MainController', ['$scope', 'spectraService', 'global', '$state', '$timeout', 'spectraLineService', 'browserService', function($scope, spectraService, global, $state, $timeout, spectraLineService, browserService) {
         window.onbeforeunload = function(){
             return 'Please ensure changes are all saved before leaving.';
+        };
+        $scope.getQOPLabel = function(spectra) {
+            var string = "label label-"
+            if (spectra == null || spectra.qop == null) {
+                return string + "default";
+            }
+            switch (spectra.qop) {
+                case 4:
+                    return string + "success";
+                case 3:
+                    return string + "info";
+                case 2:
+                    return string + "warning";
+                case 1:
+                    return string + "danger";
+                default:
+                    return string + "default";
+            }
         };
         $scope.isDetailedView = function() {
             return $state.current.name == 'detailed';
@@ -40,19 +59,7 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             return global.ui.active;
         };
         $scope.setActive = function(spectra) {
-            if (spectra == null) {
-                return;
-            }
-            global.ui.active = spectra;
-            var id = spectra.getFinalTemplateID();
-            var z = spectra.getFinalRedshift();
-            if (id != null && z != null) {
-                global.ui.detailed.templateId = id;
-                global.ui.detailed.redshift = z;
-            } else {
-                global.ui.detailed.templateId = "0";
-                global.ui.detailed.redshift = "0";
-            }
+            spectraService.setActive(spectra);
         };
         $scope.setPreviousSpectra = function() {
             $scope.setActive(spectraService.getPreviousSpectra($scope.getActive()));
@@ -172,7 +179,7 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             {key: '.', label: '.', controller: "detailed", description: '[Detailed screen] Cycles spectral lines forward', fn: function($scope) {
                 $timeout(function() { $scope.nextSpectralLine(); });
             }},
-            {key: 'comma', label: ',', controller: "detailed", description: '[Detailed screen] Cycles spectral lines back', fn: function($scope) {
+            {key: 'comma', label: 'comma', controller: "detailed", description: '[Detailed screen] Cycles spectral lines back', fn: function($scope) {
                 $timeout(function() { $scope.previousSpectralLine(); });
             }}];
         _.forEach(spectraLineService.getAll(), function(line) {
@@ -210,21 +217,6 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
         };
         $scope.isLoading = function() {
             return fitsFile.isLoading();
-        };
-        $scope.getQOPLabel = function(spectra) {
-            var string = "label label-"
-            switch (spectra.qop) {
-                case 4:
-                    return string + "success";
-                case 3:
-                    return string + "info";
-                case 2:
-                    return string + "warning";
-                case 1:
-                    return string + "danger";
-                default:
-                    return string + "default";
-            }
         };
         $scope.getName = function(spectra) {
             if (spectra.getFinalTemplateID()) {
@@ -547,28 +539,24 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
         };
         $scope.getSpectralLinePhrase = function() {
             if ($scope.settings.spectralLines) {
-                return "Hide spectral lines";
+                return "Hide";
             } else {
-                return "Show spectral lines";
+                return "Show";
             }
         };
         $scope.setFocusToRedshift = function() {
             $('#redshiftInput').focus().select();
         };
         $scope.incrementSmooth = function() {
-            if ($scope.settings.rawSmooth < $scope.bounds.maxSmooth) {
-                $scope.settings.rawSmooth = "" + (parseInt($scope.settings.rawSmooth) + 1);
-            }
-            if ($scope.settings.processedSmooth < $scope.bounds.maxSmooth) {
-                $scope.settings.processedSmooth = "" + (parseInt($scope.settings.processedSmooth) + 1);
+            var smooth = parseInt($scope.settings.smooth);
+            if (smooth < $scope.bounds.maxSmooth) {
+                $scope.settings.smooth = "" + (smooth + 1);
             }
         };
         $scope.decrementSmooth = function() {
-            if ($scope.settings.rawSmooth > 0) {
-                $scope.settings.rawSmooth = "" + (parseInt($scope.settings.rawSmooth) - 1);
-            }
-            if ($scope.settings.processedSmooth > 0) {
-                $scope.settings.processedSmooth = "" + (parseInt($scope.settings.processedSmooth) - 1);
+            var smooth = parseInt($scope.settings.smooth);
+            if (smooth > 0) {
+                $scope.settings.smooth = "" + (smooth - 1);
             }
         };
         $scope.nextTemplate = function() {
@@ -752,20 +740,27 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
                 global.filters[obj] = '*';
             })
         };
+        $scope.numDrag = 0;
         $scope.addFiles = function(files) {
             for (var i = 0; i < files.length; i++) {
                 if (!files[i].name.endsWith('fits')) {
                     resultsLoaderService.loadResults(files[i]);
                 }
             }
+            var first = true;
             for (var i = 0; i < files.length; i++) {
                 if (files[i].name.endsWith('fits')) {
+                    $scope.numDrag++;
+                    if (first) {
+                        first = false;
+                        $scope.data.fits.length = 0;
+                    }
                     $scope.data.fits.push(files[i]);
                 }
             }
         };
-        $scope.$watch('data.fits.length', function(newValue) {
-            if (newValue > 0) {
+        $scope.$watchCollection('[numDrag, data.fits.length]', function() {
+            if ($scope.data.fits.length > 0) {
                 fitsFile.loadInFitsFile($scope.data.fits[0]).then(function() { console.log('Fits file loaded')});
             }
         });

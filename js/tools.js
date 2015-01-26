@@ -16,7 +16,24 @@ function range(start, stop, step) {
     return result;
 }
 
-
+function getMax(array, lower, upper) {
+    var max = -9e19;
+    for (var i = lower; i < upper; i++) {
+        if (array[i] > max) {
+            max = array[i];
+        }
+    }
+    return max;
+}
+function getMin(array, lower, upper) {
+    var min = 9e19;
+    for (var i = lower; i < upper; i++) {
+        if (array[i] < min) {
+            min = array[i];
+        }
+    }
+    return min;
+}
 function binarySearch(data, val) {
     var highIndex = data.length - 1;
     var lowIndex = 0;
