@@ -443,8 +443,8 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                 var refreshSettings = function () {
                     canvas.width = canvas.clientWidth;
                     canvas.height = canvas.clientHeight;
-                    callout = canvas.height > 500;
-                    xcor = xcorData && (canvas.height > 550);
+                    callout = canvas.height > 450;
+                    xcor = xcorData && (canvas.height > 300);
                     xcorBound.width = canvas.width - xcorBound.left - xcorBound.right;
                     xcorBound.height = xcorHeight - xcorBound.top - xcorBound.bottom;
                     bounds[0].top = xcor ? baseTop + xcorHeight : baseTop;
@@ -706,7 +706,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                             var max = getMax(ys, lower, upper);
                             r = ((bound.yMax - bound.yMin) / (max - min)) / (bound.callout ? calloutSpacingFactor : spacingFactor) / templateFactor;
                             o = bound.yMin - r * min;
-                            yOffset = 20;
+                            yOffset = $scope.detailed.templateOffset * bound.height / (templateFactor * (bound.callout ? 200 : 150));
                         } else if (data[j].id == 'sky') {
                             if (bound.callout) {
                                 continue;
@@ -1079,6 +1079,11 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                 $scope.$watch('ui.dataSelection.sky', function() {
                     addSkyData();
                     redraw();
+                });
+                $scope.$watch('detailed.templateOffset', function(newV, oldV) {
+                    if (newV != oldV) {
+                        redraw();
+                    }
                 });
                 $scope.$watchCollection('[detailed.lockedBoundsCounter, detailed.lockedBounds]', function() {
                     if ($scope.detailed.lockedBounds == false) {

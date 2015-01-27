@@ -24,6 +24,7 @@ angular.module('servicesZ', ['dialogs.main'])
                         maxMatches: 5,
                         maxSmooth: 7
                     },
+                    templateOffset: 0,
                     onlyQOP0: true,
                     templateId: '0',
                     continuum: true,
