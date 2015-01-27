@@ -184,6 +184,8 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                 var templateFactor = 1.3;
 
                 var zoomOutWidth = 40;
+                var zoomOutXOffset = 10;
+                var zoomOutYOffset = -10;
                 var zoomOutHeight = 40;
                 var zoomOutImg = new Image();
                 zoomOutImg.src = 'images/lens.png'
@@ -317,7 +319,11 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                         loc.bound.yMax = Math.max(y1, y2);
                         loc.bound.lockedBounds = true;
                     } else {
-                        if (loc.bound && loc.bound.callout == false && loc.x > (loc.bound.left + loc.bound.width - zoomOutWidth - 10) && loc.y < (zoomOutHeight + 10)) {
+                        if (loc.bound && loc.bound.callout == false &&
+                            loc.x > (loc.bound.left + loc.bound.width + zoomOutXOffset - zoomOutWidth) &&
+                            loc.x < (loc.bound.left + loc.bound.width + zoomOutXOffset) &&
+                            loc.y < (loc.bound.top + zoomOutHeight + zoomOutYOffset) &&
+                            loc.y > loc.bound.top + zoomOutYOffset) {
                             loc.bound.lockedBounds = false;
                             redraw();
                         } else if (checkCanvasInRange(loc.bound, loc.x, loc.y)) {
@@ -793,8 +799,8 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                 };
                 var drawZoomOut = function(bound) {
                     if (!bound.callout) {
-                        var x = bound.left + bound.width + 20 - zoomOutWidth;
-                        var y = bound.top - 15;
+                        var x = bound.left + bound.width + zoomOutXOffset - zoomOutWidth;
+                        var y = bound.top + zoomOutYOffset;
                         c.drawImage(zoomOutImg, x, y);
                     }
                 };
