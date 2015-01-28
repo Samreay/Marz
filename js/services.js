@@ -821,7 +821,7 @@ angular.module('servicesZ', ['dialogs.main'])
             return !spectra.isProcessing && !spectra.isProcessed;
         };
         self.shouldMatch = function(spectra) {
-            return spectra.isProcessed && !spectra.isMatching && !spectra.isMatched;
+            return spectra.isProcessed && !spectra.isMatching && (!spectra.isMatched || spectra.templateResults == null);
         };
         self.processJobs = function() {
             var findingJobs = true;
@@ -851,7 +851,7 @@ angular.module('servicesZ', ['dialogs.main'])
          * jobs processing and matching if processing is enabled.
          */
         self.processAJob = function() {
-            for (i = 0; i < priorityJobs.length; i++) {
+            for (var i = 0; i < priorityJobs.length; i++) {
                 if (self.shouldProcess(priorityJobs[i])) {
                     priorityJobs[i].isProcessing = true;
                     self.processSpectra(priorityJobs[i].getProcessMessage());

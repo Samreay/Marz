@@ -1065,8 +1065,9 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     addBaseData();
                     redraw();
                 });
-                $scope.$watch('detailed.templateId', function() {
+                $scope.$watchCollection('[detailed.templateId, ui.active.templateResults]', function() {
                     addXcorData();
+                    redraw();
                 });
                 $scope.$watchCollection('[detailed.redshift, detailed.templateId, ui.dataSelection.matched, detailed.continuum]', function() {
                     addTemplateData();
