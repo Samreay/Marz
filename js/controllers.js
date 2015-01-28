@@ -170,6 +170,20 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
                 $scope.toggleSpectralLines();
                 $scope.$apply();
             }},
+            {key: 'left', label: 'left', controller: "detailed", description: '[Detailed screen] Decrements redshift by 0.0001', fn: function($scope) {
+                var z = parseFloat(global.ui.detailed.redshift);
+                if (z > global.ui.detailed.bounds.redshiftMin) {
+                    global.ui.detailed.redshift = (z - 0.0001).toFixed(4);
+                }
+                $scope.$apply();
+            }},
+            {key: 'right', label: 'right', controller: "detailed", description: '[Detailed screen] Increments redshift by 0.001', fn: function($scope) {
+                var z = parseFloat(global.ui.detailed.redshift);
+                if (z < global.ui.detailed.bounds.redshiftMax) {
+                    global.ui.detailed.redshift = (z + 0.0001).toFixed(4);
+                }
+                $scope.$apply();
+            }},
             {key: 'down', label: 'down', controller: "detailed", description: '[Detailed screen] Selects the next template', fn: function($scope) {
                 if(document.activeElement != $('#templateInput')[0]) {
                     $scope.nextTemplate();
