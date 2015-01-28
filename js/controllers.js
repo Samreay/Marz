@@ -20,24 +20,23 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
         window.onbeforeunload = function(){
             return 'Please ensure changes are all saved before leaving.';
         };
-        $scope.getQOPLabel = function(spectra) {
+        $scope.getQOPLabel = function(qop) {
             var string = "label label-"
-            if (spectra == null || spectra.qop == null) {
+            if (qop == null) {
                 return string + "default";
             }
-            switch (spectra.qop) {
-                case 4:
-                    return string + "success";
-                case 3:
-                    return string + "info";
-                case 2:
-                    return string + "warning";
-                case 1:
-                    return string + "danger";
-                case 6:
-                    return string + "primary";
-                default:
-                    return string + "default";
+            if (qop >= 6) {
+                return string + "primary";
+            } else if (qop >= 4) {
+                return string + "success";
+            } else if (qop >= 3) {
+                return string + "info";
+            } else if (qop >= 2) {
+                return string + "warning";
+            } else if (qop >= 1) {
+                return string + "danger";
+            } else {
+                return string + "default";
             }
         };
         $scope.isDetailedView = function() {
@@ -201,6 +200,10 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             }},
             {key: 'comma', label: 'comma', controller: "detailed", description: '[Detailed screen] Cycles spectral lines back', fn: function($scope) {
                 $timeout(function() { $scope.previousSpectralLine(); });
+            }},
+            {key: 'enter', label: 'enter', controller: "detailed", description: '[Detailed screen] Accepts the suggested automatic QOP at the stated redshift', fn: function($scope) {
+                $scope.acceptAutoQOP();
+                $scope.$apply();
             }}];
         _.forEach(spectraLineService.getAll(), function(line) {
             var elem = {
@@ -327,6 +330,28 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             var height = angular.element("#bigtest").height();
             return height > 500;
         };
+        $scope.acceptAutoQOP = function() {
+            $scope.selectMatch($scope.getActive().getMatches()[0]);
+            $scope.saveManual($scope.getActive().autoQOP);
+        };
+        $scope.displayAuto = function() {
+            var s = $scope.getActive();
+            return s && s.autoQOP && s.qop == 0 && s.getMatches().length > 0;
+        };
+        $scope.getAutoQOPText = function() {
+            var s = $scope.getActive();
+            if (s && s.autoQOP && s.getMatches().length > 0) {
+                return s.autoQOP + " at " + s.getMatches()[0].z
+            }
+        };
+        $scope.getQOPText = function() {
+            var s = $scope.getActive();
+            if (s && s.qop != null && s.getFinalRedshift()) {
+                return s.qop + " at " + s.getFinalRedshift();
+            } else {
+                return "";
+            }
+        };
         $scope.updateSpectraComment = function() {
             if ($scope.getActive()) {
                 $scope.getActive().setComment($scope.spectraComment);
@@ -443,19 +468,21 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             $scope.currentlyMatching();
         });
         $scope.currentlyMatching = function() {
-            var matches = $scope.getActive().getMatches($scope.bounds.maxMatches);
             var matched = false;
-            for (var i = 0; i < matches.length; i++) {
-                if ($scope.settings.redshift == matches[i].z && $scope.settings.templateId == matches[i].templateId) {
-                    $scope.settings.matchedIndex = i;
-                    matched = true;
-                    matches[i].index = i;
-                    if (i < matches.length - 1) {
-                        matches[i].next = matches[i + 1];
-                    } else {
-                        matches[i].next = matches[0];
+            if ($scope.getActive() && $scope.getActive().getMatches()) {
+                var matches = $scope.getActive().getMatches($scope.bounds.maxMatches);
+                for (var i = 0; i < matches.length; i++) {
+                    if ($scope.settings.redshift == matches[i].z && $scope.settings.templateId == matches[i].templateId) {
+                        $scope.settings.matchedIndex = i;
+                        matched = true;
+                        matches[i].index = i;
+                        if (i < matches.length - 1) {
+                            matches[i].next = matches[i + 1];
+                        } else {
+                            matches[i].next = matches[0];
+                        }
+                        return matches[i];
                     }
-                    return matches[i];
                 }
             }
             if (!matched) {

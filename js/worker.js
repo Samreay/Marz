@@ -217,11 +217,43 @@ self.coalesceResults = function(templateResults, type, intensity, fft, quasarFFT
             weight: w
         };
     }
+    var autoQOP = self.getAutoQOP(coalesced);
     return {
         coalesced: coalesced,
         templates: templates,
         intensity: intensity,
+        autoQOP: autoQOP,
         fft: {real: fft.real, imag: fft.imag},
         quasarFFT: {real: quasarFFT.real, imag: quasarFFT.imag}
     };
+};
+
+self.getAutoQOP = function(coalesced) {
+    var mainV = coalesced[0].value;
+    var mainZ = coalesced[0].z;
+    var secondV = null;
+    var secondZ = null;
+    var threshold = 0.001;
+    for (var i = 1; i < coalesced.length; i++) {
+        if (Math.abs(coalesced[i].z - mainZ) > threshold) {
+            secondV = coalesced[i].value;
+            secondZ = coalesced[i].z;
+            break;
+        } else {
+            mainV += coalesced[i].value / 20;
+        }
+    }
+    var isStar = templateManager.getTemplateFromId(coalesced[0].templateId).isStar == true;
+    var pqop = 0;
+    var fom = Math.pow(mainV, 0.75) * (mainV / secondV);
+    if (fom > 5) {
+        pqop = 4;
+    } else if (fom > 4) {
+        pqop = 3;
+    } else if (fom > 3.5) {
+        pqop = 2;
+    } else {
+        pqop = 1;
+    }
+    return (pqop > 2 && isStar ? 6 : pqop);
 };

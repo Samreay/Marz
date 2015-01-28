@@ -16,7 +16,7 @@ function Spectra(id, lambda, intensity, variance, sky, skyAverage, name, ra, dec
         removeNaNs(this.variancePlot);
         normaliseViaShift(this.variancePlot, 0, 50, null);
     }
-
+    this.autoQOP = null;
     this.sky = sky;
     this.skyAverage = skyAverage;
     this.intensitySubtractPlot = null;

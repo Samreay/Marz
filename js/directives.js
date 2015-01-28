@@ -150,7 +150,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                 var maxCallouts = 4;
                 var minCalloutWidth = 300;
                 var callouts = [[1000, 1100], [1200, 1260], [1500, 1600], [1850, 2000],
-                    [2700, 2900], [3700, 3780], [3855, 4000], [4800, 5040], [6520, 6600], [6700, 6750]];
+                    [2700, 2900], [3700, 3780], [3855, 4000], [4270, 4370], [4800, 5040], [6520, 6600], [6700, 6750]];
                 var defaultMin = 3300;
                 var defaultMax = 7200;
                 var mainBound = {
@@ -181,7 +181,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                 var dragOutlineColour = 'rgba(38, 147, 232, 0.6)';
                 var spacingFactor = 1.4;
                 var calloutSpacingFactor = 1.3;
-                var templateFactor = 1.3;
+                var templateFactor = 1.5;
 
                 var zoomOutWidth = 40;
                 var zoomOutXOffset = 10;

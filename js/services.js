@@ -134,7 +134,7 @@ angular.module('servicesZ', ['dialogs.main'])
     .service('qualityService', ['global', function(global) {
         var self = this;
         var quality = global.ui.quality;
-        var factor = 500;
+        var factor = 300;
         var getType = function(qop) {
             switch (qop) {
                 case 4: return "success";
@@ -408,6 +408,7 @@ angular.module('servicesZ', ['dialogs.main'])
             spectra.automaticResults = results.results.coalesced;
 //            console.log(JSON.stringify(results.results.coalesced).replace(/},{/g,"}\n{"));
             spectra.templateResults = results.results.templates;
+            spectra.autoQOP = results.results.autoQOP;
             spectra.automaticBestResults = results.results.coalesced; // TODO: REMOVE BEST RESULTS, ONLY HAVE AUTOMATIC RESULTS
             spectra.isMatching = false;
             spectra.isMatched = true;
@@ -802,7 +803,7 @@ angular.module('servicesZ', ['dialogs.main'])
         };
         self.addSpectraListToQueue = function(spectraList) {
             jobs.length = 0;
-            for (i = 0; i < spectraList.length; i++) {
+            for (var i = 0; i < spectraList.length; i++) {
                 jobs.push(spectraList[i]);
             }
             self.setRunning();

@@ -3,10 +3,11 @@
         <div class="panel-heading">
             <strong>ID</strong> {{getActive().id}}
             <strong>NAME</strong> {{getActive().name}}
-            <strong>QOP</strong><h4 style="display: inline; margin-left: 10px;"><span class="{{getQOPLabel(getActive())}}">{{getActive().qop}}</span></h4>
+            <strong ng-if="displayAuto()">AutoQOP</strong><h4 ng-if="displayAuto()" style="cursor: pointer; display: inline; margin-left: 10px;" ng-click="acceptAutoQOP()"><span class="{{getQOPLabel(getActive().autoQOP)}}">{{getAutoQOPText()}}</span></h4>
+            <strong>QOP</strong><h4 style="display: inline; margin-left: 10px;"><span class="{{getQOPLabel(getActive().qop)}}">{{getQOPText()}}</span></h4>
             <strong>RA</strong> {{getActive().getRA().toFixed(3)}}
             <strong>DEC</strong> {{getActive().getDEC().toFixed(3)}}
-            <strong>MAGNITUDE</strong> {{getActive().magnitude.toFixed(2)}}
+            <strong>MAG</strong> {{getActive().magnitude.toFixed(2)}}
             <strong>TYPE</strong> {{getActive().type}}
             <strong>COMMENT</strong><input type="text" style="width: 180px; margin-left: 20px; border-radius: 0;" ng-model-options="{ debounce: 300 }" ng-model="spectraComment" class="input-sm" ng-change="updateSpectraComment()" placeholder="Enter a comment" />
         </div>
