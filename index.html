@@ -78,7 +78,7 @@
                             <div class="top-bar">
                                 <strong>ID: {{i.id}}</strong>
                                 <p ng-show="i.hasRedshift()">z={{i.getFinalRedshift().toFixed(4)}}</p>
-                                <h4 style="display: inline;"><span class="pull-right {{getQOPLabel(i)}}">QOP: {{i.qop}}</span></h4>
+                                <h4 style="display: inline;"><span class="pull-right {{getQOPLabel(i.qop)}}">QOP: {{i.qop}}</span></h4>
                             </div>
                             <img class="under-bar unselectable" data-ng-src="{{i.getImage()}}">
                         </div>
