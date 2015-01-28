@@ -703,6 +703,7 @@ function addConstant(data, add) {
         data[i] += add;
     }
 }
+/*
 function getMin(data) {
     var min = 9e19;
     for (var i = 0; i < data.length; i++) {
@@ -712,6 +713,7 @@ function getMin(data) {
     }
     return min;
 }
+*/
 function addMinMultiple(data, multiple) {
     var min = getMin(data);
     addConstant(data, min * multiple);
