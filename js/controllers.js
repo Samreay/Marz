@@ -417,7 +417,7 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
         $scope.$watch('ui.active.id', function(newV) {
             if (newV == null) return;
             $scope.spectraComment = $scope.getActive().getComment();
-            if ($scope.ui.active.isMatched == false) {
+            if (!$scope.ui.active.isMatching && ($scope.ui.active.isMatched == false || $scope.ui.active.templateResults == null)) {
                 $scope.debounce = $scope.ui.active;
                 $timeout(function() {
                     if ($scope.debounce == $scope.ui.active) {

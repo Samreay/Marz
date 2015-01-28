@@ -246,9 +246,9 @@ self.getAutoQOP = function(coalesced) {
     var isStar = templateManager.getTemplateFromId(coalesced[0].templateId).isStar == true;
     var pqop = 0;
     var fom = Math.pow(mainV, 0.75) * (mainV / secondV);
-    if (fom > 5) {
+    if (fom > 5.1) {
         pqop = 4;
-    } else if (fom > 4) {
+    } else if (fom > 4.2) {
         pqop = 3;
     } else if (fom > 3.5) {
         pqop = 2;

@@ -147,10 +147,10 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                 };
 
                 var callout = false;
-                var maxCallouts = 4;
-                var minCalloutWidth = 300;
-                var callouts = [[1000, 1100], [1200, 1260], [1500, 1600], [1850, 2000],
-                    [2700, 2900], [3700, 3780], [3855, 4000], [4270, 4370], [4800, 5040], [6520, 6600], [6700, 6750]];
+                var maxCallouts = 8;
+                var minCalloutWidth = 350;
+                var callouts = [[1000, 1100, 5], [1200, 1260, 10], [1500, 1600, 2], [1850, 2000, 3],
+                    [2700, 2900, 4], [3700, 3780, 10], [3855, 4000, 7], [4270, 4370, 5], [4800, 5040, 8], [6520, 6600, 9], [6700, 6750, 6]];
                 var defaultMin = 3300;
                 var defaultMax = 7200;
                 var mainBound = {
@@ -856,7 +856,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                 var drawCursor = function(bound) {
                     if (currentMouseX == null || currentMouseY == null) return;
                     if (!checkCanvasInRange(bound, currentMouseX, currentMouseY)) return;
-                    var w = 70;
+                    var w = bound.callout ? 60 : 70;
                     var h = 16;
                     c.strokeStyle = cursorColour;
                     c.beginPath();
@@ -929,6 +929,18 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
 
                     var numCallouts = Math.min(desiredNumberOfCallouts, availableCallouts.length);
                     bounds = [mainBound];
+
+                    while (availableCallouts.length > numCallouts) {
+                        var min = 100;
+                        var index = -1;
+                        for (var i = 0; i < availableCallouts.length; i++) {
+                            if (availableCallouts[i][2] < min) {
+                                min = availableCallouts[i][2];
+                                index = i;
+                            }
+                        }
+                        availableCallouts.splice(index, 1);
+                    }
 
                     for (var i = 0; i < numCallouts; i++) {
                         bounds.push({
