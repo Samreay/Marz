@@ -54,6 +54,12 @@ p.fill-height {
     vertical-align: middle;
     margin: 0px;
 }
+.spectra-list-item p .label {
+    font-size: 80%;
+    margin-top: 5px;
+    padding-top: .4em;
+    margin-right: 5px;
+}
 .top-bar {
     height: 30px;
     line-height: 30px;

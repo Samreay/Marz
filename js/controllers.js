@@ -841,7 +841,7 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
         };
         $scope.getAnalysedText = function(spectra) {
             if (spectra.hasRedshift()) {
-                return "z=" + spectra.getFinalRedshift().toFixed(4) +", QOP: " + spectra.qop;
+                return "z = " + spectra.getFinalRedshift().toFixed(4);
             } else {
                 return "Not analysed";
             }
