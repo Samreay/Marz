@@ -425,6 +425,9 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
         $scope.getMatches = function() {
             return $scope.getActive().getMatches($scope.bounds.maxMatches);
         };
+        $scope.$watch('settings.redshift', function() {
+            $scope.currentlyMatching();
+        });
         $scope.currentlyMatching = function() {
             var matches = $scope.getActive().getMatches($scope.bounds.maxMatches);
             var matched = false;
