@@ -44,8 +44,8 @@ function Spectra(id, lambda, intensity, variance, sky, skyAverage, name, ra, dec
     this.manualTemplateID = null;
     this.drawingService = drawingService;
 
-    this.qop = 0;
-
+    this.qopLabel = "";
+    this.setQOP(0);
     this.imageZ = null;
     this.imageTID = null;
     this.image = null;
@@ -54,6 +54,25 @@ function Spectra(id, lambda, intensity, variance, sky, skyAverage, name, ra, dec
         return "" + this.id + this.name + this.getFinalRedshift() + this.getFinalTemplateID() + this.isProcessed + this.isMatched;
     }
 }
+Spectra.prototype.setQOP = function(qop) {
+    if (isNaN(qop)) {
+        return;
+    }
+    this.qop = qop;
+    if (qop >= 6) {
+        this.qopLabel = "label-primary";
+    } else if (qop >= 4) {
+        this.qopLabel = "label-success";
+    } else if (qop >= 3) {
+        this.qopLabel = "label-info";
+    } else if (qop >= 2) {
+        this.qopLabel = "label-warning";
+    } else if (qop >= 1) {
+        this.qopLabel = "label-danger";
+    } else {
+        this.qopLabel = "label-default";
+    }
+};
 Spectra.prototype.getRA = function() {
     return this.ra * 180 / Math.PI;
 };

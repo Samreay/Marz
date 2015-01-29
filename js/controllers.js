@@ -331,8 +331,10 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             return height > 500;
         };
         $scope.acceptAutoQOP = function() {
-            $scope.selectMatch($scope.getActive().getMatches()[0]);
-            $scope.saveManual($scope.getActive().autoQOP);
+            if ($scope.getActive() && $scope.getMatches() != null && $scope.getMatches().length > 0) {
+                $scope.selectMatch($scope.getActive().getMatches()[0]);
+                $scope.saveManual($scope.getActive().autoQOP);
+            }
         };
         $scope.displayAuto = function() {
             var s = $scope.getActive();

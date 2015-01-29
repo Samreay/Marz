@@ -123,7 +123,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
         }
 
     })
-    .directive('detailedItem', ['$rootScope', 'global', 'spectraLineService', 'templatesService', '$timeout', function($rootScope, global, spectraLineService, templatesService, $timeout) {
+    .directive('detailedItem', ['$rootScope', 'global', 'spectraLineService', 'templatesService', '$timeout', 'spectraLineAnalysisService', function($rootScope, global, spectraLineService, templatesService, $timeout, spectraLineAnalysisService) {
         return {
             restrict: "A",
             link: function($scope, $element, $attr) {
@@ -196,6 +196,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                 var cursorYGap = 2;
 
                 var data = [];
+                var baseData = null;
                 var template = null;
 
                 var labelWidth = 120;
@@ -205,7 +206,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
 
                 var minDragForZoom = 20;
                 var displayingSpectralLines = true;
-                var spectralLineColour = 'rgba(0, 115, 255, 0.8)';
+                var spectralLineColour = 'rgba(0, 115, 255, 1)';
                 var spectralLineTextColour = '#FFFFFF';
 
                 var templatePixelOffset = 30;
@@ -814,14 +815,25 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     c.font = labelFont;
 
                     for (var i = 0; i < lines.length; i++) {
-                        var lambda = shiftWavelength(lines[i].wavelength, parseFloat(global.ui.detailed.redshift));
+                        var z = parseFloat(global.ui.detailed.redshift);
+                        var lambda = shiftWavelength(lines[i].wavelength, z);
                         if (checkDataXInRange(bound, lambda)) {
+                            var strength = null;
+                            if (baseData != null ) {
+                                strength = spectraLineAnalysisService.getStrengthOfLine(baseData.x, baseData.y2, lines[i], z, global.ui.detailed.templateId == '12');
+                            }
                             var x = 0.5 + Math.floor(convertDataXToCanvasCoordinate(bound, lambda));
                             c.beginPath();
                             c.setLineDash([5, 3]);
+                            if (strength == null) {
+                                c.strokeStyle = spectralLineColour;
+                            } else {
+                                c.strokeStyle = spectralLineColour.replace(/[^,]+(?=\))/, "" + strength);
+                            }
                             c.moveTo(x, bound.top - 5);
                             c.lineTo(x, bound.top + bound.height);
                             c.stroke();
+                            c.strokeStyle = spectralLineColour;
                             c.setLineDash([0]);
                             c.beginPath();
                             c.moveTo(x, bound.top - 5);
@@ -902,12 +914,12 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     getBounds(bound);
                     plotAxesLabels(false, bound);
                     plotZeroLine(bound);
+                    plotSpectralLines(bound);
                     renderPlots(bound);
                     plotAxes(bound);
                     plotAxesLabels(true, bound);
                     drawFocus(bound);
                     drawZoomOut(bound);
-                    plotSpectralLines(bound);
                     drawCursor(bound);
                 };
                 var selectCalloutWindows = function() {
@@ -1036,7 +1048,8 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                             xs = global.ui.active.lambda;
                             colour = global.ui.colours.raw;
                         }
-                        data.push({id: 'data', bound: true, colour: colour, x: xs, y: ys});
+                        baseData = {id: 'data', bound: true, colour: colour, x: xs, y: ys};
+                        data.push(baseData);
                         if (global.ui.dataSelection.variance) {
                             if (global.ui.dataSelection.processed && global.ui.active.processedVariancePlot != null) {
                                 ys = global.ui.active.processedVariancePlot;
@@ -1047,6 +1060,9 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                         }
                         smoothData('data');
                     }
+                    data.sort(function(a,b) {
+                        return a.id < b.id;
+                    });
                 };
                 var addSkyData = function() {
                     for (var i = 0; i < data.length; i++) {
@@ -1072,6 +1088,9 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                             parseFloat($scope.detailed.redshift), $scope.detailed.continuum);
                         data.push({id: "template", colour: global.ui.colours.matched, x: r[0],y: r[1]});
                     }
+                    data.sort(function(a,b) {
+                        return a.id < b.id;
+                    });
                 };
                 $scope.$watchCollection('[ui.dataSelection.processed, detailed.continuum]', function() {
                     addBaseData();

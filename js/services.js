@@ -131,6 +131,23 @@ angular.module('servicesZ', ['dialogs.main'])
             return browser == "chrome" || browser == "firefox";
         };
     }])
+    .service('spectraLineAnalysisService', [function() {
+        var self = this;
+        var window = 7;
+        self.getStrengthOfLine = function(xs, ys, line, redshift, quasar) {
+
+            window = quasar ? 21 : 11;
+            var x = line.wavelength * (1 + redshift);
+            var bounds = binarySearch(xs, x);
+            var floatIndex = findCorrespondingFloatIndex(xs, x, bounds[0]);
+            var index = Math.round(floatIndex);
+
+            var strength = 2 * window; //TEMP TO MAKE USELESS UNTIL BETTER ALGORITHM
+
+
+            return 0.3 + 0.7 * Math.min(1.0, Math.abs(1.0 * strength / (2 * window )));
+        };
+    }])
     .service('qualityService', ['global', function(global) {
         var self = this;
         var quality = global.ui.quality;
@@ -329,7 +346,7 @@ angular.module('servicesZ', ['dialogs.main'])
             spectra.automaticResults = [{}];
             for (var i = 1; i < vals.length; i++) {
                 if (vals[i].name == "QOP") {
-                    spectra.qop = parseInt(vals[i].value);
+                    spectra.setQOP(parseInt(vals[i].value));
                     qualityService.addResult(spectra.qop);
                 }
             }
@@ -439,7 +456,7 @@ angular.module('servicesZ', ['dialogs.main'])
             spectra.manualTemplateID = templateId;
             spectra.manualRedshift = parseFloat(redshift);
             var oldQop = spectra.qop;
-            spectra.qop = qop;
+            spectra.setQOP(qop);
             qualityService.changeSpectra(oldQop, qop);
             if (saveAutomatically) {
                 localStorageService.saveSpectra(spectra);
@@ -618,7 +635,7 @@ angular.module('servicesZ', ['dialogs.main'])
                 result["RA"], result["DEC"],result["Mag"], result["Type"], result.filename);
             spectra.automaticBestResults = [{templateId: result["AutoTID"], z: result["AutoZ"], value: result["AutoXCor"]}];
             spectra.setComment(result["Comment"]);
-            spectra.qop = parseInt(result["QOP"]);
+            spectra.setQOP(parseInt(result["QOP"]));
             if (spectra.qop > 0) {
                 spectra.manualTemplateID = result["FinTID"];
                 spectra.manualRedshift = result["FinZ"];

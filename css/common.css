@@ -60,6 +60,9 @@ p.fill-height {
     padding-top: .4em;
     margin-right: 5px;
 }
+.qopLabel.label {
+    font-size: 100%;
+}
 .top-bar {
     height: 30px;
     line-height: 30px;

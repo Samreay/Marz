@@ -56,7 +56,7 @@
             <div ng-click="setActive(spectra)" ng-dblclick="goToDetailed(spectra)" ng-repeat="spectra in data.spectra" class="left-padding-small spectra-list-item" ng-class="{activeSelect:isActive(spectra)}" ng-class-even="'darker'">
                 <p>
                     <strong class="right-padding-small">{{spectra.id}}</strong>{{getAnalysedText(spectra)}}
-                    <span ng-show="spectra.hasRedshift()" class="pull-right {{getQOPLabel(spectra.qop)}}">QOP: {{spectra.qop}}</span>
+                    <span ng-show="spectra.hasRedshift()" class="pull-right label {{spectra.qopLabel}}">QOP: {{spectra.qop}}</span>
                 </p>
             </div>
         </div>
