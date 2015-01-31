@@ -84,8 +84,8 @@ SpectralLines.prototype.initialiseDefault = function() {
     this.addSpectralLine('N2', '[NII]',  'Nitrogen 2',       6549.84,  0, 1, 1, 'shift+q');
     this.addSpectralLine('Ha', 'H\u03B1',  'Hydrogen Alpha', 6562.80,  1, 0, 1, 'shift+a');
     this.addSpectralLine('N2d', '[NII]','Nitrogen 2 Doublet',6585.23,  0, 1, 1, 'shift+w');
-    this.addSpectralLine('S2', 'S2',  'Sulfur 2',            6716.44,  1, 1, 1, 'shift+z');
-    this.addSpectralLine('S2d','S2d', 'Sulfur 2 Doublet',    6730.81,  1, 1, 1, 'shift+x');
+    this.addSpectralLine('S2', '[SII]',  'Sulfur 2',         6718.32,  0, 1, 1, 'shift+z');
+    this.addSpectralLine('S2d','[SII]', 'Sulfur 2 Doublet',  6732.71,  0, 1, 1, 'shift+x');
 };
 SpectralLines.prototype.getAll = function() {
     return this.lines;
