@@ -9,11 +9,22 @@
         <form class="form-horizontal">
             <div class="form-group">
                 <div class="form-group cb">
+                    <label for="auto" class="col-sm-3 control-label">Assign AutoQOPs</label>
+                    <div class="col-sm-9">
+                        <input type="checkbox" class="form-control" id="auto"
+                               ng-model="assignAutoQOPs"
+                               ng-change="updateAssignAutoQOPs(assignAutoQOPs)"
+                                style="display: inline;">
+                    </div>
+                </div>
+                <div class="form-group cb">
                     <label for="download" class="col-sm-3 control-label">Download Automatically</label>
                     <div class="col-sm-9">
                         <input type="checkbox" class="form-control" id="download"
                                ng-model="downloadAutomatically"
-                               ng-change="updateDownloadAutomatically(downloadAutomatically)">
+                               ng-change="updateDownloadAutomatically(downloadAutomatically)"
+                               style="display: inline;">
+                        <p style="display: inline; vertical-align: top; line-height: 35px; padding-left: 20px">Recommended to be checked when Assign AutoQOPs is enabled.</p>
                     </div>
                 </div>
                 <div class="form-group">

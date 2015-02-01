@@ -151,7 +151,8 @@ angular.module('servicesZ', ['dialogs.main'])
     .service('qualityService', ['global', function(global) {
         var self = this;
         var quality = global.ui.quality;
-        var factor = 300;
+        var steps = 10000;
+        var numSpectra = 1;
         var getType = function(qop) {
             switch (qop) {
                 case 4: return "success";
@@ -162,8 +163,8 @@ angular.module('servicesZ', ['dialogs.main'])
             }
         };
         self.setMax = function(max) {
-            //BUG: STUPID PROGRESS BAR CANT CALCULATE CORRECTLY
-            quality.max = 1 + max * factor;
+            quality.max = 1 + 10000;
+            numSpectra = max;
         };
         self.clear = function() {
             quality.bars = [];
@@ -180,7 +181,7 @@ angular.module('servicesZ', ['dialogs.main'])
             if (typeof increment === 'undefined') increment = 1;
             if (quality.barHash["" + qop] == null) {
                 if (increment > 0) {
-                    var res = {qop: qop, type: getType(qop), value: factor * increment, label: increment}
+                    var res = {qop: qop, type: getType(qop), value: 1.0 * steps / numSpectra, label: increment};
                     quality.barHash["" + qop] = res;
                     quality.bars.push(res);
                     quality.bars.sort(function(a,b) {
@@ -188,7 +189,7 @@ angular.module('servicesZ', ['dialogs.main'])
                     });
                 }
             } else {
-                quality.barHash["" + qop].value += factor * increment;
+                quality.barHash["" + qop].value += 1.0 * steps / numSpectra;
                 quality.barHash["" + qop].label += increment;
             }
         }
@@ -201,11 +202,16 @@ angular.module('servicesZ', ['dialogs.main'])
         var downloadAutomaticallyCookie = "downloadAutomatically";
         var saveAutomatically = null;
         var saveAutomaticallyCookie = "saveInBackground";
+        var assignAutoQOPs = null;
+        var assignAutoQOPsCookie = "assignAutoQOPs";
         self.setDownloadAutomaticallyDefault = function() {
             self.setDownloadAutomatically(false);
         };
         self.setSaveAutomaticallyDefault = function() {
             self.setSaveAutomatically(true);
+        };
+        self.setDefaultAssignAutoQOPs = function() {
+            self.setAssignAutoQOPs(false);
         };
         self.setDownloadAutomaticallyInitial = function() {
             var cookie = cookieService.getCookie(downloadAutomaticallyCookie);
@@ -213,6 +219,14 @@ angular.module('servicesZ', ['dialogs.main'])
                 self.setDownloadAutomaticallyDefault()
             } else {
                 downloadAutomatically = cookie;
+            }
+        };
+        self.setAssignAutoQOPsInitial = function() {
+            var cookie = cookieService.getCookie(assignAutoQOPsCookie);
+            if (cookie == null) {
+                self.setDefaultAssignAutoQOPs()
+            } else {
+                assignAutoQOPs = cookie;
             }
         };
         self.setSaveAutomaticallyInitial = function() {
@@ -227,6 +241,13 @@ angular.module('servicesZ', ['dialogs.main'])
             downloadAutomatically = value;
             cookieService.saveCookie(downloadAutomaticallyCookie, downloadAutomatically);
         };
+        self.setAssignAutoQOPs = function(value) {
+            assignAutoQOPs = value;
+            cookieService.saveCookie(assignAutoQOPsCookie, assignAutoQOPs);
+        };
+        self.getAssignAutoQOPs = function() {
+            return assignAutoQOPs;
+        };
         self.getDownloadAutomatically = function() {
             return downloadAutomatically;
         };
@@ -238,6 +259,7 @@ angular.module('servicesZ', ['dialogs.main'])
             return saveAutomatically;
         };
         self.setDownloadAutomaticallyInitial();
+        self.setAssignAutoQOPsInitial();
         self.setSaveAutomaticallyInitial();
         self.hasSpectra = function() {
             return data.spectra.length > 0;
@@ -426,6 +448,11 @@ angular.module('servicesZ', ['dialogs.main'])
 //            console.log(JSON.stringify(results.results.coalesced).replace(/},{/g,"}\n{"));
             spectra.templateResults = results.results.templates;
             spectra.autoQOP = results.results.autoQOP;
+            if (assignAutoQOPs == true) {
+                qualityService.changeSpectra(spectra.qop, spectra.autoQOP);
+                spectra.setQOP(results.results.autoQOP);
+
+            }
             spectra.automaticBestResults = results.results.coalesced; // TODO: REMOVE BEST RESULTS, ONLY HAVE AUTOMATIC RESULTS
             spectra.isMatching = false;
             spectra.isMatched = true;

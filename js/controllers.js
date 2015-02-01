@@ -640,9 +640,13 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             $scope.downloadAutomatically = spectraService.getDownloadAutomatically();
             $scope.numberOfCores = processorService.getNumberProcessors();
             $scope.saveAutomatically = spectraService.getSaveAutomatically();
+            $scope.assignAutoQOPs  = spectraService.getAssignAutoQOPs();
         };
         $scope.getValues();
+        $scope.updateAssignAutoQOPs = function() {
+            spectraService.setAssignAutoQOPs($scope.assignAutoQOPs);
 
+        };
         $scope.updateDownloadAutomatically = function() {
             spectraService.setDownloadAutomatically($scope.downloadAutomatically);
         };
@@ -658,6 +662,7 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             spectraService.setDownloadAutomaticallyDefault();
             spectraService.setSaveAutomaticallyDefault();
             processorService.setDefaultNumberOfCores();
+            spectraService.setDefaultAssignAutoQOPs();
             $scope.getValues();
         };
 

@@ -135,6 +135,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                 var xcorHeight = 50;
                 var xcorLineColour = "#F00";
                 var xcorPlotColour = "#333";
+                var xcorLineHighlight = "#FFA600";
                 var xcorBound = {
                     top: 15,
                     left: 5,
@@ -363,6 +364,9 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     } else if (loc.bound != null && loc.bound.xcorCallout == true) {
                         if (lastXDown != null && lastXDown != null) {
                             xcorEvent(loc.dataX);
+                        } else {
+                            redraw();
+                            plotZLine2(loc.bound, loc.x);
                         }
                     }
                 };
@@ -627,6 +631,14 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     c.fillText(text, x, y);
 
                 };
+                var plotZLine2 = function(bound, x) {
+                    c.lineWidth = 1;
+                    c.strokeStyle = xcorLineHighlight;
+                    c.beginPath();
+                    c.moveTo(x, bound.top);
+                    c.lineTo(x, bound.top + bound.height);
+                    c.stroke();
+                };
                 var plotZLine = function(bound) {
                     var z = parseFloat($scope.detailed.redshift)
                     if (z < bound.xMin || z > bound.xMax) {
@@ -639,7 +651,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                         xc = xcorData.xcor[btm[0]];
                     } else {
                         var part = findCorrespondingFloatIndex(xcorData.zs, z, btm[0]) - btm[0];
-                        xc = xcorData.xcor[btm[0]] * (part - 1) + part * xcorData.xcor[btm[1]]
+                        xc = xcorData.xcor[btm[0]] * (1 - part) + part * xcorData.xcor[btm[1]]
                     }
                     xc = xc / xcorData.weight;
                     c.beginPath();
@@ -647,14 +659,16 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     c.strokeStyle = xcorLineColour;
                     c.moveTo(x, bound.top);
                     c.lineTo(x, bound.top + bound.height);
-                    c.stroke()
+                    c.stroke();
                     c.setLineDash([0]);
                     c.textAlign = 'left';
                     c.textBaseline = 'top';
                     c.font = labelFont;
                     c.strokeStyle = xcorLineColour;
                     c.fillStyle = xcorLineColour;
-                    c.fillText($scope.detailed.redshift, Math.max(x, bound.left + 40), 0);
+                    x = Math.max(x, bound.left + 40);
+                    x = Math.min(x, bound.left + bound.width - 120);
+                    c.fillText(xc.toFixed(3) + " @ z=" + $scope.detailed.redshift, x, 0);
 
 
                 };
