@@ -171,6 +171,9 @@ angular.module('servicesZ', ['dialogs.main'])
             quality.barHash = {};
         };
         self.changeSpectra = function(oldQop, newQop) {
+            if (oldQop == newQop) {
+                return;
+            }
             if (oldQop != 0) {
                 self.addResult(oldQop, -1);
             }
@@ -189,7 +192,7 @@ angular.module('servicesZ', ['dialogs.main'])
                     });
                 }
             } else {
-                quality.barHash["" + qop].value += 1.0 * steps / numSpectra;
+                quality.barHash["" + qop].value += 1.0 * steps * increment / numSpectra;
                 quality.barHash["" + qop].label += increment;
             }
         }

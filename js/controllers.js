@@ -201,10 +201,10 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             {key: 'comma', label: 'comma', controller: "detailed", description: '[Detailed screen] Cycles spectral lines back', fn: function($scope) {
                 $timeout(function() { $scope.previousSpectralLine(); });
             }},
-            {key: 'enter', label: 'enter', controller: "detailed", description: '[Detailed screen] Accepts the suggested automatic QOP at the stated redshift', fn: function($scope) {
+            {key: 'enter', label: 'enter', controller: "detailed", description: '[Detailed screen] Accepts the suggested automatic QOP at the stated redshift', fn: _.throttle(function($scope) {
                 $scope.acceptAutoQOP();
                 $scope.$apply();
-            }}];
+            }, 300)}];
         _.forEach(spectraLineService.getAll(), function(line) {
             var elem = {
                 key: line.shortcut,
