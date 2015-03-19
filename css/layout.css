@@ -202,9 +202,9 @@ input[type="checkbox"].form-control {
     text-align: center;
     line-height: 30px;
     border-radius: 3px;
-    margin-left: 5px;
+    margin-left: 3px;
     display: inline-block;
-    padding: 0px 3px;
+    padding: 0px 3px !important;
     cursor: hand;
     cursor: pointer;
     transition: background-color 0.25s;
