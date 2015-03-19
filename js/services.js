@@ -983,6 +983,8 @@ angular.module('servicesZ', ['dialogs.main'])
         var skyAverage = null;
         var lambda = null;
         var skyIndex = null;
+        var varianceIndex = 1;
+        var primaryIndex = 0;
         var typeIndex = null;
         var numPoints = null;
 
@@ -1040,6 +1042,38 @@ angular.module('servicesZ', ['dialogs.main'])
             isCoadd = header0.get('COADDVER') != null;
             skyIndex = isCoadd ? 2 : 7;
             typeIndex = isCoadd ? 4 : 2;
+            for (i = 0; i < self.fits.hdus.length; i++) {
+                var h = self.fits.getHeader(i).cards["EXTNAME"]
+                if (h != null && h.value.toUpperCase() == "SKY") {
+                    skyIndex = i;
+                    $log.debug("Sky index found at " + i);
+                    break;
+                }
+            }
+            for (i = 0; i < self.fits.hdus.length; i++) {
+                var h = self.fits.getHeader(i).cards["EXTNAME"]
+                if (h != null && h.value.toUpperCase() == "VARIANCE") {
+                    varianceIndex = i;
+                    $log.debug("Variance index found at " + i);
+                    break;
+                }
+            }
+            for (i = 0; i < self.fits.hdus.length; i++) {
+                var h = self.fits.getHeader(i).cards["EXTNAME"]
+                if (h != null && h.value.toUpperCase() == "PRIMARY") {
+                    primaryIndex = i;
+                    $log.debug("Primary index found at " + i);
+                    break;
+                }
+            }
+            for (i = 0; i < self.fits.hdus.length; i++) {
+                var h = self.fits.getHeader(i).cards["EXTNAME"]
+                if (h != null && h.value.toUpperCase() == "FIBRES") {
+                    typeIndex = i;
+                    $log.debug("Type index found at " + i);
+                    break;
+                }
+            }
             getFibres(q);
         };
         var getFibres = function(q) {
@@ -1137,7 +1171,7 @@ angular.module('servicesZ', ['dialogs.main'])
         };
         var getSpectra = function(q) {
             $log.debug("Getting spectra intensity");
-            self.fits.getDataUnit(0).getFrame(0, function(data) {
+            self.fits.getDataUnit(primaryIndex).getFrame(0, function(data) {
                 var d = Array.prototype.slice.call(data);
                 for (var i = 0; i < spectra.length; i++) {
                     spectra[i].intensity = d.slice((spectra[i].id-1) * numPoints, (spectra[i].id ) * numPoints);
@@ -1147,7 +1181,7 @@ angular.module('servicesZ', ['dialogs.main'])
         };
         var getVariances = function(q) {
             $log.debug("Getting spectra variance");
-            self.fits.getDataUnit(1).getFrame(0, function(data) {
+            self.fits.getDataUnit(varianceIndex).getFrame(0, function(data) {
                 var d = Array.prototype.slice.call(data);
                 for (var i = 0; i < spectra.length; i++) {
                     spectra[i].variance = d.slice((spectra[i].id-1) * numPoints, (spectra[i].id ) * numPoints);
