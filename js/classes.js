@@ -11,6 +11,7 @@ function Spectra(id, lambda, intensity, variance, sky, skyAverage, name, ra, dec
     this.variance = variance;
     this.variancePlot = variance;
     this.comment = "";
+    this.compute = true;
     if (variance != null) {
         this.variancePlot = variance.slice();
         removeNaNs(this.variancePlot);
@@ -54,6 +55,13 @@ function Spectra(id, lambda, intensity, variance, sky, skyAverage, name, ra, dec
         return "" + this.id + this.name + this.getFinalRedshift() + this.getFinalTemplateID() + this.isProcessed + this.isMatched;
     }
 }
+Spectra.prototype.setCompute = function(compute) {
+    this.compute = compute;
+    if (!compute) {
+        this.isProcessed = true;
+        this.isMatched = true;
+    }
+};
 Spectra.prototype.setQOP = function(qop) {
     if (isNaN(qop)) {
         return;

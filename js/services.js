@@ -987,6 +987,7 @@ angular.module('servicesZ', ['dialogs.main'])
         var primaryIndex = 0;
         var typeIndex = null;
         var numPoints = null;
+        var dataReducedFile = true
 
         self.getFilename = function() {
             return filename;
@@ -1042,6 +1043,7 @@ angular.module('servicesZ', ['dialogs.main'])
             isCoadd = header0.get('COADDVER') != null;
             skyIndex = isCoadd ? 2 : 7;
             typeIndex = isCoadd ? 4 : 2;
+            dataReducedFile = self.fits.hdus.length > 1;
             for (i = 0; i < self.fits.hdus.length; i++) {
                 var h = self.fits.getHeader(i).cards["EXTNAME"]
                 if (h != null && h.value.toUpperCase() == "SKY") {
@@ -1074,7 +1076,11 @@ angular.module('servicesZ', ['dialogs.main'])
                     break;
                 }
             }
-            getFibres(q);
+            if (dataReducedFile) {
+                getFibres(q);s
+            } else {
+                getSpectraOnly(q)
+            }
         };
         var getFibres = function(q) {
             $log.debug("Getting fibres");
@@ -1082,7 +1088,7 @@ angular.module('servicesZ', ['dialogs.main'])
                 var ind = 0;
                 for (var i = 0; i < data.length; i++) {
                     if (data[i] == "P") {
-                        spectra.push({index: ind++, fitsIndex: i, id: i+1, lambda: lambda.slice(0), intensity: [], variance: [], miniRendered: 0});
+                        spectra.push({index: ind++, fitsIndex: i, id: i+1, lambda: lambda.slice(0), intensity: [], variance: [], miniRendered: 0, compute: true});
                     }
                 }
                 getNames(q);
@@ -1179,6 +1185,25 @@ angular.module('servicesZ', ['dialogs.main'])
                 getVariances(q);
             })
         };
+        var getSpectraOnly = function(q) {
+            $log.debug("Only getting spectra");
+            self.fits.getDataUnit(primaryIndex).getFrame(0, function(data) {
+                var numData = 1;
+                if (self.fits.getHeader(0).get('NAXIS') > 1) {
+                    numData = self.fits.getHeader(0).get('NAXIS2')
+                }
+                var name = numData == 1 ? self.fits.getHeader(0).get('IRAFNAME') : null
+                if (name == null) {
+                    name == "Unknown";
+                }
+                var d = Array.prototype.slice.call(data);
+                for (var i = 0; i < numData; i++) {
+                    spectra.push({index: i, fitsIndex: i, id: i+1, lambda: lambda.slice(0), intensity: d.slice(i * numPoints, (i + 1) * numPoints),
+                        variance: [], miniRendered: 0, sky: [], skyAverage: null, name: name, ra: -1.0, dec: -1.0, magnitude: -1.0, type: 'NA', compute: false});
+                }
+                convertToUsableObjects(q);
+            });
+        };
         var getVariances = function(q) {
             $log.debug("Getting spectra variance");
             self.fits.getDataUnit(varianceIndex).getFrame(0, function(data) {
@@ -1196,6 +1221,7 @@ angular.module('servicesZ', ['dialogs.main'])
                 var s = new Spectra(spectra[j].id, lambda.slice(0), spectra[j].intensity, spectra[j].variance,
                     isCoadd ? spectra[j].sky : sky, isCoadd ? spectra[j].skyAverage : skyAverage, spectra[j].name, spectra[j].ra, spectra[j].dec,
                     spectra[j].magnitude, spectra[j].type, originalFilename, drawingService);
+                s.setCompute(spectra[j].compute)
                 spectraList.push(s);
             }
             isLoading = false;
