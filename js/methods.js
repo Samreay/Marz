@@ -1040,8 +1040,8 @@ function getFit(template, xcor, val) {
     for (var i = 0; i < fitWindow; i++) {
         var index = startIndex + i;
         if (index >=0 && index < xcor.length) {
-            if (xcor[index] > bestPeak) {
-                bestPeak = xcor[index];
+            if (Math.abs(xcor[index]) > bestPeak) {
+                bestPeak = Math.abs(xcor[index]);
                 bestIndex = index;
             }
         }
