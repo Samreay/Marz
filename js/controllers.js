@@ -153,8 +153,7 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
                 $timeout(function() { $scope.fit()});
             }},
             {key: 's', label: 's', controller: "detailed", description: '[Detailed screen] Increase smoothing level', fn: function($scope) {
-                $scope.incrementSmooth();
-                $scope.$apply();
+                $timeout(function() { $scope.incrementSmooth(); });
             }},
             {key: 'd', label: 'd', controller: "detailed", description: '[Detailed screen] Decrease smoothing level', fn: function($scope) {
                 $scope.decrementSmooth();
