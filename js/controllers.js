@@ -156,8 +156,7 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
                 $timeout(function() { $scope.incrementSmooth(); });
             }},
             {key: 'd', label: 'd', controller: "detailed", description: '[Detailed screen] Decrease smoothing level', fn: function($scope) {
-                $scope.decrementSmooth();
-                $scope.$apply();
+                $timeout(function() { $scope.decrementSmooth(); });
             }},
             {key: 'r', label: 'r', controller: "detailed", description: '[Detailed screen] Reset graph zoom to extents', fn: function($scope) {
                 global.ui.detailed.lockedBounds = false;
