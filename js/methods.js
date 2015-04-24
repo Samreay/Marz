@@ -650,7 +650,7 @@ function stdDevSubtract(data, subtract) {
     return Math.sqrt(r / subtracted.length);
 }
 /**
- * //TODO: ADD DOC
+ * Perform a rejected polynomial fit to the data.
  * @param lambda
  * @param intensity
  */

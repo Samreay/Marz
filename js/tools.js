@@ -107,14 +107,9 @@ function MJDtoYMD(mjd_in) {
     // Fractional part of day
     jdf = jd - jdi + 0.5;
 
-    // Really the next calendar day?
     if (jdf >= 1.0) {
-//        jdf = jdf - 1.0;
         jdi = jdi + 1;
     }
-
-
-//    hour = jdf * 24.0;
     l = jdi + 68569;
     n = Math.floor(4 * l / 146097);
 
@@ -136,8 +131,5 @@ function MJDtoYMD(mjd_in) {
 
     if (day < 10)
         day = "0" + day;
-
-    //year = year - 1900;
-
     return year + "-" + month + "-" + day;
 }

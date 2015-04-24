@@ -80,14 +80,13 @@ self.processData = function(lambda, intensity, variance) {
  * ordered list of best results.
  */
 self.matchTemplates = function(lambda, intensity, variance, type) {
+//    MATLAB output for quick debugging
 //    console.log("lambda=" + JSON.stringify(lambda) + ";\nintensity=" + JSON.stringify(intensity) + ";\nvariance=" + JSON.stringify(variance) + ";");
 
     // As the quasar spectra is matched differently, Ill create a duplicate for the quasar
     var quasarIntensity = intensity.slice();
     var quasarVariance = variance.slice();
-//    console.log("quasar = " + JSON.stringify(quasarIntensity) + ";");
     rollingPointMean(quasarIntensity, 3, 0.9);
-//    console.log("quasar2 = " + JSON.stringify(quasarIntensity) + ";");
     taperSpectra(quasarIntensity);
     quasarVariance = medianAndBoxcarSmooth(quasarVariance, 81, 25);
     addMinMultiple(quasarVariance, 20);
@@ -96,7 +95,6 @@ self.matchTemplates = function(lambda, intensity, variance, type) {
     normalise(quasarIntensity);
 
     // The intensity variable is what will match every other template
-//    console.log("lambda = " + JSON.stringify(lambda) + ";");
     taperSpectra(intensity);
     smoothAndSubtract(intensity);
     var subtracted = intensity.slice();
@@ -105,10 +103,6 @@ self.matchTemplates = function(lambda, intensity, variance, type) {
 
     taperSpectra(intensity);
     normalise(intensity);
-//    console.log("intensity2=" + JSON.stringify(intensity) + ";");
-    // Uncomment the below lines if you want to inspect the intensity and quasarIntensity variables
-    // You can copy and paste the output straight into MATLAB
-//    console.log("intensity=" + JSON.stringify(intensity) + ";quasarIntensity="+JSON.stringify(quasarIntensity)+";");
 
     // This rebins (oversampling massively) into an equispaced log array. To change the size and range of
     // this array, have a look at the config.js file.
@@ -228,6 +222,11 @@ self.coalesceResults = function(templateResults, type, intensity, fft, quasarFFT
     };
 };
 
+/**
+ *  Returns an auto QOP from the coalesced matching results. Needs tuning.
+ *
+ * @returns {number} QOp integer, 1,2,3,4 or 6
+ */
 self.getAutoQOP = function(coalesced) {
     var mainV = coalesced[0].value;
     var mainZ = coalesced[0].z;

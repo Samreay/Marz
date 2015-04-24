@@ -245,7 +245,7 @@ TemplateManager.prototype.shiftTemplate = function(t) {
     t.startZIndex = null;
     t.endZIndex = null;
 
-    // Linear search through an ordered array is horrible, I should fix this.. in around 50 places.
+    // Linear search through an ordered array is horrible, I should improve this. (But atm its run once at the start, so low priority)
     for (var j = 0; j < t.zs.length; j++) {
         if (t.startZIndex == null && t.zs[j] > t.z_start) {
             t.startZIndex = j;

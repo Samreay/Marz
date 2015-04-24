@@ -1,3 +1,9 @@
+/**
+ * This file is the controller in the Model-View-Controller framework.
+ * It acts as the interface between the UI and the angular services.
+ * Any time you click on something, press a keyboard shortcut, or make the UI change, this is the place to look.
+ */
+
 angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
     .controller('NavbarController', ['$scope', '$state', 'personalService', 'global', function($scope, $state, personalService, global) {
         $scope.states = [

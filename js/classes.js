@@ -1,3 +1,22 @@
+/** The classes file is used to declare some standard javascript classes which will be used in
+ * the angular js services */
+
+/** The spectra class is used to store information about each spectra loaded into marz
+ * @param id - the fibre id
+ * @param lambda - an array of wavelengths in Angstroms
+ * @param intensity - an array of flux intensities
+ * @param variance - an array of flux intensity variance
+ * @param sky - an array of sky flux intensity, if it exists
+ * @param skyAverage - the average of the above array, if it exists
+ * @param name - the object's name
+ * @param ra - the object's right ascension
+ * @param dec - the object's declination
+ * @param magnitude - the object's magnitude (extracted from fits file, not band explicit)
+ * @param type - the object's type. Used to generate the prior for OzDES matching
+ * @param filename - the filename this spectra belonged to. Used for storing data behind the scenes
+ * @param drawingService - bad code style, but the angularjs drawing service is passed in to simplify logic in other locations
+ * @constructor
+ */
 function Spectra(id, lambda, intensity, variance, sky, skyAverage, name, ra, dec, magnitude, type, filename, drawingService) {
     this.id = id;
     this.name = name;
@@ -30,7 +49,6 @@ function Spectra(id, lambda, intensity, variance, sky, skyAverage, name, ra, dec
     if (this.intensity != null) {
         this.intensityPlot = this.intensity.slice();
         this.processedLambdaPlot = null;
-//        normaliseViaShift(this.intensityPlot, 0, 600, null);
     }
 
     this.processedLambda = null;
@@ -50,7 +68,6 @@ function Spectra(id, lambda, intensity, variance, sky, skyAverage, name, ra, dec
     this.imageZ = null;
     this.imageTID = null;
     this.image = null;
-
     this.getHash = function() {
         return "" + this.id + this.name + this.getFinalRedshift() + this.getFinalTemplateID() + this.isProcessed + this.isMatched;
     }
@@ -67,6 +84,7 @@ Spectra.prototype.setQOP = function(qop) {
         return;
     }
     this.qop = qop;
+    // Best coding practise would have this UI logic outside of this class
     if (qop >= 6) {
         this.qopLabel = "label-primary";
     } else if (qop >= 4) {
@@ -96,12 +114,6 @@ Spectra.prototype.getImage = function() {
     return this.image;
 
 };
-/*Spectra.prototype.getHtml = function() {
-      var html = "<di"
-};
-Spectra.prototype.getOverviewHTML = function() {
-
-};*/
 Spectra.prototype.getComment = function() {
     return this.comment;
 };
@@ -233,12 +245,13 @@ Processor.prototype.workOnSpectra = function(data) {
 };
 
 
-
-
-
-
-
-
+/**
+ * This represents a stateful cumulative absolute area finder (super basic integral).
+ *
+ * Class kept in in case I need it again, I've done it a different way for now.
+ * @param array
+ * @constructor
+ */
 function FastAreaFinder(array) {
     this.array = array;
     this.start = null;
