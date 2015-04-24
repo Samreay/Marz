@@ -50,4 +50,4 @@ var gaussianWidth = 0.0003; // ANGSTROM
 
 
 // FIT WINDOW FOR MANUAL FITTING
-var fitWindow = 100;
+var fitWindow = 50;
