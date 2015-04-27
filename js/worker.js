@@ -18,6 +18,7 @@ if (!shifted_temp) {
  */
 self.addEventListener('message', function(event) {
     var data = event.data;
+    templateManager.setInactiveTemplates(data.inactiveTemplates);
     var result = null;
     // Whether the data gets processed or matched depends on if a processing property is set
     if (data.processing) {

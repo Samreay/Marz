@@ -635,7 +635,10 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
 
     }])
     .controller('TemplatesController', ['$scope', 'templatesService', function($scope, templatesService) {
-        $scope.templates = templatesService.getTemplates();
+        $scope.templates = templatesService.getOriginalTemplates();
+        $scope.activate = function() {
+            templatesService.updateActiveTemplates();
+        }
     }])
     .controller('SettingsController', ['$scope', 'processorService', 'spectraService', 'localStorageService', 'global', 'dialogs',
         function($scope, processorService, spectraService, localStorageService, global, dialogs) {

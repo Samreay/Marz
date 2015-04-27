@@ -1,7 +1,8 @@
 <div class="lined bottom-spacing" ng-repeat="t in templates track by t.id">
     <div class="top-bar">
-        <strong>Template ID: {{t.id}}</strong>
-        <p>{{t.name}},  &Aring;: {{t.start_lambda_linear.toFixed(1)}} &rarr; {{t.end_lambda_linear.toFixed(1)}}</p>
+        <strong style="vertical-align: top;">Template ID: {{t.id}}</strong>
+        <p style="vertical-align: top;">{{t.name}},  &Aring;: {{t.start_lambda_linear.toFixed(1)}} &rarr; {{t.end_lambda_linear.toFixed(1)}}</p>
+        <toggle-switch style="margin-left: 20px; padding-top: 2px;" class="red switchsmall" model="t.inactive" ng-click="activate()" knob-label="Active" on-label="Off" off-label="On"></toggle-switch>
     </div>
     <canvas class="under-bar unselectable" template-item="t" render-on-resize="true"></canvas>
 </div>

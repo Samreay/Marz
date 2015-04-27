@@ -28,7 +28,9 @@
     -moz-box-sizing: border-box;
     -webkit-box-sizing: border-box;
 }
-
+.switchsmall span {
+    line-height: 16px !important;
+}
 .switch > div {
     position: relative;
     width: 150%;

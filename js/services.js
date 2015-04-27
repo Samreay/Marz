@@ -759,28 +759,14 @@ angular.module('servicesZ', ['dialogs.main'])
         var self = this;
 
         self.getCookie = function(property) {
-            var name = property + "=";
-            var ca = document.cookie.split(';');
-            for (var i = 0; i < ca.length; i++) {
-                var c = ca[i].trim();
-                if (c.indexOf(name) == 0) {
-                    return JSON.parse(c.substring(name.length, c.length));
-                }
-            }
-            return null;
+            return getCookie(property)
         };
 
         self.saveCookie = function(property, value, exdays) {
-            if (exdays == null) {
-                exdays = 1000;
-            }
-            var d = new Date();
-            d.setTime(d.getTime() + (exdays*24*60*60*1000));
-            var expires = "expires=" + d.toGMTString();
-            document.cookie = property + "=" + JSON.stringify(value) + "; " + expires;
+            saveCookie(property, value, exdays);
         };
     }])
-    .service('processorService', ['$q', 'spectraService', 'cookieService', function($q, spectraService, cookieService) {
+    .service('processorService', ['$q', 'spectraService', 'cookieService', 'templatesService', function($q, spectraService, cookieService, templatesService) {
         var self = this;
 
         var processors = [];
@@ -828,6 +814,7 @@ angular.module('servicesZ', ['dialogs.main'])
             processing = !processing;
         };
         self.processSpectra = function(spectra) {
+            spectra.inactiveTemplates = templatesService.getInactiveTemplates();
             var processor = self.getIdleProcessor();
             processor.workOnSpectra(spectra).then(function(result) {
                 if (result.data.processing) {
@@ -943,7 +930,15 @@ angular.module('servicesZ', ['dialogs.main'])
         self.getTemplateAtRedshift = function(templateId, redshift, withContinuum) {
             return templates.getTemplate(templateId, redshift, withContinuum);
         };
-
+        self.getOriginalTemplates = function() {
+            return templates.getOriginalTemplates();
+        };
+        self.getInactiveTemplates = function() {
+            return templates.getInactiveTemplates();
+        };
+        self.updateActiveTemplates = function() {
+            templates.updateActiveTemplates();
+        };
         self.getNameForTemplate = function(templateId) {
             if (templates.templatesHash[templateId]) {
                 return templates.templatesHash[templateId].name;
