@@ -39,13 +39,13 @@ angular.module('servicesZ', ['dialogs.main'])
                     waitingForSpectra: false,
                     lockedBounds: false,
                     lockedBoundsCounter: 1,
-                    skyHeight: 75
+                    skyHeight: 125
 
                 },
                 colours: {
                     unselected: '#E8E8E8',
                     raw: "#111111",
-                    processed: "#058518",
+                    processed: "#067800",
                     matched: "#AA0000",
                     sky: "#009DFF",
                     template: '#8C0623',
