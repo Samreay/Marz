@@ -69,8 +69,8 @@
                 <div class="form-group">
                     <div class="input-group input-group-sm" style="width:354px">
                         <span class="input-group-addon">Redshift</span>
-                        <input type="text" id="redshiftInput" class="form-control" ng-change="changedRedshift()" ng-model="settings.redshift" style="color: red; font-weight: bold;">
-                        <span class="input-group-addon" style="width:214px"><input  type="range" min="{{settings.bounds.redshiftMin}}" max="{{settings.bounds.redshiftMax}}" step="0.0001" ng-change="changedRedshift()" ng-model="settings.redshift"></span>
+                        <input type="text" id="redshiftInput" class="form-control" ng-change="changedRedshift()" ng-model="settings.redshift" style="color: red; font-weight: bold; font-size: 1.1em;">
+                        <span class="input-group-addon" style="width:210px"><input  type="range" min="{{settings.bounds.redshiftMin}}" max="{{settings.bounds.redshiftMax}}" step="0.0001" ng-change="changedRedshift()" ng-model="settings.redshift"></span>
                     </div>
                 </div>
                 <button class="form-group btn btn-primary btn-sm" style="display: inline-block;" ng-click="fit()" popover-placement="bottom" popover="Performs localised cross correlation fit. Shortcut: u" popover-trigger="mouseenter">Perform Fit</button>
