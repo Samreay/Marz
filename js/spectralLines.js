@@ -19,9 +19,9 @@ function SpectralLines() {
  * @param type - whether this a line found in emission or absorption spectra, or both. Use. spectraLines.TYPES
  * @param enabled - whether or not to use the spectral line
  */
-SpectralLines.prototype.addSpectralLine = function(id, label, name, wavelength, air, type, enabled, shortcut) {
+SpectralLines.prototype.addSpectralLine = function(id, label, name, wavelength, air, type, enabled, shortcut, displayLines) {
     if (id == null || label == null || name == null || wavelength == null || air == null || type == null) {
-        console.warn('Not a valid line. A null was passed in.')
+        console.warn('Not a valid line. A null was passed in.');
         return;
     }
     if (parseFloat(wavelength) == null || isNaN(parseFloat(wavelength))) {
@@ -35,6 +35,13 @@ SpectralLines.prototype.addSpectralLine = function(id, label, name, wavelength, 
 
     if (air) {
         wavelength = convertSingleVacuumFromAir(wavelength);
+    }
+    if (displayLines == null || typeof displayLines == "undefined") {
+        displayLines = [wavelength];
+    } else if (air) {
+        for (var i = 0; i < displayLines.length; i++) {
+            displayLines[i] = convertSingleVacuumFromAir(displayLines[i])
+        }
     }
     // Check if already exists.
     for (var i = 0; i < this.lines.length; i++) {
@@ -57,7 +64,8 @@ SpectralLines.prototype.addSpectralLine = function(id, label, name, wavelength, 
         logWavelength: Math.log(wavelength)/Math.LN10,
         type: type,
         enabled: enabled,
-        shortcut: shortcut
+        shortcut: shortcut,
+        displayLines: displayLines
     });
 };
 SpectralLines.prototype.initialiseDefault = function() {
@@ -68,8 +76,7 @@ SpectralLines.prototype.initialiseDefault = function() {
     this.addSpectralLine('C4', 'CIV',  'Carbon 4',           1549.06,  0, 1, 1, 'shift+c');
     this.addSpectralLine('C3', 'CIII',  'Carbon 3',          1908.73,  0, 1, 1, 'shift+v');
     this.addSpectralLine('Mg2','MgII', 'Magnesium 2',        2798.75,  0, 0, 1, 'shift+m');
-    this.addSpectralLine('O2', '[OII]',  'Oxygen 2',         3727.09,  0, 1, 1, 'shift+o');
-    this.addSpectralLine('O2d', '[OII]',  'Oxygen 2 Doublet',3729.88,  0, 1, 1, 'shift+p');
+    this.addSpectralLine('O2', '[OII]',  'Oxygen 2',         3728.485,  0, 1, 1, 'shift+o', [3727.09, 3729.88]);
     this.addSpectralLine('Ne3', '[NeIII]',  'Neon 3',        3869.81,  0, 1, 1, '[');
     this.addSpectralLine('K',  'K',   'Potassium',           3933.663, 1, 2, 1, 'shift+k');
     this.addSpectralLine('H',  'H',   'Hydrogen',            3968.468, 1, 2, 1, 'shift+h');

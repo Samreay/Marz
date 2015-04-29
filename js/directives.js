@@ -132,7 +132,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                 var annotationColour = "#F00";
                 var xcor = true;
                 var xcorData = null;
-                var xcorHeight = 50;
+                var xcorHeight = 100;
                 var xcorLineColour = "#F00";
                 var xcorPlotColour = "#333";
                 var xcorLineHighlight = "#FFA600";
@@ -830,36 +830,38 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
 
                     for (var i = 0; i < lines.length; i++) {
                         var z = parseFloat(global.ui.detailed.redshift);
-                        var lambda = shiftWavelength(lines[i].wavelength, z);
-                        if (checkDataXInRange(bound, lambda)) {
-                            var strength = null;
-                            if (baseData != null ) {
-                                strength = spectraLineAnalysisService.getStrengthOfLine(baseData.x, baseData.y2, lines[i], z, global.ui.detailed.templateId == '12');
-                            }
-                            var x = 0.5 + Math.floor(convertDataXToCanvasCoordinate(bound, lambda));
-                            c.beginPath();
-                            c.setLineDash([5, 3]);
-                            if (strength == null) {
+                        for (var j = 0; j < lines[i].displayLines.length; j++) {
+                            var lambda = shiftWavelength(lines[i].displayLines[j], z);
+                            if (checkDataXInRange(bound, lambda)) {
+                                var strength = null;
+                                if (baseData != null ) {
+                                    strength = spectraLineAnalysisService.getStrengthOfLine(baseData.x, baseData.y2, lines[i], z, global.ui.detailed.templateId == '12');
+                                }
+                                var x = 0.5 + Math.floor(convertDataXToCanvasCoordinate(bound, lambda));
+                                c.beginPath();
+                                c.setLineDash([5, 3]);
+                                if (strength == null) {
+                                    c.strokeStyle = spectralLineColour;
+                                } else {
+                                    c.strokeStyle = spectralLineColour.replace(/[^,]+(?=\))/, "" + strength);
+                                }
+                                c.moveTo(x, bound.top - 5);
+                                c.lineTo(x, bound.top + bound.height);
+                                c.stroke();
                                 c.strokeStyle = spectralLineColour;
-                            } else {
-                                c.strokeStyle = spectralLineColour.replace(/[^,]+(?=\))/, "" + strength);
+                                c.setLineDash([0]);
+                                c.beginPath();
+                                c.moveTo(x, bound.top - 5);
+                                c.lineTo(x - 20, bound.top - 10);
+                                c.lineTo(x - 20, bound.top - 23);
+                                c.lineTo(x + 20, bound.top - 23);
+                                c.lineTo(x + 20, bound.top - 10);
+                                c.closePath();
+                                c.fillStyle = spectralLineColour;
+                                c.fill();
+                                c.fillStyle = spectralLineTextColour;
+                                c.fillText(lines[i].label, x, bound.top - 9);
                             }
-                            c.moveTo(x, bound.top - 5);
-                            c.lineTo(x, bound.top + bound.height);
-                            c.stroke();
-                            c.strokeStyle = spectralLineColour;
-                            c.setLineDash([0]);
-                            c.beginPath();
-                            c.moveTo(x, bound.top - 5);
-                            c.lineTo(x - 20, bound.top - 10);
-                            c.lineTo(x - 20, bound.top - 23);
-                            c.lineTo(x + 20, bound.top - 23);
-                            c.lineTo(x + 20, bound.top - 10);
-                            c.closePath();
-                            c.fillStyle = spectralLineColour;
-                            c.fill();
-                            c.fillStyle = spectralLineTextColour;
-                            c.fillText(lines[i].label, x, bound.top - 9);
                         }
                     }
                 };
