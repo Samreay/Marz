@@ -165,9 +165,10 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
                 $timeout(function() { $scope.decrementSmooth(); });
             }},
             {key: 'r', label: 'r', controller: "detailed", description: '[Detailed screen] Reset graph zoom to extents', fn: function($scope) {
-                global.ui.detailed.lockedBounds = false;
-                global.ui.detailed.lockedBoundsCounter++;
-                $scope.$apply();
+                $timeout(function() {
+                    global.ui.detailed.lockedBounds = false;
+                    global.ui.detailed.lockedBoundsCounter++;
+                });
             }},
             {key: 'l', label: 'l', controller: "detailed", description: '[Detailed screen] Toggles spectral lines', fn: function($scope) {
                 $scope.toggleSpectralLines();
