@@ -715,6 +715,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                         var r = 1;
                         var o = 0;
                         if (data[j].id == 'template') {
+                            c.globalAlpha = 0.5;
                             var lower = binarySearch(xs, bound.xMin)[0];
                             var upper = binarySearch(xs, bound.xMax)[1];
                             var min = getMin(ys, lower, upper);
@@ -810,6 +811,9 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                             }
                         }
                         c.stroke();
+                        if (data[j].id == "template") {
+                            c.globalAlpha = 1;
+                        }
                     }
                 };
                 var drawZoomOut = function(bound) {
