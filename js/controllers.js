@@ -145,12 +145,14 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
                 e.preventDefault();
             }},
             {key: 'm', label: 'm', controller: "detailed", description: '[Detailed screen] Set view to manually found redshift', fn: function($scope) {
-                $scope.resetToManual();
-                $scope.$apply();
+                $timeout(function() {
+                    $scope.resetToManual();
+                });
             }},
             {key: 'shift+r', label: 'shift+r', controller: "detailed", description: '[Detailed screen] Set view to automaticly found redshift', fn: function($scope) {
-                $scope.resetToAutomatic();
-                $scope.$apply();
+                $timeout(function() {
+                    $scope.resetToAutomatic();
+                });
             }},
             {key: 'o', label: 'o', controller: "detailed", description: '[Detailed screen] Show the next automatic redshift result', fn: function($scope) {
                 $timeout(function() { $scope.nextMatchedDetails()});
