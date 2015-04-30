@@ -844,7 +844,6 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                             if (checkDataXInRange(bound, lambda)) {
                                 var x = 0.5 + Math.floor(convertDataXToCanvasCoordinate(bound, lambda));
                                 var h = staggerHeight;
-                                console.log([lines[i].label, x, px]);
                                 if (Math.abs(x - px) < 40) {
                                     h = up ? 0 : staggerHeight;
                                     up = !up;
