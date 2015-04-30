@@ -549,6 +549,9 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     if (bound.callout) {
                         c.lineTo(bound.left - 0.5 + bound.width, bound.top + 0.5);
                         c.lineTo(bound.left - 0.5, bound.top + 0.5);
+                    } else {
+                        c.moveTo(bound.left + bound.width - 0.5, bound.top + 0.5);
+                        c.lineTo(bound.left + bound.width - 0.5, bound.top + bound.height + 0.5);
                     }
                     c.stroke();
                 };
