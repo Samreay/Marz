@@ -590,6 +590,7 @@ angular.module('servicesZ', ['dialogs.main'])
         self.downloadResults = function() {
             personalService.ensureInitials().then(function() {
                 var results = self.getResultsCSV();
+                console.log(results);
                 if (results.length > 0) {
                     var blob = new Blob([results], {type: 'text/html'});
                     saveAs(blob, self.getFilename());
