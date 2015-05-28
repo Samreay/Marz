@@ -1040,7 +1040,7 @@ angular.module('servicesZ', ['dialogs.main'])
             typeIndex = isCoadd ? 4 : 2;
             dataReducedFile = self.fits.hdus.length > 1;
             for (i = 0; i < self.fits.hdus.length; i++) {
-                var h = self.fits.getHeader(i).cards["EXTNAME"]
+                var h = self.fits.getHeader(i).cards["EXTNAME"];
                 if (h != null && h.value.toUpperCase() == "SKY") {
                     skyIndex = i;
                     $log.debug("Sky index found at " + i);
@@ -1048,7 +1048,7 @@ angular.module('servicesZ', ['dialogs.main'])
                 }
             }
             for (i = 0; i < self.fits.hdus.length; i++) {
-                var h = self.fits.getHeader(i).cards["EXTNAME"]
+                var h = self.fits.getHeader(i).cards["EXTNAME"];
                 if (h != null && h.value.toUpperCase() == "VARIANCE") {
                     varianceIndex = i;
                     $log.debug("Variance index found at " + i);
@@ -1056,7 +1056,7 @@ angular.module('servicesZ', ['dialogs.main'])
                 }
             }
             for (i = 0; i < self.fits.hdus.length; i++) {
-                var h = self.fits.getHeader(i).cards["EXTNAME"]
+                var h = self.fits.getHeader(i).cards["EXTNAME"];
                 if (h != null && h.value.toUpperCase() == "PRIMARY") {
                     primaryIndex = i;
                     $log.debug("Primary index found at " + i);
@@ -1064,7 +1064,7 @@ angular.module('servicesZ', ['dialogs.main'])
                 }
             }
             for (i = 0; i < self.fits.hdus.length; i++) {
-                var h = self.fits.getHeader(i).cards["EXTNAME"]
+                var h = self.fits.getHeader(i).cards["EXTNAME"];
                 if (h != null && h.value.toUpperCase() == "FIBRES") {
                     typeIndex = i;
                     $log.debug("Type index found at " + i);
@@ -1209,15 +1209,29 @@ angular.module('servicesZ', ['dialogs.main'])
                 convertToUsableObjects(q);
             });
         };
+        var useSpectra = function(spectra) {
+            var c = 0;
+            for (var i = 0; i < spectra.intensity.length; i++) {
+                if (isNaN(spectra.intensity[i])) {
+                    c += 1;
+                }
+            }
+            if (c > 0.9 * spectra.intensity.length) {
+                return false;
+            }
+            return true;
+        };
         var convertToUsableObjects = function(q) {
             $log.debug("Creating javascript classes");
             var spectraList = [];
             for (var j = 0; j < spectra.length; j++) {
-                var s = new Spectra(spectra[j].id, lambda.slice(0), spectra[j].intensity, spectra[j].variance,
-                    isCoadd ? spectra[j].sky : sky, isCoadd ? spectra[j].skyAverage : skyAverage, spectra[j].name, spectra[j].ra, spectra[j].dec,
-                    spectra[j].magnitude, spectra[j].type, originalFilename, drawingService);
-                s.setCompute(spectra[j].compute)
-                spectraList.push(s);
+                if (useSpectra(spectra[j])) {
+                    var s = new Spectra(spectra[j].id, lambda.slice(0), spectra[j].intensity, spectra[j].variance,
+                        isCoadd ? spectra[j].sky : sky, isCoadd ? spectra[j].skyAverage : skyAverage, spectra[j].name, spectra[j].ra, spectra[j].dec,
+                        spectra[j].magnitude, spectra[j].type, originalFilename, drawingService);
+                    s.setCompute(spectra[j].compute)
+                    spectraList.push(s);
+                }
             }
             isLoading = false;
             spectraService.setSpectra(spectraList);
