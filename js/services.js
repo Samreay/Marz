@@ -1072,7 +1072,7 @@ angular.module('servicesZ', ['dialogs.main'])
                 }
             }
             if (dataReducedFile) {
-                getFibres(q);s
+                getFibres(q);
             } else {
                 getSpectraOnly(q)
             }
