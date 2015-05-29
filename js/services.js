@@ -592,7 +592,7 @@ angular.module('servicesZ', ['dialogs.main'])
                 var results = self.getResultsCSV();
                 console.log(results);
                 if (results.length > 0) {
-                    var blob = new Blob([results], {type: 'text/html'});
+                    var blob = new window.Blob([results], {type: 'text/plain'});
                     saveAs(blob, self.getFilename());
                 }
             });
