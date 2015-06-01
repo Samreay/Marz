@@ -169,18 +169,34 @@ self.coalesceResults = function(templateResults, type, intensity, fft, quasarFFT
     coalesced.sort(function(a,b) { return b.value - a.value});
 
     // Return only the ten best results
-    coalesced.splice(10, coalesced.length - 1);
+    //coalesced.splice(10, coalesced.length - 1);
+    var topTen = [coalesced[0]];
+    var thresh = 0.01;
+    for (var ii = 1; ii < coalesced.length; ii++) {
+        var add = true;
+        for (var jj = 0; jj < topTen.length; jj++) {
+            if (Math.abs(topTen[jj].z - coalesced[ii].z) < thresh) {
+                add = false;
+                break;
+            }
+        }
+        if (add) {
+            topTen.push(coalesced[ii]);
+        }
+        if (topTen.length == 10) {
+            break;
+        }
+    }
 
-
-    for (var k = 0; k < coalesced.length; k++) {
+    for (var k = 0; k < topTen.length; k++) {
         // Javascript only rounds to integer, so this should get four decimal places
-        var index = fitAroundIndex(coalesced[k].xcor, coalesced[k].index);
-        var res = getRedshiftForNonIntegerIndex(templateManager.getTemplateFromId(coalesced[k].templateId), index);
-        coalesced[k] = {
+        var index = fitAroundIndex(topTen[k].xcor, topTen[k].index);
+        var res = getRedshiftForNonIntegerIndex(templateManager.getTemplateFromId(topTen[k].templateId), index);
+        topTen[k] = {
             z:  Math.round(res * 1e4) / 1e4,
             index: index,
-            templateId: coalesced[k].templateId,
-            value: coalesced[k].value
+            templateId: topTen[k].templateId,
+            value: topTen[k].value
         };
     }
     var templates = {};
@@ -212,9 +228,9 @@ self.coalesceResults = function(templateResults, type, intensity, fft, quasarFFT
             weight: w
         };
     }
-    var autoQOP = self.getAutoQOP(coalesced);
+    var autoQOP = self.getAutoQOP(topTen);
     return {
-        coalesced: coalesced,
+        coalesced: topTen,
         templates: templates,
         intensity: intensity,
         autoQOP: autoQOP,
