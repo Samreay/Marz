@@ -22,6 +22,7 @@ function TemplateManager() {
         end_lambda: 7.427200303197844e+03,
         z_start: -0.02,
         z_end: 0.15,
+        z_end2: 0.02,
         log_linear: false,
         isStar: true,
         weights: {blank: 1.3, Transient: 1.3, SN_host: 1.2, WhiteDwarf: 0.8, StrongLens: 1.2, AGN_reverberation: 1.2, AGN_monitoring: 1.3, ClusterGalaxy_I: 1.2, ClusterGalaxy_II: 1.2, RadioGalaxy_I: 1.2, LRG: 1.2, ELG: 1.2, 'Photo-z': 1.2, FStar: 0.9},
@@ -35,6 +36,7 @@ function TemplateManager() {
         end_lambda: 7.427200303197844e+03,
         z_start: -0.02,
         z_end: 0.15,
+        z_end2: 0.02,
         log_linear: false,
         isStar: true,
         weights: {blank: 1.1, Transient: 1.1, SN_host: 1.2, WhiteDwarf: 0.8, StrongLens: 1.2, AGN_reverberation: 1.2, AGN_monitoring: 1.3, ClusterGalaxy_I: 1.2, ClusterGalaxy_II: 1.2, RadioGalaxy_I: 1.2, LRG: 1.2, ELG: 1.2, 'Photo-z': 1.2, FStar: 0.9},
@@ -46,7 +48,9 @@ function TemplateManager() {
         redshift: 0,
         start_lambda: 3.581,
         end_lambda: 3.9633000000000003,
-        z_start: -0.02, z_end: 0.15,
+        z_start: -0.02,
+        z_end: 0.15,
+        z_end2: 0.02,
         log_linear: true,
         isStar: true,
         weights: {blank: 1, Transient: 1, SN_host: 1.2, WhiteDwarf: 0.8, StrongLens: 1.2, AGN_reverberation: 1.2, AGN_monitoring: 1.3, ClusterGalaxy_I: 1.2, ClusterGalaxy_II: 1.2, RadioGalaxy_I: 1.2, LRG: 1.2, ELG: 1.2, 'Photo-z': 1.2, FStar: 0.9},
@@ -60,6 +64,7 @@ function TemplateManager() {
         end_lambda: 7.427200303197844e+03,
         z_start: -0.02,
         z_end: 0.15,
+        z_end2: 0.02,
         log_linear: false,
         isStar: true,
         weights: {blank: 1, Transient: 1, SN_host: 1.2, WhiteDwarf: 0.8, StrongLens: 1.2, AGN_reverberation: 1.2, AGN_monitoring: 1.3, ClusterGalaxy_I: 1.2, ClusterGalaxy_II: 1.2, RadioGalaxy_I: 1.2, LRG: 1.2, ELG: 1.2, 'Photo-z': 1.2, FStar: 0.9},
@@ -72,6 +77,7 @@ function TemplateManager() {
         end_lambda: 3.96380,
         z_start: -0.02,
         z_end: 0.15,
+        z_end2: 0.02,
         log_linear: true,
         isStar: true,
         weights: {blank: 1, Transient: 1, SN_host: 1.2, WhiteDwarf: 0.8, StrongLens: 1.2, AGN_reverberation: 1.2, AGN_monitoring: 1.3, ClusterGalaxy_I: 1.2, ClusterGalaxy_II: 1.2, RadioGalaxy_I: 1.2, LRG: 1.2, ELG: 1.2, 'Photo-z': 1.2, FStar: 0.9},
@@ -296,6 +302,7 @@ TemplateManager.prototype.shiftTemplate = function(t) {
 
     t.startZIndex = null;
     t.endZIndex = null;
+    t.endZIndex2 = null;
 
     // Linear search through an ordered array is horrible, I should improve this. (But atm its run once at the start, so low priority)
     for (var j = 0; j < t.zs.length; j++) {
@@ -304,6 +311,9 @@ TemplateManager.prototype.shiftTemplate = function(t) {
         }
         if (t.endZIndex == null && t.zs[j] > t.z_end) {
             t.endZIndex = j;
+        }
+        if (t.z_end2 != null && t.endZIndex2 == null && t.zs[j] > t.z_end2) {
+            t.endZIndex2 = j;
         }
         if (t.endZIndex != null && t.startZIndex != null) {
             break;

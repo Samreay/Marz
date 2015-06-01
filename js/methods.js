@@ -977,6 +977,9 @@ function circShift(data, num) {
 function pruneResults(final, template) {
     return final.slice(template.startZIndex, template.endZIndex);
 }
+function pruneResults2(final, template) {
+    return final.slice(0, final.length - (template.endZIndex - template.endZIndex2));
+}
 function subtractMeanReject(final, trimAmount) {
     var num = Math.floor((trimAmount * final.length)/2);
     var sorted = final.slice().sort(function(a,b) { return a-b });
@@ -1024,6 +1027,9 @@ function rmsNormalisePeaks(final) {
 function normaliseXCorr(final) {
     subtractMeanReject(final, trimAmount);
     rmsNormalisePeaks(final);
+    return final;
+}
+function getPeaksFromNormalised(final) {
     var peaks = getPeaks(final, false);
     var result = [];
     for (var i = 0; i < peaks.index.length; i++) {
@@ -1065,11 +1071,13 @@ function matchTemplate(template, fft) {
     final = Array.prototype.slice.call(final);
     circShift(final, final.length/2);
     final = pruneResults(final, template);
-    // UNCOMMENT SECTION BELOW TO GET XCOR RESULTS FOR QUASAR
-    /*    if (template.id == '3') {
-     debugger;
-     }*/
-    var finalPeaks = normaliseXCorr(final);
+    normaliseXCorr(final);
+
+
+    if (template.endZIndex2 != null) {
+        final = pruneResults2(final, template);
+    }
+    var finalPeaks = getPeaksFromNormalised(final, template);
     /* if (template.id == '9') {
      console.log("xcor3 = " + JSON.stringify(final) + ";\nzs=" + JSON.stringify(template.zs) + ";");
      }*/
