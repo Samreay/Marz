@@ -130,7 +130,7 @@ function TemplateManager() {
         id: '10', // newgdds-late
         name: 'High Redshift Star Forming Galaxy',
         shift: true,
-        redshift: 0.00035,
+        redshift: 0.00034,
         start_lambda: 1800,
         end_lambda: 5060,
         z_start: 0,
