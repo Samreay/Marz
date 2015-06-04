@@ -1004,6 +1004,15 @@ function getPeaks(final, both) {
     }
     return {index: is, value: vals};
 }
+function cullLines(data) {
+    var rms = getRMS(data);
+    var mean = getMean(data);
+    var maxV = mean + 30 * rms;
+    var minV = mean - 30 * rms;
+    for (var i = 0; i < data.length; i++) {
+        data[i] = Math.max(minV, Math.min(maxV, data[i]))
+    }
+}
 function getRMS(data) {
     var mean = 0;
     for (var i = 0; i < data.length; i++) {
@@ -1078,12 +1087,7 @@ function matchTemplate(template, fft) {
         final = pruneResults2(final, template);
     }
     var finalPeaks = getPeaksFromNormalised(final, template);
-    /* if (template.id == '9') {
-     console.log("xcor3 = " + JSON.stringify(final) + ";\nzs=" + JSON.stringify(template.zs) + ";");
-     }*/
-//    if (template.id == '6') {
-//        console.log("xcor2 = " + JSON.stringify(final) + ";");
-//    }
+
     return {
         id: template.id,
         zs: template.zs,

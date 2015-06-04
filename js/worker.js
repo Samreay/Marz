@@ -60,6 +60,7 @@ self.processData = function(lambda, intensity, variance) {
     removeCosmicRay(intensity, variance);
     var res = intensity.slice();
     polyFitReject(lambda, intensity);
+    cullLines(intensity);
     return res;
 };
 
@@ -246,27 +247,16 @@ self.coalesceResults = function(templateResults, type, intensity, fft, quasarFFT
  */
 self.getAutoQOP = function(coalesced) {
     var mainV = coalesced[0].value;
-    var mainZ = coalesced[0].z;
-    var secondV = null;
-    var secondZ = null;
-    var threshold = 0.001;
-    for (var i = 1; i < coalesced.length; i++) {
-        if (Math.abs(coalesced[i].z - mainZ) > threshold) {
-            secondV = coalesced[i].value;
-            secondZ = coalesced[i].z;
-            break;
-        } else {
-            mainV += coalesced[i].value / 20;
-        }
-    }
+    var secondV = coalesced[1].value;
+
     var isStar = templateManager.getTemplateFromId(coalesced[0].templateId).isStar == true;
     var pqop = 0;
     var fom = Math.pow(mainV, 0.75) * (mainV / secondV);
-    if (fom > 5.1) {
+    if (fom > 8) {
         pqop = 4;
-    } else if (fom > 4.2) {
+    } else if (fom > 4) {
         pqop = 3;
-    } else if (fom > 3.5) {
+    } else if (fom > 3.2) {
         pqop = 2;
     } else {
         pqop = 1;
