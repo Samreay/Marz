@@ -7,7 +7,6 @@
  * @param intensity - an array of flux intensities
  * @param variance - an array of flux intensity variance
  * @param sky - an array of sky flux intensity, if it exists
- * @param skyAverage - the average of the above array, if it exists
  * @param name - the object's name
  * @param ra - the object's right ascension
  * @param dec - the object's declination
@@ -17,7 +16,7 @@
  * @param drawingService - bad code style, but the angularjs drawing service is passed in to simplify logic in other locations
  * @constructor
  */
-function Spectra(id, lambda, intensity, variance, sky, skyAverage, name, ra, dec, magnitude, type, filename, drawingService) {
+function Spectra(id, lambda, intensity, variance, sky, name, ra, dec, magnitude, type, filename, drawingService) {
     this.id = id;
     this.name = name;
     this.ra = ra;
@@ -38,7 +37,6 @@ function Spectra(id, lambda, intensity, variance, sky, skyAverage, name, ra, dec
     }
     this.autoQOP = null;
     this.sky = sky;
-    this.skyAverage = skyAverage;
     this.intensitySubtractPlot = null;
 
     this.isProcessed = false;

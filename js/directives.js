@@ -211,7 +211,6 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                 var spectralLineTextColour = '#FFFFFF';
 
                 var templatePixelOffset = 30;
-                var skyAverage = 0;
 
                 var focusDataX = null;
                 var focusDataY = null;
@@ -1108,7 +1107,6 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                         }
                     }
                     if (global.ui.active != null && global.ui.active.sky != null) {
-                        skyAverage = global.ui.active.skyAverage;
                         data.push({id: 'sky', colour: global.ui.colours.sky, bound: false, x: global.ui.active.lambda, y: global.ui.active.sky})
                     }
                 };

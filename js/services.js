@@ -974,17 +974,10 @@ angular.module('servicesZ', ['dialogs.main'])
         var lambdaStart = null;
         var lambdaEnd = null;
 
-        var isCoadd = null;
         var spectra = null;
-        var sky = null;
-        var skyAverage = null;
         var lambda = null;
-        var skyIndex = null;
-        var varianceIndex = 1;
         var primaryIndex = 0;
-        var typeIndex = null;
         var numPoints = null;
-        var dataReducedFile = true
 
         self.getFilename = function() {
             return filename;
@@ -1011,6 +1004,17 @@ angular.module('servicesZ', ['dialogs.main'])
             return q.promise;
 
         };
+        var getHDUFromName = function(name) {
+            var n = name.toUpperCase();
+            for (var i = 0; i < self.fits.hdus.length; i++) {
+                var h = self.fits.getHeader(i).cards['EXTNAME'];
+                if (h != null && h.value.toUpperCase() == n) {
+                    $log.debug(name + " index found at " + i);
+                    return i;
+                }
+            }
+            return null;
+        };
         var parseFitsFile = function(q) {
             $log.debug("Getting headers");
             var header0 = self.fits.getHDU(0).header;
@@ -1035,212 +1039,222 @@ angular.module('servicesZ', ['dialogs.main'])
             lambdaStart = lambda[0];
             lambdaEnd = lambda[lambda.length - 1];
 
-            spectra = [];
-            sky = [];
-            isCoadd = header0.get('COADDVER') != null;
-            skyIndex = isCoadd ? 2 : 7;
-            typeIndex = isCoadd ? 4 : 2;
-            dataReducedFile = self.fits.hdus.length > 1;
-            for (i = 0; i < self.fits.hdus.length; i++) {
-                var h = self.fits.getHeader(i).cards["EXTNAME"];
-                if (h != null && h.value.toUpperCase() == "SKY") {
-                    skyIndex = i;
-                    $log.debug("Sky index found at " + i);
-                    break;
-                }
-            }
-            for (i = 0; i < self.fits.hdus.length; i++) {
-                var h = self.fits.getHeader(i).cards["EXTNAME"];
-                if (h != null && h.value.toUpperCase() == "VARIANCE") {
-                    varianceIndex = i;
-                    $log.debug("Variance index found at " + i);
-                    break;
-                }
-            }
-            for (i = 0; i < self.fits.hdus.length; i++) {
-                var h = self.fits.getHeader(i).cards["EXTNAME"];
-                if (h != null && h.value.toUpperCase() == "PRIMARY") {
-                    primaryIndex = i;
-                    $log.debug("Primary index found at " + i);
-                    break;
-                }
-            }
-            for (i = 0; i < self.fits.hdus.length; i++) {
-                var h = self.fits.getHeader(i).cards["EXTNAME"];
-                if (h != null && h.value.toUpperCase() == "FIBRES") {
-                    typeIndex = i;
-                    $log.debug("Type index found at " + i);
-                    break;
-                }
-            }
-            if (dataReducedFile) {
-                getFibres(q);
-            } else {
-                getSpectraOnly(q)
-            }
-        };
-        var getFibres = function(q) {
-            $log.debug("Getting fibres");
-            self.fits.getDataUnit(typeIndex).getColumn("TYPE", function(data) {
-                var ind = 0;
-                for (var i = 0; i < data.length; i++) {
-                    if (data[i] == "P") {
-                        spectra.push({index: ind++, fitsIndex: i, id: i+1, lambda: lambda.slice(0), intensity: [], variance: [], miniRendered: 0, compute: true});
+            $q.all([getIntensityData(),getVarianceData(), getSkyData(), getDetailsData()]).then(function(data) {
+                var intensity = data[0];
+                var variance = data[1];
+                var sky = data[2];
+                var details = data[3];
+
+                var indexesToRemove = [];
+                if (details != null) {
+                    if (details['FIBRE'] != null) {
+                        for (var i = 0; i < details['FIBRE'].length; i++) {
+                            if (details['FIBRE'][i] != 'P') {
+                                indexesToRemove.push(i);
+                            }
+                        }
+                    }
+                    if (details['TYPE'] != null) {
+                        for (var i = 0; i < details['TYPE']; i++) {
+                            if (details['TYPE'][i].toUpperCase() == 'PARKED') {
+                                indexesToRemove.push(i)
+                            }
+                        }
                     }
                 }
-                getNames(q);
+                indexesToRemove.sort()
+                indexesToRemove = _.uniq(indexesToRemove, true);
+
+                var spectraList = []
+                for (var i = 0; i < intensity.length; i++) {
+                    if (indexesToRemove.indexOf(i) != -1 || !useSpectra(intensity[i])) {
+                        continue;
+                    }
+                    var id = i + 1;
+                    var int = intensity[i];
+                    var vari = variance == null ? null : variance[i];
+                    var skyy = sky == null ? null : (sky.length == 1) ? sky[0] : sky[i];
+                    var name = details == null ? "Unknown spectra " + id : details['NAME'][i];
+                    var ra = details == null ? null : details['RA'][i];
+                    var dec = details == null ? null : details['DEC'][i];
+                    var mag = details == null ? null : details['MAGNITUDE'][i];
+                    var type = details == null ? null : details['TYPE'][i];
+
+
+                    var s = new Spectra(id, lambda.slice(0), int, vari, skyy, name, ra, dec, mag, type, originalFilename, drawingService);
+                    s.setCompute(int != null && vari != null);
+                    spectraList.push(s)
+                }
+
+                isLoading = false;
+                spectraService.setSpectra(spectraList);
+                processorService.addSpectraListToQueue(spectraList);
+                $log.debug("Returning FITs object");
+                q.resolve();
+
+            })
+
+
+        };
+
+        var getIntensityData = function() {
+            $log.debug("Getting spectra intensity");
+            var index = getHDUFromName("intensity");
+            if (index == null) {
+                index = primaryIndex;
+            }
+            var q = $q.defer();
+            try {
+                self.fits.getDataUnit(index).getFrame(0, function (data, q) {
+                    var d = Array.prototype.slice.call(data);
+                    var intensity = [];
+                    for (var i = 0; i < data.length / numPoints; i++) {
+                        intensity.push(d.slice(i * numPoints, (i + 1) * numPoints));
+                    }
+                    q.resolve(intensity)
+                }, q);
+            } catch (err) {
+                q.resolve(null);
+            }
+            return q.promise;
+        };
+
+        var getVarianceData = function() {
+            $log.debug("Getting spectra variance");
+            var index = getHDUFromName("variance");
+            var q = $q.defer();
+            if (index == null) {
+                q.resolve(null);
+                return q.promise;
+            }
+            try {
+                self.fits.getDataUnit(index).getFrame(0, function (data, q) {
+                    var d = Array.prototype.slice.call(data);
+                    var variance = [];
+                    for (var i = 0; i < data.length / numPoints; i++) {
+                        variance.push(d.slice(i * numPoints, (i + 1) * numPoints));
+                    }
+                    q.resolve(variance)
+                }, q);
+            } catch (err) {
+                q.resolve(null);
+            }
+            return q.promise;
+        };
+
+        var getSkyData = function() {
+            $log.debug("Getting sky");
+            var index = getHDUFromName("sky");
+            var q = $q.defer();
+            if (index == null) {
+                q.resolve(null);
+                return q.promise;
+            }
+            try {
+                self.fits.getDataUnit(index).getFrame(0, function (data, q) {
+                    var d = Array.prototype.slice.call(data);
+                    var sky = [];
+                    for (var i = 0; i < data.length / numPoints; i++) {
+                        var s = d.slice(i * numPoints, (i + 1) * numPoints);
+                        removeNaNs(s);
+                        normaliseViaShift(s, 0, global.ui.detailed.skyHeight, null);
+                        sky.push(s);
+                    }
+                    q.resolve(sky)
+                }, q);
+            } catch (err) {
+                q.resolve(null);
+            }
+            return q.promise;
+        };
+
+
+        var getDetailsData = function() {
+            $log.debug("Getting details");
+            var index = getHDUFromName("fibres");
+            var q = $q.defer();
+            if (index == null) {
+                q.resolve(null);
+                return q.promise;
+            }
+            try {
+                getFibres(q, index, {});
+            } catch (err) {
+                q.resolve(null);
+            }
+            return q.promise;
+        };
+        var getFibres = function(q, index, cumulative) {
+            $log.debug("Getting fibres");
+            self.fits.getDataUnit(index).getColumn("TYPE", function(data) {
+                cumulative['FIBRE'] = data;
+                getNames(q, index, cumulative);
             });
         };
-        var getNames = function(q) {
+        var getNames = function(q, index, cumulative) {
             $log.debug("Getting names");
-            self.fits.getDataUnit(typeIndex).getColumn("NAME", function(data) {
-                for (var i = 0; i < spectra.length; i++) {
-                    var j = spectra[i].fitsIndex;
-                    spectra[i].name = data[j].replace(/\s+/g, '').replace(/\u0000/g, "");
+            self.fits.getDataUnit(index).getColumn("NAME", function(data) {
+                var names = [];
+                for (var i = 0; i < data.length; i++) {
+                    names.push(data[i].replace(/\s+/g, '').replace(/\u0000/g, ""));
                 }
-                getRA(q);
+                cumulative['NAME'] = names;
+                getRA(q, index, cumulative);
             });
         };
-        var getRA = function(q) {
+        var getRA = function(q, index, cumulative) {
             $log.debug("Getting RA");
-            self.fits.getDataUnit(typeIndex).getColumn("RA", function(data) {
-                for (var i = 0; i < spectra.length; i++) {
-                    var j = spectra[i].fitsIndex;
-                    spectra[i].ra = data[j];
-                }
-                getDec(q);
+            self.fits.getDataUnit(index).getColumn("RA", function(data) {
+                cumulative['RA'] = data;
+                getDec(q, index, cumulative);
             });
         };
-        var getDec = function(q) {
+        var getDec = function(q, index, cumulative) {
             $log.debug("Getting DEC");
-            self.fits.getDataUnit(typeIndex).getColumn("DEC", function(data) {
-                for (var i = 0; i < spectra.length; i++) {
-                    var j = spectra[i].fitsIndex;
-                    spectra[i].dec = data[j];
-                }
-                getMagnitudes(q);
+            self.fits.getDataUnit(index).getColumn("DEC", function(data) {
+                cumulative['DEC'] = data;
+                getMagnitudes(q, index, cumulative);
             });
         };
 
-        var getMagnitudes = function(q) {
+        var getMagnitudes = function(q, index, cumulative) {
             $log.debug("Getting magnitude");
-            self.fits.getDataUnit(typeIndex).getColumn("MAGNITUDE", function(data) {
-                for (var i = 0; i < spectra.length; i++) {
-                    var j = spectra[i].fitsIndex;
-                    spectra[i].magnitude = data[j];
-                }
-                getComments(q);
+            self.fits.getDataUnit(index).getColumn("MAGNITUDE", function(data) {
+                cumulative['MAGNITUDE'] = data;
+                getComments(q, index, cumulative);
             });
         };
-        var getComments = function(q) {
+        var getComments = function(q, index, cumulative) {
             $log.debug("Getting comment");
-            self.fits.getDataUnit(typeIndex).getColumn("COMMENT", function(data) {
+            self.fits.getDataUnit(index).getColumn("COMMENT", function(data) {
                 global.data.types.length = 0;
-                for (var i = 0; i < spectra.length; i++) {
-                    var j = spectra[i].fitsIndex;
-                    spectra[i].type = data[j].split(' ')[0];
-                    spectra[i].type = spectra[i].type.trim().replace(/\W/g, '');
-                    if (spectra[i].type == 'Parked') {
-                        spectra.splice(i,1);
-                        for (var k = i; k < spectra.length; k++) {
-                            spectra[k].index--;
-                        }
-                    } else if (global.data.types.indexOf(spectra[i].type) == -1) {
-                        global.data.types.push(spectra[i].type);
+                var ts = [];
+                for (var i = 0; i < data.length; i++) {
+                    var t = data[i].split(' ')[0];
+                    t = t.trim().replace(/\W/g, '');
+                    ts.push(t);
+                    if (t != 'Parked' && global.data.types.indexOf(t) == -1) {
+                        global.data.types.push(t);
                     }
                 }
-                getSky(q);
+                cumulative['TYPE'] = ts;
+                q.resolve(cumulative);
             });
         };
-        var getSky = function(q) {
-            $log.debug("Getting Sky");
-            self.fits.getDataUnit(skyIndex).getFrame(0, function(data) {
-                var d = Array.prototype.slice.call(data);
-                if (isCoadd) {
-                    for (var i = 0; i < spectra.length; i++) {
-                        spectra[i].sky = d.slice((spectra[i].id-1) * numPoints, (spectra[i].id ) * numPoints);
-                        removeNaNs(spectra[i].sky);
-                        normaliseViaShift(spectra[i].sky, 0, global.ui.detailed.skyHeight, null);
-                        spectra[i].skyAverage = null;
-                    }
-                } else {
-                    sky = d;
-                    removeNaNs(sky);
-                    normaliseViaShift(sky, 0, global.ui.detailed.skyHeight, null);
-                    skyAverage = null;
-                }
-                getSpectra(q);
-            });
-        };
-        var getSpectra = function(q) {
-            $log.debug("Getting spectra intensity");
-            self.fits.getDataUnit(primaryIndex).getFrame(0, function(data) {
-                var d = Array.prototype.slice.call(data);
-                for (var i = 0; i < spectra.length; i++) {
-                    spectra[i].intensity = d.slice((spectra[i].id-1) * numPoints, (spectra[i].id ) * numPoints);
-                }
-                getVariances(q);
-            })
-        };
-        var getSpectraOnly = function(q) {
-            $log.debug("Only getting spectra");
-            self.fits.getDataUnit(primaryIndex).getFrame(0, function(data) {
-                var numData = 1;
-                if (self.fits.getHeader(0).get('NAXIS') > 1) {
-                    numData = self.fits.getHeader(0).get('NAXIS2')
-                }
-                var name = numData == 1 ? self.fits.getHeader(0).get('IRAFNAME') : null
-                if (name == null) {
-                    name == "Unknown";
-                }
-                var d = Array.prototype.slice.call(data);
-                for (var i = 0; i < numData; i++) {
-                    spectra.push({index: i, fitsIndex: i, id: i+1, lambda: lambda.slice(0), intensity: d.slice(i * numPoints, (i + 1) * numPoints),
-                        variance: [], miniRendered: 0, sky: [], skyAverage: null, name: name, ra: -1.0, dec: -1.0, magnitude: -1.0, type: 'NA', compute: false});
-                }
-                convertToUsableObjects(q);
-            });
-        };
-        var getVariances = function(q) {
-            $log.debug("Getting spectra variance");
-            self.fits.getDataUnit(varianceIndex).getFrame(0, function(data) {
-                var d = Array.prototype.slice.call(data);
-                for (var i = 0; i < spectra.length; i++) {
-                    spectra[i].variance = d.slice((spectra[i].id-1) * numPoints, (spectra[i].id ) * numPoints);
-                }
-                convertToUsableObjects(q);
-            });
-        };
-        var useSpectra = function(spectra) {
+
+        var useSpectra = function(intensity) {
             var c = 0;
-            for (var i = 0; i < spectra.intensity.length; i++) {
-                if (isNaN(spectra.intensity[i])) {
+            for (var i = 0; i < intensity.length; i++) {
+                if (isNaN(intensity[i])) {
                     c += 1;
                 }
             }
-            if (c > 0.9 * spectra.intensity.length) {
+            if (c > 0.9 * intensity.length) {
                 return false;
             }
             return true;
         };
-        var convertToUsableObjects = function(q) {
-            $log.debug("Creating javascript classes");
-            var spectraList = [];
-            for (var j = 0; j < spectra.length; j++) {
-                if (useSpectra(spectra[j])) {
-                    var s = new Spectra(spectra[j].id, lambda.slice(0), spectra[j].intensity, spectra[j].variance,
-                        isCoadd ? spectra[j].sky : sky, isCoadd ? spectra[j].skyAverage : skyAverage, spectra[j].name, spectra[j].ra, spectra[j].dec,
-                        spectra[j].magnitude, spectra[j].type, originalFilename, drawingService);
-                    s.setCompute(spectra[j].compute)
-                    spectraList.push(s);
-                }
-            }
-            isLoading = false;
-            spectraService.setSpectra(spectraList);
-            processorService.addSpectraListToQueue(spectraList);
-            $log.debug("Returning FITs object");
-            q.resolve();
-        }
+
 
     }])
     .service('drawingService', ['global', 'templatesService', function(global, templatesService) {
