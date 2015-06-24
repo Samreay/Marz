@@ -704,6 +704,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     c.stroke();
                 };
                 var renderPlots = function(bound) {
+                    c.lineWidth = 0.7;
                     for (var j = 0; j < data.length; j++) {
                         c.beginPath();
                         c.strokeStyle = data[j].colour;
@@ -817,6 +818,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                             c.globalAlpha = 1;
                         }
                     }
+                    c.lineWidth = 1;
                 };
                 var drawZoomOut = function(bound) {
                     if (!bound.callout) {
