@@ -49,6 +49,10 @@ body {
     width: 213px;
 }
 
+.sidebarSmall #sidebar {
+    width: 55px;
+}
+
 #afterSideBarContainer {
     position: absolute;
     top: 0;
@@ -56,6 +60,9 @@ body {
     left: 213px;
     right: 0;
     overflow: auto;
+}
+.sidebarSmall #afterSideBarContainer {
+    left: 55px;
 }
 
 #footer {

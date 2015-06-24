@@ -1172,7 +1172,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     smoothData('data');
                     redraw();
                 });
-                $scope.$watchCollection('[detailed.width, detailed.height, detailed.spectralLines]', function() {
+                $scope.$watchCollection('[detailed.width, detailed.height, detailed.spectralLines, ui.sidebarSmall]', function() {
                     redraw();
                 });
             }

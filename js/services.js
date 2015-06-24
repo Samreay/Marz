@@ -7,6 +7,7 @@ angular.module('servicesZ', ['dialogs.main'])
             ui: {
                 active: null,
                 graphicalLayout: true,
+                sidebarSmall: false,
                 dataSelection: {
                     processed: true,
                     matched: true,

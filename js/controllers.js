@@ -23,11 +23,14 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
         };
     }])
     .controller('MainController', ['$scope', 'spectraService', 'global', '$state', '$timeout', 'spectraLineService', 'browserService', function($scope, spectraService, global, $state, $timeout, spectraLineService, browserService) {
+        $scope.makeSmall = function() {
+            return global.ui.sidebarSmall && $scope.isDetailedView();
+        };
         window.onbeforeunload = function(){
             return 'Please ensure changes are all saved before leaving.';
         };
         $scope.getQOPLabel = function(qop) {
-            var string = "label label-"
+            var string = "label label-";
             if (qop == null) {
                 return string + "default";
             }
@@ -768,8 +771,8 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             })
         }
     }])
-    .controller('SidebarController', ['$scope', 'spectraService', 'fitsFile', '$state', 'global', 'resultsLoaderService', '$timeout', 'templatesService',
-        function($scope, spectraService, fitsFile, $state, global, resultsLoaderService, $timeout, templatesService) {
+    .controller('SidebarController', ['$scope', 'spectraService', 'fitsFile', '$state', 'global', 'resultsLoaderService', '$timeout', 'templatesService', '$window',
+        function($scope, spectraService, fitsFile, $state, global, resultsLoaderService, $timeout, templatesService, $window) {
         $scope.ui = global.ui;
         $scope.data = global.data;
 
@@ -794,6 +797,17 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
                 $scope.types.push({value: type, label: type});
             });
         });
+
+        $scope.getButtonLabel = function(qop) {
+            var labels = {4: ['Great (4)', '4'], 3: ['Good (3)', '3'], 2: ['Possible (2)', '2'], 1: ['Unknown (1)', '1'], 6: ['It\'s a star! (6)', '6']};
+            return labels[qop][$scope.ui.sidebarSmall ? 1 : 0]
+        };
+        $scope.getContractButtonLabel = function() {
+            return $scope.ui.sidebarSmall ? ">>" : "Contract sidebar";
+        };
+        $scope.toggleSmall = function() {
+            $scope.ui.sidebarSmall = !$scope.ui.sidebarSmall;
+        };
         $scope.redshifts = [
             {value: '*', label: 'All redshifts'},
             {value: '-0.002:0.005', label: 'Stellar redshifts [-0.002:0.1]'},

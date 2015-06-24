@@ -63,7 +63,7 @@
     <script src="js/router.js"></script>
     <script src="js/app.js"></script>
 
-    <div class="filler" ng-cloak ng-controller="MainController">
+    <div class="filler" ng-class="{sidebarSmall: makeSmall()}" ng-cloak ng-controller="MainController">
         <alert type="danger" ng-if="!isSupportedBrowser()" class="browser">This browser is not fully supported. Consider switching to Chrome.</alert>
         <ng-include src="'templates/navbar.html'"></ng-include>
         <div id="underNavContainer">

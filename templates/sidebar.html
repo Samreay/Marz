@@ -1,7 +1,7 @@
 <div class="filler light-grey-background" ng-controller="SidebarController">
     <div class="spacing">
         <div id="sidebar-wrapper">
-            <div dropzone>
+            <div dropzone ng-if="!showSave() || !ui.sidebarSmall">
                 <div ng-if="isWaitingDrop()">
 
                     <h4>{{getDropText()}}</h4>
@@ -13,6 +13,9 @@
                     Browse <input type="file" id="files" name="files[]" on-files-selected/>
                 </span>
 
+            </div>
+            <div class="top-spacing" ng-if="showSave()">
+                <button class="btn btn-block btn-sm btn-default" ng-click="toggleSmall()">{{getContractButtonLabel()}}</button>
             </div>
             <div class="top-spacing" ng-if="showTabular()">
                 <b>Display Data As:</b>
@@ -35,14 +38,14 @@
                 <select class="input-sm form-control" ng-model="filters['qopFilter']" required ng-options="opt.value as opt.label for opt in qops"></select>
             </div>
             <div ng-if="showSave()" class="top-spacing">
-                <b>Save result:</b>
-                <button class="btn btn-block btn-sm btn-success" ng-click="saveManual(4)" tooltip="Saved!"  tooltip-append-to-body="true" tooltip-trigger="focus" tooltip-placement="right">Great (4)</button>
-                <button class="btn btn-block btn-sm btn-info" ng-click="saveManual(3)" tooltip="Saved!"  tooltip-append-to-body="true" tooltip-trigger="focus" tooltip-placement="right">Good (3)</button>
-                <button class="btn btn-block btn-sm btn-warning" ng-click="saveManual(2)" tooltip="Saved!"  tooltip-append-to-body="true" tooltip-trigger="focus" tooltip-placement="right">Possible (2)</button>
-                <button class="btn btn-block btn-sm btn-danger" ng-click="saveManual(1)" tooltip="Saved!"  tooltip-append-to-body="true" tooltip-trigger="focus" tooltip-placement="right">Unknown (1)</button>
-                <button class="btn btn-block btn-sm btn-primary" ng-click="saveManual(6)" tooltip="Saved!"  tooltip-append-to-body="true" tooltip-trigger="focus" tooltip-placement="right">It's a star! (6)</button>
+                <b>Save QOP:</b>
+                <button class="btn btn-block btn-sm btn-success" ng-click="saveManual(4)" tooltip="Saved!"  tooltip-append-to-body="true" tooltip-trigger="focus" tooltip-placement="right">{{getButtonLabel(4)}}</button>
+                <button class="btn btn-block btn-sm btn-info" ng-click="saveManual(3)" tooltip="Saved!"  tooltip-append-to-body="true" tooltip-trigger="focus" tooltip-placement="right">{{getButtonLabel(3)}}</button>
+                <button class="btn btn-block btn-sm btn-warning" ng-click="saveManual(2)" tooltip="Saved!"  tooltip-append-to-body="true" tooltip-trigger="focus" tooltip-placement="right">{{getButtonLabel(2)}}</button>
+                <button class="btn btn-block btn-sm btn-danger" ng-click="saveManual(1)" tooltip="Saved!"  tooltip-append-to-body="true" tooltip-trigger="focus" tooltip-placement="right">{{getButtonLabel(1)}}</button>
+                <button class="btn btn-block btn-sm btn-primary" ng-click="saveManual(6)" tooltip="Saved!"  tooltip-append-to-body="true" tooltip-trigger="focus" tooltip-placement="right">{{getButtonLabel(6)}}</button>
             </div>
-            <div ng-if="showSave()" class="top-spacing">
+            <div class="top-spacing" ng-if="!showSave() || !ui.sidebarSmall">
                 <b>Stepping options:</b>
                 <div class="checkbox checkbox-info checkbox-circle" style="margin-left: 5px;">
                     <input type="checkbox" id="checkbox1" ng-model="ui.detailed.onlyQOP0">
@@ -52,7 +55,7 @@
                 </div>
             </div>
         </div>
-        <div id="sidebar-list" class="top-spacing lined scroll-y" resize="windowResized" ng-style="listStyle()">
+        <div ng-if="!showSave() || !ui.sidebarSmall" id="sidebar-list" class="top-spacing lined scroll-y" resize="windowResized" ng-style="listStyle()">
             <div ng-click="setActive(spectra)" ng-dblclick="goToDetailed(spectra)" ng-repeat="spectra in data.spectra" class="left-padding-small spectra-list-item" ng-class="{activeSelect:isActive(spectra)}" ng-class-even="'darker'">
                 <p>
                     <strong class="right-padding-small">{{spectra.id}}</strong>{{getAnalysedText(spectra)}}
