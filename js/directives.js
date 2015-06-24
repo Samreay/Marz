@@ -704,7 +704,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     c.stroke();
                 };
                 var renderPlots = function(bound) {
-                    c.lineWidth = 0.7;
+                    c.lineWidth = 0.6;
                     for (var j = 0; j < data.length; j++) {
                         c.beginPath();
                         c.strokeStyle = data[j].colour;
