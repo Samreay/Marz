@@ -1097,8 +1097,17 @@ function matchTemplate(template, fft) {
 }
 
 function fitAroundIndex(data, index) {
-    var d = data.slice(index - 1, index + 2).map(function(v,i) { return [i - 1,v]; });
-    var e = polynomial(d).equation;
+    var window = 3;
+    var e = null;
+    while (window < 10) {
+        var d = data.slice(index - window, index + window + 1).map(function(v,i) { return [i - 1,v]; });
+        e = polynomial(d).equation;
+        if (e[2] < 0) {
+            break;
+        } else {
+            window++;
+        }
+    }
     return index + (-e[1]/(2*e[2]));
 }
 
