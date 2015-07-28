@@ -194,7 +194,7 @@ self.coalesceResults = function(templateResults, type, intensity, fft, quasarFFT
         var index = fitAroundIndex(topTen[k].xcor, topTen[k].index);
         var res = getRedshiftForNonIntegerIndex(templateManager.getTemplateFromId(topTen[k].templateId), index);
         topTen[k] = {
-            z:  Math.round(res * 1e4) / 1e4,
+            z:  Math.round(res * 1e5) / 1e5,
             index: index,
             templateId: topTen[k].templateId,
             value: topTen[k].value

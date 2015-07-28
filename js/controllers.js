@@ -182,14 +182,14 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             {key: 'left', label: 'left', controller: "detailed", description: '[Detailed screen] Decrements redshift by 0.0001', fn: function($scope) {
                 var z = parseFloat(global.ui.detailed.redshift);
                 if (z > global.ui.detailed.bounds.redshiftMin) {
-                    global.ui.detailed.redshift = (z - 0.0001).toFixed(4);
+                    global.ui.detailed.redshift = (z - 0.0001).toFixed(5);
                 }
                 $scope.$apply();
             }},
             {key: 'right', label: 'right', controller: "detailed", description: '[Detailed screen] Increments redshift by 0.001', fn: function($scope) {
                 var z = parseFloat(global.ui.detailed.redshift);
                 if (z < global.ui.detailed.bounds.redshiftMax) {
-                    global.ui.detailed.redshift = (z + 0.0001).toFixed(4);
+                    global.ui.detailed.redshift = (z + 0.0001).toFixed(5);
                 }
                 $scope.$apply();
             }},
@@ -297,7 +297,7 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             } else if ($scope.sortField == 'finalZ') {
                 result = spectra.getFinalRedshift();
                 if (result != null) {
-                    result = result.toFixed(4).pad(6);
+                    result = result.toFixed(5).pad(6);
                 } else {
                     if ($scope.sortOrder) {
                         result = "zzzzz";
@@ -412,7 +412,7 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
                 var results = matchTemplate(template, ($scope.fitTID == '12' ? $scope.ui.active.quasarFFT : $scope.ui.active.fft));
                 var currentZ = parseFloat($scope.fitZ);
                 var bestZ = getFit(template, results.xcor, currentZ);
-                $scope.ui.detailed.redshift = bestZ.toFixed(4);
+                $scope.ui.detailed.redshift = bestZ.toFixed(5);
             }
             $scope.waitingOnFit = false;
         };
@@ -589,7 +589,7 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
                 var currentWavelength = spectraLineService.getFromID(id).wavelength;
                 var desiredWavelength = $scope.settings.spectraFocus;
                 var z = desiredWavelength/currentWavelength - 1;
-                $scope.settings.redshift = z.toFixed(4);
+                $scope.settings.redshift = z.toFixed(5);
                 $scope.settings.oldRedshift = $scope.settings.redshift;
             }
         };
@@ -872,7 +872,7 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
         };
         $scope.getAnalysedText = function(spectra) {
             if (spectra.hasRedshift()) {
-                return "z = " + spectra.getFinalRedshift().toFixed(4);
+                return "z = " + spectra.getFinalRedshift().toFixed(5);
             } else {
                 return "Not analysed";
             }

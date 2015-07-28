@@ -340,7 +340,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     redraw()
                 };
                 var xcorEvent = function(z) {
-                    $scope.detailed.redshift = z.toFixed(4);
+                    $scope.detailed.redshift = z.toFixed(5);
                     $scope.$apply();
                 };
                 var canvasMouseMove = function(loc) {

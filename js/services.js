@@ -654,7 +654,7 @@ angular.module('servicesZ', ['dialogs.main'])
                 {name: "AutoTID", value: spectra.getBestAutomaticResult()? spectra.getBestAutomaticResult().templateId : "0"},
                 {name: "AutoTN", value:  templatesService.getNameForTemplate(spectra.getBestAutomaticResult() ? spectra.getBestAutomaticResult().templateId : "0")},
                 {name: "AutoZ", value: spectra.getBestAutomaticResult() ? spectra.getBestAutomaticResult().z.toFixed(5) : "0"},
-                {name: "AutoXCor", value: spectra.getBestAutomaticResult() ? spectra.getBestAutomaticResult().value.toFixed(4) : "0"},
+                {name: "AutoXCor", value: spectra.getBestAutomaticResult() ? spectra.getBestAutomaticResult().value.toFixed(5) : "0"},
                 {name: "FinTID", value: spectra.getFinalTemplateID() ? spectra.getFinalTemplateID() : "0"},
                 {name: "FinTN", value: templatesService.getNameForTemplate(spectra.getFinalTemplateID())},
                 {name: "FinZ", value: spectra.getFinalRedshift().toFixed(5)},
