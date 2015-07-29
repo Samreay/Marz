@@ -392,6 +392,8 @@ function linearScaleFactor(start, end, redshift, num) {
  * Linearly interpolates a data set of xvals and yvals into the new x range found in xinterp.
  * The interpolated y vals are returned, not modified in place.
  *
+ * Assumes both xvals and xinterp are sorted.
+ *
  * This function will NOT interpolate to zero the interpolation values do not overlap
  * @param xinterp
  * @param xvals
@@ -399,6 +401,23 @@ function linearScaleFactor(start, end, redshift, num) {
  * @returns {Array} Array of interpolated y values
  */
 function interpolate(xinterp, xvals, yvals) {
+    var index = 0;
+    var result = [];
+    var diff = 0;
+    var bottom = 0;
+    for (var i = 0; i < xinterp.length; i++) {
+        index = findCorrespondingFloatIndex(xvals, xinterp[i], bottom);
+        bottom = Math.floor(index);
+        diff = index - bottom;
+        if (diff == 0) {
+            result.push(yvals[bottom])
+        } else {
+            result.push((yvals[bottom + 1] - yvals[bottom]) * diff + yvals[bottom])
+        }
+    }
+    return result;
+}
+function interpolate2(xinterp, xvals, yvals) {
     if (xinterp == null || xinterp.length < 2) {
         console.log("Don't use interpolate on a null, empty or single element array");
         return null;
@@ -447,6 +466,7 @@ function findCorrespondingFloatIndex(xs, x, optionalStartIndex) {
             return (i - 1) + (x - xs[i - 1])/(xs[i] - xs[i - 1]);
         }
     }
+    return xs.length - 1;
 }
 
 /**
@@ -1100,7 +1120,7 @@ function fitAroundIndex(data, index) {
     var window = 3;
     var e = null;
     while (window < 10) {
-        var d = data.slice(index - window, index + window + 1).map(function(v,i) { return [i - 1,v]; });
+        var d = data.slice(index - window, index + window + 1).map(function(v,i) { return [i - window,v]; });
         e = polynomial(d).equation;
         if (e[2] < 0) {
             break;
@@ -1112,8 +1132,8 @@ function fitAroundIndex(data, index) {
 }
 
 function getRedshiftForNonIntegerIndex(t, index) {
-    var gap = t.lambda[1] - t.lambda[0];
+    var gap =  (t.lambda[t.lambda.length - 1] - t.lambda[0]) / (t.lambda.length - 1);
     var num = t.lambda.length / 2;
-    var z = (Math.pow(10, (index + t.startZIndex - num) * gap) * (1 + t.redshift)) - 1;
+    var z = (Math.pow(10, (index + t.startZIndex - num + 1) * gap) * (1 + t.redshift)) - 1;
     return z;
 }

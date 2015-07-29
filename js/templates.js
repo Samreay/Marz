@@ -294,10 +294,12 @@ TemplateManager.prototype.shiftTemplate = function(t) {
     t.fft.forward(t.spec);
     t.fft.conjugate();
 
-    var gap = t.lambda[1] - t.lambda[0];
+    var gap = (t.lambda[t.lambda.length - 1] - t.lambda[0]) / (t.lambda.length - 1);
     var num = t.lambda.length / 2;
+    //var l = t.lambda.length * 1.0;
+    //var s = l / (l - 1);
     t.zs = t.lambda.map(function(x,i) {
-        return (Math.pow(10, (i - num) * gap) * (1 + t.redshift)) - 1
+        return (Math.pow(10, (i - num + 1) * gap) * (1 + t.redshift)) - 1
     });
 
     t.startZIndex = null;

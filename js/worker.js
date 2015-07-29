@@ -86,6 +86,7 @@ self.matchTemplates = function(lambda, intensity, variance, type) {
 //    console.log("lambda=" + JSON.stringify(lambda) + ";\nintensity=" + JSON.stringify(intensity) + ";\nvariance=" + JSON.stringify(variance) + ";");
 
     // As the quasar spectra is matched differently, Ill create a duplicate for the quasar
+    //var start = new Date().getTime();
     var quasarIntensity = intensity.slice();
     var quasarVariance = variance.slice();
     rollingPointMean(quasarIntensity, 3, 0.9);
@@ -105,7 +106,7 @@ self.matchTemplates = function(lambda, intensity, variance, type) {
 
     taperSpectra(intensity);
     normalise(intensity);
-
+    //console.log("Preprocess takes " + (new Date().getTime() - start)); start = new Date().getTime();
     // This rebins (oversampling massively) into an equispaced log array. To change the size and range of
     // this array, have a look at the config.js file.
     var result = convertLambdaToLogLambda(lambda, intensity, arraySize, false);
@@ -118,6 +119,7 @@ self.matchTemplates = function(lambda, intensity, variance, type) {
     fft.forward(intensity);
     var quasarFFT = new FFT(quasarIntensity.length, quasarIntensity.length);
     quasarFFT.forward(quasarIntensity);
+    //console.log("Expansion and FFT takes " + (new Date().getTime() - start)); start = new Date().getTime();
 
     // For each template, match the appropriate transform
     var templateResults = templateManager.templates.map(function(template) {
@@ -127,7 +129,11 @@ self.matchTemplates = function(lambda, intensity, variance, type) {
             return matchTemplate(template, fft);
         }
     });
-    return self.coalesceResults(templateResults, type, subtracted, fft, quasarFFT);
+    //console.log("Template matching takes " + (new Date().getTime() - start)); start = new Date().getTime();
+    var coalesced = self.coalesceResults(templateResults, type, subtracted, fft, quasarFFT);
+    //console.log("Coalesced takes " + (new Date().getTime() - start)); start = new Date().getTime();
+
+    return coalesced
 };
 
 
