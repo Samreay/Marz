@@ -1134,6 +1134,6 @@ function fitAroundIndex(data, index) {
 function getRedshiftForNonIntegerIndex(t, index) {
     var gap =  (t.lambda[t.lambda.length - 1] - t.lambda[0]) / (t.lambda.length - 1);
     var num = t.lambda.length / 2;
-    var z = (Math.pow(10, (index + t.startZIndex - num + 1) * gap) * (1 + t.redshift)) - 1;
+    var z = (Math.pow(10, (index + t.startZIndex - num) * gap) * (1 + t.redshift)) - 1;
     return z;
 }
