@@ -18,7 +18,7 @@ input::selection {
     }
 }
 .navbar-form.navbar-left.file-completion {
-    width: calc(100% - 700px);
+    width: calc(100% - 750px);
 }
 .progress.navbar-progress {
     width: calc(100% - 140px);
