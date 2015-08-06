@@ -642,6 +642,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     c.stroke();
                 };
                 var plotZLine = function(bound) {
+                    c.save();
                     var z = parseFloat($scope.detailed.redshift)
                     if (z < bound.xMin || z > bound.xMax) {
                         return;
@@ -662,7 +663,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     c.moveTo(x, bound.top);
                     c.lineTo(x, bound.top + bound.height);
                     c.stroke();
-                    c.setLineDash([0]);
+                    c.setLineDash([]);
                     c.textAlign = 'left';
                     c.textBaseline = 'top';
                     c.font = labelFont;
@@ -671,7 +672,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     x = Math.max(x, bound.left + 40);
                     x = Math.min(x, bound.left + bound.width - 120);
                     c.fillText(xc.toFixed(3) + " @ z=" + $scope.detailed.redshift, x, 0);
-
+                    c.restore();
 
                 };
                 var plotXcorData = function() {
@@ -830,6 +831,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                 var plotSpectralLines = function(bound) {
                     if (!$scope.detailed.spectralLines) return;
                     var lines = spectraLineService.getAll();
+                    c.save();
                     c.strokeStyle = spectralLineColour;
                     c.fillStyle = spectralLineColour;
                     c.textAlign = 'center';
@@ -867,7 +869,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                                 c.lineTo(x, bound.top + bound.height);
                                 c.stroke();
                                 c.strokeStyle = spectralLineColour;
-                                c.setLineDash([0]);
+                                c.setLineDash([]);
                                 c.clearRect(x - 17, bound.top - 12 + h - staggerHeight, 35, staggerHeight - 1);
                                 /*c.beginPath();
                                 c.moveTo(x, bound.top - 5 + h);
@@ -885,6 +887,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                             }
                         }
                     }
+                    c.restore();
                 };
                 var drawFocus = function(bound) {
                     if (focusDataX == null || focusDataX == null) return;
