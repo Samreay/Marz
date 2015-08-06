@@ -437,9 +437,9 @@ angular.module('servicesZ', ['dialogs.main'])
             spectra.isProcessed = true;
 
             if (!self.isProcessing() && self.isFinishedMatching()) {
-                if (downloadAutomatically) {
-                    resultsGeneratorService.downloadResults();
-                }
+                //if (downloadAutomatically) {
+                //    resultsGeneratorService.downloadResults();
+                //}
                 if (global.data.fits.length > 0) {
                     global.data.fits.shift();
                 }
@@ -448,6 +448,7 @@ angular.module('servicesZ', ['dialogs.main'])
         self.setMatchedResults = function(results) {
             var spectra = data.spectraHash[results.id];
             if (spectra == null || spectra.name != results.name) return;
+            var prior = spectra.automaticResults;
             spectra.automaticResults = results.results.coalesced;
 //            console.log(JSON.stringify(results.results.coalesced).replace(/},{/g,"}\n{"));
             spectra.templateResults = results.results.templates;
@@ -470,7 +471,8 @@ angular.module('servicesZ', ['dialogs.main'])
             if (saveAutomatically) {
                 localStorageService.saveSpectra(spectra);
             }
-            if (downloadAutomatically && self.isFinishedMatching()) {
+            if (downloadAutomatically && self.isFinishedMatching() && !self.isProcessing() && prior == null) {
+                console.log("Downloading from matching");
                 resultsGeneratorService.downloadResults();
             }
             if (global.ui.active == spectra) {
@@ -588,7 +590,12 @@ angular.module('servicesZ', ['dialogs.main'])
     }])
     .service('resultsGeneratorService', ['global', 'templatesService', 'personalService', function(global, templatesService, personalService) {
         var self = this;
+        self.downloading = false;
         self.downloadResults = function() {
+            if (self.downloading) {
+                return;
+            }
+            self.downloading = true;
             personalService.ensureInitials().then(function() {
                 var results = self.getResultsCSV();
                 console.log(results);
@@ -596,6 +603,9 @@ angular.module('servicesZ', ['dialogs.main'])
                     var blob = new window.Blob([results], {type: 'text/plain'});
                     saveAs(blob, self.getFilename());
                 }
+                self.downloading = false;
+            }, function() {
+                self.downloading = false;
             });
         };
         self.getFilename = function() {
