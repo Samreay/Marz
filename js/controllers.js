@@ -824,13 +824,13 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
         $scope.numDrag = 0;
         $scope.addFiles = function(files) {
             for (var i = 0; i < files.length; i++) {
-                if (!files[i].name.endsWith('fits')) {
+                if (!files[i].name.endsWith('fits') && !files[i].name.endsWith('fit')) {
                     resultsLoaderService.loadResults(files[i]);
                 }
             }
             var first = true;
             for (var i = 0; i < files.length; i++) {
-                if (files[i].name.endsWith('fits')) {
+                if (files[i].name.endsWith('fits') || files[i].name.endsWith('fit')) {
                     $scope.numDrag++;
                     if (first) {
                         first = false;
