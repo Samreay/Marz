@@ -627,16 +627,16 @@ function removeCosmicRay(intensity, variance) {
                 continue;
             }
             var maxNeighbour = 0;
-            if (i > 0) {
-                maxNeighbour = Math.abs(intensity[i - 1] - intensity[i]);
+            if (i > 1) {
+                maxNeighbour = Math.abs(intensity[i - 2] - intensity[i]);
             }
-            if (i < intensity.length - 1) {
-                maxNeighbour = Math.max(maxNeighbour, Math.abs(intensity[i + 1] - intensity[i]));
+            if (i < intensity.length - 2) {
+                maxNeighbour = Math.max(maxNeighbour, Math.abs(intensity[i + 2] - intensity[i]));
             }
             if (maxNeighbour > deviationFactor * rms) {
                 var r = 0;
                 var c = 0;
-                for (var j = i - pointCheck; j < (i + 1 + pointCheck); j++) {
+                for (var j = i - 2*numPoints; j < (i + 1 + 2*numPoints); j++) {
                     if (j >= 0 && j < intensity.length && Math.abs(intensity[j]-mean) < rms) {
                         c++;
                         r += intensity[j];
@@ -645,8 +645,13 @@ function removeCosmicRay(intensity, variance) {
                 if (c != 0) {
                     r = r / c;
                 }
-                intensity[i] = r;
-                variance[i] = max_error;
+                for (var k = i-numPoints; k < i+numPoints + 1; k++) {
+                    if (k > 0 && k < (intensity.length - 1)) {
+                        intensity[k] = r;
+                        variance[k] = max_error;
+                    }
+
+                }
             }
         }
     }

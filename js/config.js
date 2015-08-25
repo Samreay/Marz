@@ -7,7 +7,6 @@ var max_error = 1e10;
 // CONFIG FOR COSMIC RAY DETECTION
 var cosmicIterations = 2;   // How many iterations to do
 var deviationFactor = 30;   // How many std devs from the mean before clipping
-var pointCheck = 2;         // Checks deviation not from mean, but from a certain number of pixels away
 
 // CONFIG FOR POLY FIT REJECT
 var polyFitInteractions = 15;
