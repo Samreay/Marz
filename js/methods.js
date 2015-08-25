@@ -546,6 +546,30 @@ function badIndex(intensity, variance, index) {
 }
 
 /**
+ * Inline replaces NaNs with zero values at the start and end of the spectra
+ * @param intensity
+ */
+function zeroPadStartAndEnd(intensity, variance) {
+
+    for (var i = 0; i < intensity.length; i++) {
+        if (isNaN(intensity[i]) || intensity[i] == null) {
+            intensity[i] = 0;
+            variance[i] = 9e19;
+        } else {
+            break;
+        }
+    }
+    for (var i = intensity.length - 1; i >= 0; i--) {
+        if (isNaN(intensity[i]) || intensity[i] == null) {
+            intensity[i] = 0;
+            variance[i] = 9e19;
+        } else {
+            break;
+        }
+    }
+}
+
+/**
  * Replaces NaNs with an average over numPoints to either side.
  * Sets the variance to null so the point isn't counted.
  * @param intensity
@@ -723,17 +747,7 @@ function addConstant(data, add) {
         data[i] += add;
     }
 }
-/*
-function getMin(data) {
-    var min = 9e19;
-    for (var i = 0; i < data.length; i++) {
-        if (data[i] < min) {
-            min = data[i];
-        }
-    }
-    return min;
-}
-*/
+
 function addMinMultiple(data, multiple) {
     var min = getMin(data);
     addConstant(data, min * multiple);
@@ -766,8 +780,6 @@ function applySpectralLineWeighting(lambda, spec) {
         spec[m] *= Math.min(1, weights[m]);
     }
 
-//    console.log("weights = " + JSON.stringify(weights) + ";");
-//    console.log("spec = " + JSON.stringify(spec) + ";");
 }
 
 function medianFilter(data, window) {

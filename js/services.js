@@ -1025,6 +1025,14 @@ angular.module('servicesZ', ['dialogs.main'])
             }
             return null;
         };
+        /**
+         * This function takes a promise object and resolves it on successful loading of a FITs file.
+         *
+         * The function will construct the wavelength array from header values, and then attempt to extract
+         * intensity, variance, sky and fibre data.
+         *
+         * @param q
+         */
         var parseFitsFile = function(q) {
             $log.debug("Getting headers");
             var header0 = self.fits.getHDU(0).header;
@@ -1072,10 +1080,10 @@ angular.module('servicesZ', ['dialogs.main'])
                         }
                     }
                 }
-                indexesToRemove.sort()
+                indexesToRemove.sort();
                 indexesToRemove = _.uniq(indexesToRemove, true);
 
-                var spectraList = []
+                var spectraList = [];
                 for (var i = 0; i < intensity.length; i++) {
                     if (indexesToRemove.indexOf(i) != -1 || !useSpectra(intensity[i])) {
                         continue;
@@ -1106,7 +1114,12 @@ angular.module('servicesZ', ['dialogs.main'])
 
 
         };
-
+        /**
+         * Attempts to extract the spectrum intensity data from the right extension.
+         * On failure, will return null and not reject the deferred promise.
+         *
+         * @returns {deferred.promise}
+         */
         var getIntensityData = function() {
             $log.debug("Getting spectra intensity");
             var index = getHDUFromName("intensity");
@@ -1128,7 +1141,12 @@ angular.module('servicesZ', ['dialogs.main'])
             }
             return q.promise;
         };
-
+        /**
+         * Attempts to extract the spectrum variance data from the right extension.
+         * On failure, will return null and not reject the deferred promise.
+         *
+         * @returns {deferred.promise}
+         */
         var getVarianceData = function() {
             $log.debug("Getting spectra variance");
             var index = getHDUFromName("variance");
@@ -1151,7 +1169,17 @@ angular.module('servicesZ', ['dialogs.main'])
             }
             return q.promise;
         };
-
+        /**
+         * Attempts to extract the sky spectrum  from the right extension.
+         * Does basic filtering on the sky (remove Nans and normalise to the right pixel height).
+         *
+         * Will return an array of sky data if data is found, which may contain one element or as many
+         * elements as there are spectra.
+         *
+         * On failure, will return null and not reject the deferred promise.
+         *
+         * @returns {deferred.promise}
+         */
         var getSkyData = function() {
             $log.debug("Getting sky");
             var index = getHDUFromName("sky");
@@ -1178,7 +1206,14 @@ angular.module('servicesZ', ['dialogs.main'])
             return q.promise;
         };
 
-
+        /**
+         * Searches for tabular data in the fibres extension, and attempts to extract the fibre type, name, magnitude,
+         * right ascension, declination and comment.
+         *
+         * On failure, will return null and not reject the deferred promise.
+         *
+         * @returns {deferred.promise}
+         */
         var getDetailsData = function() {
             $log.debug("Getting details");
             var index = getHDUFromName("fibres");
@@ -1252,6 +1287,17 @@ angular.module('servicesZ', ['dialogs.main'])
             });
         };
 
+        /**
+         * Issues with some spectra containing almost all NaN values means I now check
+         * each spectra before redshifting. This is a simple check at the moment,
+         * but it can be extended if needed.
+         *
+         * Currently, if 90% or more of spectra values are NaN, throw it out. Realistically,
+         * I could make this limit much lower.
+         *
+         * @param intensity
+         * @returns {boolean}
+         */
         var useSpectra = function(intensity) {
             var c = 0;
             for (var i = 0; i < intensity.length; i++) {
