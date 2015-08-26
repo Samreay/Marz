@@ -17,8 +17,15 @@ var polyDeg = 6;
 var medianWidth = 51;
 var smoothWidth = 121;
 
+// QUASAR SPECIFIC CONFIG
+var rollingPointWindow = 3;
+var rollingPointDecay = 0.9;
+var quasarVarianceMedian = 81;
+var quasarVarianceBoxcar = 25;
+var quasarMinMultiple = 5;
+
 // CONFIG FOR APODIZATION
-var zeroPixelWidth = 5; // Figure out why this isn't zero.
+var zeroPixelWidth = 5;
 var taperWidth = 60;
 
 // CONFIG FOR ERROR ADJUSTMENT
