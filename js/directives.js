@@ -129,6 +129,8 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
             link: function($scope, $element, $attr) {
                 $scope.ui = global.ui;
                 $scope.detailed = global.ui.detailed;
+                var requested = false;
+
                 var annotationColour = "#F00";
                 var xcor = true;
                 var xcorData = null;
@@ -348,7 +350,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     currentMouseX = loc.x;
                     currentMouseY = loc.y;
                     if (loc.bound != null && loc.bound.xcorCallout != true) {
-                        redraw();
+                        handleRedrawRequest();
                         if (lastXDown != null && lastYDown != null) {
                             if (distance(loc.x, loc.y, lastXDown, lastYDown) < minDragForZoom || loc.bound == null || loc.bound.callout) {
                                 return;
@@ -364,7 +366,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                         if (lastXDown != null && lastXDown != null) {
                             xcorEvent(loc.dataX);
                         } else {
-                            redraw();
+                            handleRedrawRequest();
                             plotZLine2(loc.bound, loc.x);
                         }
                     }
@@ -1022,7 +1024,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                         }
                     }
                 };
-                var redraw = function() {
+                var handleRedrawRequest = function() {
                     refreshSettings();
                     selectCalloutWindows();
                     clearPlot();
@@ -1030,6 +1032,14 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     for (var i = 0; i < bounds.length; i++) {
                         plotWindow(bounds[i]);
                     }
+                    requested = false;
+                };
+                var redraw = function() {
+                    if (!requested) {
+                        requested = true;
+                        window.setTimeout(handleRedrawRequest, 1000/60);
+                    }
+
                 };
 
                 $element.bind("mousedown", handleEvent);
