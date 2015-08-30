@@ -123,23 +123,23 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
                 global.ui.dataSelection.matched = !global.ui.dataSelection.matched;
                 $scope.$apply();
             }},
-            {key: '1', label: '1', controller: "detailed", description: '[Detailed screen] Save with manual QOP of 1', fn: function() {
+            {key: ['1', 'num1'], label: '1', controller: "detailed", description: '[Detailed screen] Save with manual QOP of 1', fn: function() {
                 $scope.saveManual(1);
                 $scope.$apply();
             }},
-            {key: '2', label: '2', controller: "detailed", description: '[Detailed screen] Save with manual QOP of 2', fn: function() {
+            {key: ['2', 'num2'], label: '2', controller: "detailed", description: '[Detailed screen] Save with manual QOP of 2', fn: function() {
                 $scope.saveManual(2);
                 $scope.$apply();
             }},
-            {key: '3', label: '3', controller: "detailed", description: '[Detailed screen] Save with manual QOP of 3', fn: function() {
+            {key: ['3', 'num3'], label: '3', controller: "detailed", description: '[Detailed screen] Save with manual QOP of 3', fn: function() {
                 $scope.saveManual(3);
                 $scope.$apply();
             }},
-            {key: '4', label: '4', controller: "detailed", description: '[Detailed screen] Save with manual QOP of 4', fn: function() {
+            {key: ['4', 'num4'], label: '4', controller: "detailed", description: '[Detailed screen] Save with manual QOP of 4', fn: function() {
                 $scope.saveManual(4);
                 $scope.$apply();
             }},
-            {key: '6', label: '6', controller: "detailed", description: '[Detailed screen] Save with manual QOP of 6', fn: function() {
+            {key: ['6', 'num6'], label: '6', controller: "detailed", description: '[Detailed screen] Save with manual QOP of 6', fn: function() {
                 $scope.saveManual(6);
                 $scope.$apply();
             }},
@@ -229,7 +229,7 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
         });
 
         $scope.addClickHandler = function(key, fn, scope) {
-            KeyboardJS.on(key, function(e) {
+            keyboardJS.on(key, function(e) {
                 if (!$("input").is(':focus')) {
                     fn(scope, e);
                 }
