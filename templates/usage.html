@@ -33,26 +33,45 @@
         <p>The state of the current background iteration is shown in the progress bar at the bottom of the screen. A green bar, matching the green plots, represents the progress through processing the spectra. The progress of the red bar (which comes after the green has finished) and matches the colour of the templates, represents the progress through analysing the spectra. The bar will turn blue when all spectra have been assigned a redshift.</p>
     </accordion-group>
     <accordion-group heading="The Overview Screen">
-        <p>The overview screen allows a high level overview of all spectra to be quickly given to the user. Spectra can be filtered through inputs located in the sidebar.</p>
+        <p>The overview screen allows a high level overview of all spectra to be quickly given to the user. Subsets of spectra can be displayed by using the filter options on the left sidebar, where options have been created for object types, templates, redshifts and quality flag (QOP).</p>
         <p>Users can also switch between a graphical overview, and a more compact table view, which allows sorting of the spectra based on ID, template, redshift or QOP.</p>
     </accordion-group>
     <accordion-group heading="The Detailed Screen">
-        <p>The detailed view allows users take processed spectra and manually redshift them. This can be accomplished in two main ways, matching templates or finding spectral lines. Note that keyboard shortcuts are not yet implemented.</p>
+        <p>The detailed view allows users take processed spectra and manually redshift them. This can be accomplished in two main ways, matching templates or finding spectral lines.</p>
         <hr />
-        <h4>Matching Templates</h4>
-        <p>Templates can be cycled through in the bottom control panel, with the redshift and scale of each template changed. Whilst at the moment the only way to change the redshift is to move the redshift slider or type in the desired redshift, the ability to slide the template plot left and right is going to be added in.</p>
+        <h4>Viewing the data</h4>
+        <ul>
+            <li><p><b>Data toggle:</b> By default, the user is shown the processed data in green. This can be toggled back to the raw data (shown in black), by pressing the "Data" toggle in the upper menu.</p></li>
+            <li><p><b>Template toggle:</b> The best fitting template is automatically shown in red. You can hide the template using the template toggle in the upper menu. Use the "Offset" slider to move the template vertically, and the "Redshift" slider to move it horizontally. For all sliders, numerical values can also be entered instead.</p></li>
+            <li><p><b>Continuum toggle:</b>  The broad shape of the continuum can be turned off using the continuum toggle if you want to focus only on emission and absorption lines.</p></li>
+            <li><p><b>Variance toggle:</b>  The variance can be turned on to give you an indication of the uncertainty in the spectrum as a function of wavelength.</p></li>
+            <li><p><b>Smooth:</b>  The significant lines in the spectra can sometimes be more easily seen when the spectra has been smoothed slightly. The smooth toggle defaults to 3 pixel smoothing, but this can be altered on the slider in the top right.</p></li>
+            <li><p><b>Callout windows:</b> Zoom ins of the most interesting regions are shown in the small panels at the bottom of the screen.  This is helpful for finding precise line positions and checking the regions where the most significant lines usually appear.  You can also zoom in on the main screen by using your mouse to highlight the region you want to zoom on (make sure it stays within the bounds of the plot as you're highlighting). Zoom out again using the demagnifying symbol on the top right of the plot.</p></li>
+            <li><p><b>Cross correlation spectrum:</b>   The automatic redshifting provides a cross-correlation result shown in black above them main spectrum screen.  The peaks (and troughs) of this XCor result are the redshifts that the automatic fitting found most likely.  Clicking on this spectrum will move the template to that redshift and show you the value of the cross correlation (higher values are better).</p></li>
+        </ul>
         <hr />
-        <h4>Assigning spectral lines</h4>
-        <p>If obvious emission or absorption lines can be seen in the spectra, you can assign them to specific element transitions. This can be done via clicking on the graph at the point of interest, and then selecting a spectral line on the right hand side. This will update the redshift of the template. It can be desirable when matching spectral lines to hide the template and raw data graphs, which is done by clicking on them on the top right hand corner, the same as in the overview page.</p>
+        <h4>Redshifting the data</h4>
+        There are multiple ways of finding redshifts for spectra in Marz.
+
+        <ul>
+            <li><p><b>Top Automatic Results: </b> The automatic matching algorithm in Marz returns the top five results, where the top result is shown by default. If this is not a correct redshift, you can view the other potential matches by pressing the buttons in the "Top Results" group in the upper menu bar, or by pressing <code>o</code> (which stands for "other").</p></li>
+            <li><p><b>Marking spectral lines: </b> If obvious emission or absorption lines can be seen in the spectra, you can assign them to specific element transitions. This can be done via clicking on the graph at the point of interest, and then selecting a spectral line on the right hand side, or pressing the appropriate keyboard shortcut (listed on this page under the "Keybindings" section below). This will update the redshift of the template. An alternate way that I prefer to use, is to select a point on the graph, and then repeatedly press <code>.</code> (or <code>,</code>) - this will cycle through all available spectral lines without having to remember multiple shortcuts.</p></li>
+            <li><p><b>Using cross-correlation: </b> Clicking on peaks in the cross-correlation plot will set the redshift to where you clicked. Strong cross correlation values (varies for templates, but generally above 8) can be investigated to check if they find the correct redshift.</p></li>
+            <li><p><b>Matching templates: </b> The type of object you're looking at and its approximate redshift can be determined by comparing the observed spectrum (green) to the available template spectra (red).  All available templates can be viewed in the "Templates" tab, and the template that appears in the Detailed Screen can be changed using the menu bar at the top.</p></li>
+        </ul>
+
+
+        <p>After setting a manual redshift, either via marking spectral features, selecting a point on the cross-correlation plot or manually entering a redshift, it is often desirable to perform a local fit to the data. Simply make sure you have the right template selected, and press the "Perform fit" button, or press <code>u</code>. This will fit the current spectrum and template within a small redshift window around the current redshift value.</p>
         <hr />
-        <h4>Saving Results</h4>
-        <p>Results can be saved via pressing any one of the "Save this redshift with a QOP of..." buttons. A spectra that has only gone through the manual processing will have a QOP of 0 by default. Eventually automatically assigned redshifts will be given their own automatic QOP, distinct from a manually assigned one. Saved results can be downloaded by clicking the "Download" button on the bottom right hand corner of the screen.</p>
+        <h4>Saving the redshift and assigning its quality</h4>
+        <p>Results can be saved via pressing any one of the coloured buttons in the left sidebar under "Save QOP". A spectra that has only gone through the manual processing will have a QOP of 0 by default, unless you have turned on "Assign AutoQOPs" in the settings. An automatic QOP is suggested in the top menu bar based on the best automatic result, and you can accept this redshift and QOP by pressing <code>Enter</code>. A QOP can be chosen by either pressing the relevant button, by pressing the numeric key corresponding to the desired QOP.</p>
         <hr />
-        <h4>Top Automatic Results</h4>
-        <p>By default, the initial automatic result shown is that with the best performance. You can iterate through the top {{interfaceManager.maxMatchedIndex}} results by clicking on their respective ranking numbers. Also, pressing the <code>o</code> key will cycle through the top results.</p>
+        <h4>Downloading results</h4>
+        <p>At any point during the redshifting process, you can download a file containing the spectra that have already been assigned redshifts, by pressing on the download button on the bottom right corner of the screen.</p>
     </accordion-group>
     <accordion-group heading="The Templates Screen">
         <p>The templates screen for now only provides a simple graphical view of all the templates used by the application to match spectra.</p>
+        <p>Unlikely templates can also be disabled by setting them to inactive. Inactive templates are not available in the detailed screen, nor do they undergo automatic matching.</p>
     </accordion-group>
     <accordion-group heading="The Settings Screen">
         <p>The settings screen allows configuration of the program. All changes on the Settings screen are <strong>instantly</strong> applied on change, and do not need to be saved. The settings are stored as cookie values, and will persist between sessions.</p>

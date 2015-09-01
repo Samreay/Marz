@@ -214,7 +214,7 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             {key: 'enter', label: 'enter', controller: "detailed", description: '[Detailed screen] Accepts the suggested automatic QOP at the stated redshift', fn: _.throttle(function($scope) {
                 $scope.acceptAutoQOP();
                 $scope.$apply();
-            }, 300)}];
+            }, 200, { 'trailing': false})}];
         _.forEach(spectraLineService.getAll(), function(line) {
             var elem = {
                 key: line.shortcut,
