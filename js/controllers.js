@@ -22,13 +22,35 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             $scope.initials = personalService.updateInitials();
         };
     }])
-    .controller('MainController', ['$scope', 'spectraService', 'global', '$state', '$timeout', 'spectraLineService', 'browserService', function($scope, spectraService, global, $state, $timeout, spectraLineService, browserService) {
+    .controller('MainController', ['$scope', 'spectraService', 'global', '$state', '$timeout', 'spectraLineService', 'browserService', '$rootScope', 'processorService',
+        function($scope, spectraService, global, $state, $timeout, spectraLineService, browserService, $rootScope, processorService) {
+        //$scope.data = global.data;
         $scope.makeSmall = function() {
             return global.ui.sidebarSmall && $scope.isDetailedView();
         };
         window.onbeforeunload = function(){
             return 'Please ensure changes are all saved before leaving.';
         };
+        var called = false;
+        var callback = function() {
+            try {
+                window.onModulesLoaded();
+            } catch(err) {
+
+            }
+        };
+        $rootScope.$on('$includeContentLoaded', function() {
+            if (!called) {
+                called = true;
+                setTimeout(callback, 500);
+            }
+        });
+
+        $rootScope.commandLineFile = function(path) {
+            global.data.fits.push(path);
+            return path;
+        };
+
         $scope.getQOPLabel = function(qop) {
             var string = "label label-";
             if (qop == null) {
@@ -242,7 +264,7 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             }
         }
     }])
-    .controller('OverviewController', ['$scope', 'spectraService', 'fitsFile', 'global', '$timeout', 'templatesService', '$state', function($scope, spectraService, fitsFile, global, $timeout, templatesService, $state) {
+    .controller('OverviewController', ['$scope', 'spectraService', 'fitsFile', 'global', '$timeout', 'templatesService', '$state', 'drawingService', function($scope, spectraService, fitsFile, global, $timeout, templatesService, $state, drawingService) {
         $scope.ui = global.ui;
         $scope.data = global.data;
         $scope.graphDisplaying = function() {
@@ -268,6 +290,9 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
         };
         $scope.isSortBy = function(sort) {
             return $scope.sortField == sort;
+        };
+        $scope.getImage = function(i) {
+            return i.getImage(drawingService);
         };
         $scope.sortOverview = function(spectra) {
             var result = null;
@@ -775,7 +800,7 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
         function($scope, spectraService, fitsFile, $state, global, resultsLoaderService, $timeout, templatesService, $window) {
         $scope.ui = global.ui;
         $scope.data = global.data;
-
+        try { window.onFileMatched("Sidebar controller"); } catch (err) {}
         $scope.filters = global.filters;
 
         $scope.qops = [
@@ -841,6 +866,7 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             }
         };
         $scope.$watchCollection('[numDrag, data.fits.length]', function() {
+            try { window.onFileMatched("Watch"); } catch (err) {}
             if ($scope.data.fits.length > 0) {
                 fitsFile.loadInFitsFile($scope.data.fits[0]).then(function() { console.log('Fits file loaded')});
             }

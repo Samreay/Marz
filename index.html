@@ -80,7 +80,7 @@
                                 <p ng-show="i.hasRedshift()">z={{i.getFinalRedshift().toFixed(5)}}</p>
                                 <h4 style="display: inline;"><span class="pull-right label {{i.qopLabel}}">QOP: {{i.qop}}</span></h4>
                             </div>
-                            <img class="under-bar unselectable" data-ng-src="{{i.getImage()}}">
+                            <img class="under-bar unselectable" data-ng-src="{{getImage(i)}}">
                         </div>
                     </div>
                 </div>
