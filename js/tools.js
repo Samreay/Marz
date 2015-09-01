@@ -16,6 +16,12 @@ function range(start, stop, step) {
     return result;
 }
 
+function nodeDebug(output) {
+    if (window.nodeDebug != null) {
+        window.nodeDebug(output);
+    }
+}
+
 function getMax(array, lower, upper) {
     if (typeof lower === "undefined") lower = 0;
     if (typeof upper === "undefined") upper = array.length;

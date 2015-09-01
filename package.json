@@ -5,6 +5,6 @@
   "main":         "autoMarz.js",
   "dependencies": {
     "jsdom": ">=6.3.0",
-    "webworker-threads" : ">=0.5.0"
+    "file-api": ">=0.10.4"
   }
 }

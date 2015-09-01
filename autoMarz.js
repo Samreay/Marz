@@ -1,14 +1,27 @@
 args = process.argv.slice(2);
-if (args.length > 1 || args.length == 0) {
-  console.error("Usage: autoMarz.js <FITSfilename>");
+if (args.length > 2 || args.length == 0) {
+  console.error("Usage: autoMarz.js [-debug] <FITSfilename> ");
   return;
 }
-filename = args[0];
+
+var filename = args[0];
+var debugFlag = false;
+if (args.length == 2) {
+  var filename = args[1];
+  if (args[0] == "-debug") {
+    debugFlag = true;
+  }
+}
+
+var debug = function(output) {
+  if (debugFlag) {
+    console.log(output);
+  }
+};
 
 var jsdom = require('jsdom');
 var cluster = require('cluster');
 var fs = require('fs');
-//var fs = require('fs')
 
 if (cluster.isMaster) {
   n = require('os').cpus().length;
@@ -21,29 +34,8 @@ if (cluster.isMaster) {
 
   var f = new File(filename);
   var data = fs.readFileSync(filename);
-  var aa = data.slice(0, 100)
-  console.log(data.byteLength);
 
-  // fileReader = new FileReader()
-  //fileReader.setNodeChunkedEncoding(true || false);
-  // fileReader.readAsDataURL(f);
 
-  // fileReader.on('data', function (data) {
-  //   console.log("chunkSize:", data.length);
-  // });
-  //
-  // // `onload` as listener
-  // fileReader.addEventListener('load', function (ev) {
-  //   console.log("dataUrlSize:", ev.target.result.length);
-  // });
-  //
-  // // `onloadend` as property
-  // fileReader.onloadend = function () {
-  //   console.log("Success");
-  // };
-  //var html = fs.readFileSync('index.html', 'utf8');
-  //var fitsFile = fs.readFileSync(filename);
-  //console.log(fitsFile);
   var toArrayBuffer = function(buffer) {
     var ab = new ArrayBuffer(buffer.length);
     var view = new Uint8Array(ab);
@@ -51,10 +43,10 @@ if (cluster.isMaster) {
         view[i] = buffer[i];
     }
     return ab;
-  }
+  };
 
 
-  console.log("Processing file " + filename);
+  debug("Processing file " + filename);
   jsdom.env({
     file: 'index.html',
     features : {
@@ -62,50 +54,45 @@ if (cluster.isMaster) {
           ProcessExternalResources : ['script']
     },
     created: function(err, window) {
-      //window.XMLHttpRequest = XMLHttpRequest;
+      debug("Window created");
       window.require = require;
       window.File = File;
       window.FileReader = FileReader;
-      window.convertBuffer = function(buffer) {
-        console.log("Got buffer of length: " + buffer.length);
-        var b = toArrayBuffer(buffer);
-        console.log(b)
-        return b;
+
+      window.nodeDebug = function(output) {
+        debug(output);
       };
+
+      window.convertBuffer = function(buffer) {
+        return toArrayBuffer(buffer);
+      };
+
       window.onFileMatched = function(values) {
         console.log(values);
+        cluster.disconnect();
+        window.close();
       };
+
       window.getWorkers = function(i) {
         return workers;
       };
+
     },
     done: function (err, window) {
       if (err != null) {
         console.log("ERROR: " + err);
       }
-
+      debug("Window done");
       window.onModulesLoaded = function() {
-        console.log("Modules loaded");
-        // console.log(scope.addFiles)
-        //console.log(window.angular)
-        //var scope = window.angular.element('[ng-contoller=SidebarController]').scope();
-        // console.log(window.document.documentElement.innerHTML);
+        debug("Modules loaded");
         var scope = window.angular.element('#sidebarDrop').scope();
-        //console.log(scope);
-        //console.log(JSON.stringify(f))
-        console.log(scope.commandLineFile({'actualName': filename, 'file': data}));
-
+        scope.commandLineFile({'actualName': filename, 'file': data})
         scope.$apply();
-
-        //scope.addFiles([{name: filename}]);
-        //scope.$apply();
-
-        //console.log("Sent in fits file");
       };
 
     }
   });
 } else {
-  //eval(fs.readFileSync('./js/worker2.js') + '');
+  debug("Worker spawned");
   require('./js/worker2.js')
 }

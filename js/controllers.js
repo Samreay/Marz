@@ -800,7 +800,6 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
         function($scope, spectraService, fitsFile, $state, global, resultsLoaderService, $timeout, templatesService, $window) {
         $scope.ui = global.ui;
         $scope.data = global.data;
-        try { window.onFileMatched("Sidebar controller"); } catch (err) {}
         $scope.filters = global.filters;
 
         $scope.qops = [
@@ -866,7 +865,6 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             }
         };
         $scope.$watchCollection('[numDrag, data.fits.length]', function() {
-            try { window.onFileMatched("Watch"); } catch (err) {}
             if ($scope.data.fits.length > 0) {
                 fitsFile.loadInFitsFile($scope.data.fits[0]).then(function() { console.log('Fits file loaded')});
             }
