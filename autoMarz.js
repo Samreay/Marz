@@ -1,30 +1,54 @@
-args = process.argv.slice(2);
-if (args.length > 2 || args.length == 0) {
-  console.error("Usage: autoMarz.js [-debug] <FITSfilename> ");
-  return;
+// iojs head script to run marz from a command line interface
+
+var argv = require('minimist')(process.argv.slice(2));
+
+var help = function() {
+  console.error("Usage: autoMarz.js <FITSfilename> [--debug] [-o|--outFile <filename>]|[-d|--dir dirname]\n");
+  console.error("Examples:");
+  console.error("Analyse file /tmp/fits.fits and output to stdout:\n\tautoMarz.js /tmp/fits.fits\n");
+  console.error("Analyse file /tmp/fits.fits and output to /tmp/out.mz:\n\tautoMarz.js /tmp/fits.fits -o /tmp/out.mz\n");
+  console.error("Analyse file /tmp/fits.fits and output to directory /tmp/saves:\n\tautoMarz.js /tmp/fits.fits -d /tmp/saves\n");
+  process.exit();
 }
 
-var filename = args[0];
-var debugFlag = false;
-if (args.length == 2) {
-  var filename = args[1];
-  if (args[0] == "-debug") {
-    debugFlag = true;
-  }
-}
-
-var debug = function(output) {
-  if (debugFlag) {
-    console.log(output);
-  }
-};
-
-var jsdom = require('jsdom');
+var path = require('path');
 var cluster = require('cluster');
 var fs = require('fs');
 
+var debugFlag = argv['debug'] == true;
+var debug = function(output) {
+  if (debugFlag) {
+    if (typeof output == "string") {
+      console.log(output);
+    } else {
+      console.dir(output);
+    }
+  }
+};
+
 if (cluster.isMaster) {
-  n = require('os').cpus().length;
+  var filenames = argv['_'];
+
+  debug("Input Parameters:")
+  debug(argv);
+  if (filenames == null || filenames.length > 1 || filenames.length == 0) {
+    help();
+  }
+  var filename = filenames[0];
+  var fname = path.basename(filename);
+  var dir = argv['d'] || argv['dir'];
+  var outputFile = null;
+  if (dir != null) {
+    outputFile = path.join(dir, fname.substring(0, fname.lastIndexOf('.')) + '.mz');
+  }
+  outputFile = argv['o'] || argv['outFile'] || outputFile;
+
+  debug("Parsed Parameters:")
+  debug({'outputFile': outputFile, 'filename': filename, 'fname': fname, 'debug': debugFlag, 'dir': dir})
+  var jsdom = require('jsdom');
+
+  n = require('os').cpus().length * 2;  // There is some slow down, either in JsDOM emulation or process messaging
+                                        // that means CPUs are utilised < 15%. Want to track down why. 
   workers = [];
   for (var i = 0; i < n; i++) {
     workers.push(cluster.fork());
@@ -45,7 +69,11 @@ if (cluster.isMaster) {
     return ab;
   };
 
-
+  var defaults = {
+    "assignAutoQOPs": true,       // Whether or not assign autoQops
+    "tenabled": []            // List of template IDs to disable in matching, eg to disable only quasars set to ['12']
+  };
+  var startTime = new Date();
   debug("Processing file " + filename);
   jsdom.env({
     file: 'index.html',
@@ -58,8 +86,13 @@ if (cluster.isMaster) {
       window.require = require;
       window.File = File;
       window.FileReader = FileReader;
+      var c = 0;
 
-      window.nodeDebug = function(output) {
+      window.nodeDebugServer = function(output) {
+        c += 1;
+        if (c % 10 == 0) {
+          global.gc();
+        }
         debug(output);
       };
 
@@ -67,8 +100,24 @@ if (cluster.isMaster) {
         return toArrayBuffer(buffer);
       };
 
+      window.getNodeDefault = function(property) {
+        var val = defaults[property];
+        console.log("Asking for property " + property + ", returning " + val);
+        return val;
+      };
+
       window.onFileMatched = function(values) {
         console.log(values);
+        if (outputFile) {
+          fs.writeFile(outputFile, values, function(err) {
+            if(err) {
+                return console.error(err);
+            }
+            console.log("File saved to " + outputFile);
+          });
+        }
+        var endTime = new Date();
+        debug("File processing took " + (endTime - startTime)/1000 + " seconds");
         cluster.disconnect();
         window.close();
       };
@@ -86,7 +135,7 @@ if (cluster.isMaster) {
       window.onModulesLoaded = function() {
         debug("Modules loaded");
         var scope = window.angular.element('#sidebarDrop').scope();
-        scope.commandLineFile({'actualName': filename, 'file': data})
+        scope.commandLineFile({'actualName': fname, 'file': data})
         scope.$apply();
       };
 

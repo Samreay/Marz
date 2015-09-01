@@ -202,10 +202,18 @@ TemplateManager.prototype.setInactiveTemplates = function(inactiveList) {
 };
 TemplateManager.prototype.getInactiveTemplatesCookie = function() {
     var res = [];
-    if (typeof document != "undefined" && document != null) {
-        res = getCookie(this.templateEnabledCookieKey);
-        if (res == null) {
-            res = []
+    try {
+        if (typeof document != "undefined" && document != null) {
+            res = getCookie(this.templateEnabledCookieKey);
+            if (res == null) {
+                res = []
+            }
+        }
+    } catch (err) {}
+    if (typeof window != "undefined" && window != null && window.getNodeDefault != null) {
+        var val = window.getNodeDefault("tenabled");
+        if (val != null) {
+            res = val;
         }
     }
     return res;

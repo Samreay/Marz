@@ -142,6 +142,7 @@ self.matchTemplates = function(lambda, intensity, variance, type) {
  * @returns {{coalesced: Array, templates: null, intensity: Array}}
  */
 self.coalesceResults = function(templateResults, type, intensity, fft, quasarFFT) {
+    var node = isNode();
     // Adjust for optional weighting
     var coalesced = [];
     for (var i = 0; i < templateResults.length; i++) {
@@ -222,20 +223,37 @@ self.coalesceResults = function(templateResults, type, intensity, fft, quasarFFT
             zs = tr.zs;
             xcor = tr.xcor;
         }
-        templates[tr.id] = {
-            zs: zs,
-            xcor: xcor,
-            weight: w
-        };
+        if (node) {
+            templates[tr.id] = {
+                zs: null,
+                xcor: null,
+                weight: w
+            };
+            zs = null;
+            xcor = null;
+        } else {
+            templates[tr.id] = {
+                zs: zs,
+                xcor: xcor,
+                weight: w
+            };
+        }
+
     }
     var autoQOP = self.getAutoQOP(topTen);
+    if (node) {
+        fft = null;
+        quasarFFT = null;
+        templateResults = null;
+
+    }
     return {
         coalesced: topTen,
         templates: templates,
         intensity: intensity,
         autoQOP: autoQOP,
-        fft: {real: fft.real, imag: fft.imag},
-        quasarFFT: {real: quasarFFT.real, imag: quasarFFT.imag}
+        fft: node ? null : {real: fft.real, imag: fft.imag},
+        quasarFFT: node ? null : {real: quasarFFT.real, imag: quasarFFT.imag}
     };
 };
 

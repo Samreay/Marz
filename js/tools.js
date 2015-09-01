@@ -1,3 +1,5 @@
+var thisIsNode = false;
+
 String.prototype.endsWith = function(suffix) {
     return this.indexOf(suffix, this.length - suffix.length) !== -1;
 };
@@ -17,9 +19,13 @@ function range(start, stop, step) {
 }
 
 function nodeDebug(output) {
-    if (window.nodeDebug != null) {
-        window.nodeDebug(output);
+    if (window.nodeDebugServer != null) {
+        window.nodeDebugServer(output);
     }
+}
+
+function isNode() {
+    return true || thisIsNode;
 }
 
 function getMax(array, lower, upper) {
