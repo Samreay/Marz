@@ -193,6 +193,7 @@ Spectra.prototype.getProcessingAndMatchingMessage = function() {
         id: this.id,
         name: this.name,
         lambda: this.lambda,
+        type: this.type,
         intensity: this.intensity,
         variance: this.variance
     }

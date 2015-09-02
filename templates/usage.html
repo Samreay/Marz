@@ -82,21 +82,12 @@
         <keybind bind="bind" ng-repeat="bind in keybinds"></keybind>
     </accordion-group>
     <accordion-group heading="Loading Results with Python">
-        <p>Given the popularity of Python in astrophysics, example code to read in the generated Marz output file has been supplied. It requires <code>numpy</code> to be imported.</p>
-        <pre class="prettyprint lang-python">def loadMarzResults(filepath):
-    types = [('fibre', 'int'),('id','a30'),('ra','float'),('dec','float'),('mag','float'),('z','float'),('qop','int'),('templateId','int'),('templateName', 'a40')]
-    try:
-        file=open(filepath)
-    except:
-        print('%s does not exist' % filepath)
-        return numpy.zeros(0,dtype=types)
-    listing=file.readlines()
-    file.close()
-    entries=numpy.zeros(len(listing[2:]), dtype=types)
-    for i, s in enumerate(listing[2:]):
-        c = s.split(',');
-        entries[i] = (int(c[0]), c[1].strip(), float(c[2]), float(c[3]), float(c[4]), float(c[12]), int(c[13]), int(c[10]), c[11].strip())
-    return entries</pre>
+        <p>Given the popularity of Python in astrophysics, example code to read in the generated Marz output file has been supplied.</p>
+        <pre class="prettyprint lang-python">import numpy
+def loadMarzResults(filepath):
+    types = [('fibre', 'int'),('name','a30'),('ra','float'),('dec','float'),('mag','float'),('type', 'a30'), ('autoTID', 'int'), ('autoTN', 'a50'),
+    ('autoZ', 'float'), ('autoXCor', 'float'), ('templateId', 'int'), ('templateName', 'a50'), ('z','float'),('qop','int'),('comment', 'a99')]
+    return numpy.loadtxt(filepath, dtype=types, delimiter=",")</pre>
         <p>The result is a typed <code>numpy</code> array and can undergo normal array operations:</p>
         <pre class="prettyprint lang-python">res = loadMarzResults(pathToResultsFile)
 quasars = res[res['templateId'] == 12]</pre>
