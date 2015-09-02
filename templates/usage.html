@@ -81,7 +81,13 @@
         <p>Many key bindings have been added to this application from the RUNZ default keymapping to make usage easier. The following commands are available:</p>
         <keybind bind="bind" ng-repeat="bind in keybinds"></keybind>
     </accordion-group>
-    <accordion-group heading="Loading Results with Python">
+    <accordion-group heading="File Output and Loading Results with Python">
+        <h4>Output file structure</h4>
+        <p>Marz saves <code>.mz</code> files as output. These files are formatted ot be ASCII, comma-separated value files. An <a href="https://github.com/Samreay/Marz/releases/download/1.0.0/alldata_SRH.mz"> example file can be found here.</a></p>
+        <p>Comment lines begin with a <code>#</code>, and there should be three header lines marked as comments. The first contains details on who generated results for what file at what time. As such, it contains your initials, the filename analysed and the data the results were downloaded. The second line gives some basic statistics on the file - the number of spectra matched > QOP2, the total number of spectra, and the overall success rate. The third comment line simply contains the headers for the tabular data.</p>
+        <p>The rest of the file is then comprised of one row per matched spectra, where the spectra fibre, name, right ascension, declination, magnitude and type are stated in the first six columns if they exist. The next four columns detail the results of the automatic matching algorithm, giving the automatically matched template ID, template name, redshift of match and cross correlation strength. The next four columns detail the final match (which often should be the same as the automatic match), giving the template ID, name, redshift and QOP flag. Any comments on the spectra are then placed in the final column. </p>
+        <hr />
+        <h4>Loading this file with Python</h4>
         <p>Given the popularity of Python in astrophysics, example code to read in the generated Marz output file has been supplied.</p>
         <pre class="prettyprint lang-python">import numpy
 def loadMarzResults(filepath):
