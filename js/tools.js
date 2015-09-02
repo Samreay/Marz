@@ -25,7 +25,7 @@ function nodeDebug(output) {
 }
 
 function isNode() {
-    return true || thisIsNode;
+    return thisIsNode;
 }
 
 function getMax(array, lower, upper) {
