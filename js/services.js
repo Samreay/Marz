@@ -75,21 +75,34 @@ angular.module('servicesZ', ['dialogs.main'])
             return dataStore;
         }]
     })
-
+    .service('log', ['$log', function($log) {
+        var self = this;
+        self.debug = function(message) {
+            $log.debug(message);
+            nodeDebug(message);
+        };
+        self.warn = function(message) {
+            $log.warn(message);
+            nodeDebug(message);
+        };
+        self.error = function(message) {
+            $log.error(message);
+            nodeDebug(message);
+        }
+    }])
     .service('personalService', ['global', 'cookieService', 'dialogs', '$q', function(global, cookieService, dialogs, $q) {
         var self = this;
         var initialsCookie = "initials";
+        global.personal.initials = cookieService.registerCookieValue(initialsCookie, null);
 
         self.getInitials = function() {
             return global.personal.initials;
         };
-        self.getInitialsInitial = function() {
-            global.personal.initials = cookieService.getCookie(initialsCookie);
-        };
+
         self.updateInitials = function() {
             if (global.personal.initials == null) global.personal.initials = "";
             global.personal.initials = global.personal.initials.replace(/\W/g, '').replace("_", '').substr(0, 10);
-            cookieService.saveCookie(initialsCookie, global.personal.initials);
+            cookieService.setCookie(initialsCookie, global.personal.initials);
             return global.personal.initials;
         };
         self.ensureInitials = function() {
@@ -113,7 +126,6 @@ angular.module('servicesZ', ['dialogs.main'])
             }
             return q.promise;
         };
-        self.getInitialsInitial();
     }])
     .service('browserService', ['$window', function($window) {
         var self = this;
@@ -198,56 +210,44 @@ angular.module('servicesZ', ['dialogs.main'])
             }
         }
     }])
-    .service('spectraService', ['global', 'resultsGeneratorService', 'cookieService', 'localStorageService', 'qualityService', function(global, resultsGeneratorService, cookieService, localStorageService, qualityService) {
+    .service('spectraService', ['global', 'resultsGeneratorService', 'cookieService', 'localStorageService', 'qualityService', 'log', function(global, resultsGeneratorService, cookieService, localStorageService, qualityService, log) {
         var self = this;
         var data = global.data;
         var quality = global.ui.quality;
-        var downloadAutomatically = null;
         var downloadAutomaticallyCookie = "downloadAutomatically";
-        var saveAutomatically = null;
+        var downloadAutomatically = cookieService.registerCookieValue(downloadAutomaticallyCookie, false);
         var saveAutomaticallyCookie = "saveInBackground";
-        var assignAutoQOPs = null;
+        var saveAutomatically = cookieService.registerCookieValue(saveAutomaticallyCookie, true);
         var assignAutoQOPsCookie = "assignAutoQOPs";
+
+        self.getAutoQOPDefault = function() {
+            var def = false;
+            if (window.getNodeDefault != null) {
+                var val = window.getNodeDefault(assignAutoQOPsCookie);
+                if (val != null) {
+                    def = val;
+                }
+            }
+            return def;
+        };
+        var assignAutoQOPs = cookieService.registerCookieValue(assignAutoQOPsCookie, self.getAutoQOPDefault());
+
         self.setDownloadAutomaticallyDefault = function() {
-            self.setDownloadAutomatically(false);
+            self.setDownloadAutomatically(cookieService.setToDefault(downloadAutomaticallyCookie));
         };
         self.setSaveAutomaticallyDefault = function() {
-            self.setSaveAutomatically(true);
+            self.setSaveAutomatically(cookieService.setToDefault(saveAutomaticallyCookie));
         };
         self.setDefaultAssignAutoQOPs = function() {
-            self.setAssignAutoQOPs(false);
-        };
-        self.setDownloadAutomaticallyInitial = function() {
-            var cookie = cookieService.getCookie(downloadAutomaticallyCookie);
-            if (cookie == null) {
-                self.setDownloadAutomaticallyDefault()
-            } else {
-                downloadAutomatically = cookie;
-            }
-        };
-        self.setAssignAutoQOPsInitial = function() {
-            var cookie = cookieService.getCookie(assignAutoQOPsCookie);
-            if (cookie == null) {
-                self.setDefaultAssignAutoQOPs()
-            } else {
-                assignAutoQOPs = cookie;
-            }
-        };
-        self.setSaveAutomaticallyInitial = function() {
-            var cookie = cookieService.getCookie(saveAutomaticallyCookie);
-            if (cookie == null) {
-                self.setSaveAutomaticallyDefault()
-            } else {
-                saveAutomatically = cookie;
-            }
+            self.setAssignAutoQOPs(cookieService.setToDefault(assignAutoQOPsCookie));
         };
         self.setDownloadAutomatically = function(value) {
             downloadAutomatically = value;
-            cookieService.saveCookie(downloadAutomaticallyCookie, downloadAutomatically);
+            cookieService.setCookie(downloadAutomaticallyCookie, downloadAutomatically);
         };
         self.setAssignAutoQOPs = function(value) {
             assignAutoQOPs = value;
-            cookieService.saveCookie(assignAutoQOPsCookie, assignAutoQOPs);
+            cookieService.setCookie(assignAutoQOPsCookie, assignAutoQOPs);
         };
         self.getAssignAutoQOPs = function() {
             return assignAutoQOPs;
@@ -257,14 +257,12 @@ angular.module('servicesZ', ['dialogs.main'])
         };
         self.setSaveAutomatically = function(value) {
             saveAutomatically = value;
-            cookieService.saveCookie(saveAutomaticallyCookie, saveAutomatically);
+            cookieService.setCookie(saveAutomaticallyCookie, saveAutomatically);
         };
         self.getSaveAutomatically = function() {
             return saveAutomatically;
         };
-        self.setDownloadAutomaticallyInitial();
-        self.setAssignAutoQOPsInitial();
-        self.setSaveAutomaticallyInitial();
+
         self.hasSpectra = function() {
             return data.spectra.length > 0;
         };
@@ -424,6 +422,7 @@ angular.module('servicesZ', ['dialogs.main'])
         };
         self.setProcessedResults = function(results) {
             var spectra = data.spectraHash[results.id];
+            log.debug("Processed " + results.id);
             if (spectra.name != results.name) return;
             spectra.processedLambda = results.lambda;
             spectra.processedIntensity = results.intensity;
@@ -447,10 +446,10 @@ angular.module('servicesZ', ['dialogs.main'])
         };
         self.setMatchedResults = function(results) {
             var spectra = data.spectraHash[results.id];
+            log.debug("Matched " + results.id);
             if (spectra == null || spectra.name != results.name) return;
             var prior = spectra.automaticResults;
             spectra.automaticResults = results.results.coalesced;
-//            console.log(JSON.stringify(results.results.coalesced).replace(/},{/g,"}\n{"));
             spectra.templateResults = results.results.templates;
             spectra.autoQOP = results.results.autoQOP;
             if (assignAutoQOPs == true) {
@@ -461,19 +460,32 @@ angular.module('servicesZ', ['dialogs.main'])
             spectra.automaticBestResults = results.results.coalesced; // TODO: REMOVE BEST RESULTS, ONLY HAVE AUTOMATIC RESULTS
             spectra.isMatching = false;
             spectra.isMatched = true;
-            spectra.fft = new FFT(results.results.fft.real.length, results.results.fft.imag);
-            spectra.fft.real = results.results.fft.real;
-            spectra.fft.imag = results.results.fft.imag;
-            spectra.quasarFFT = new FFT(results.results.quasarFFT.real.length, results.results.quasarFFT.imag);
-            spectra.quasarFFT.real = results.results.quasarFFT.real;
-            spectra.quasarFFT.imag = results.results.quasarFFT.imag;
+            if (results.results.fft == null) {
+                spectra.fft = null;
+            } else {
+                spectra.fft = new FFT(results.results.fft.real.length, results.results.fft.imag);
+                spectra.fft.real = results.results.fft.real;
+                spectra.fft.imag = results.results.fft.imag;
+            }
+            if (results.results.quasarFFT == null) {
+                spectra.quasarFFT = null;
+            } else {
+                spectra.quasarFFT = new FFT(results.results.quasarFFT.real.length, results.results.quasarFFT.imag);
+                spectra.quasarFFT.real = results.results.quasarFFT.real;
+                spectra.quasarFFT.imag = results.results.quasarFFT.imag;
+            }
             spectra.processedIntensity = results.results.intensity;
             if (saveAutomatically) {
                 localStorageService.saveSpectra(spectra);
             }
-            if (downloadAutomatically && self.isFinishedMatching() && !self.isProcessing() && prior == null) {
-                console.log("Downloading from matching");
-                resultsGeneratorService.downloadResults();
+            if (self.isFinishedMatching() && !self.isProcessing() && prior == null) {
+                if (downloadAutomatically) {
+                    console.log("Downloading from matching");
+                    resultsGeneratorService.downloadResults();
+                }
+                if (window.onFileMatched != null) {
+                    window.onFileMatched(resultsGeneratorService.getResultsCSV())
+                }
             }
             if (global.ui.active == spectra) {
                 global.ui.detailed.templateId = spectra.getFinalTemplateID();
@@ -588,13 +600,14 @@ angular.module('servicesZ', ['dialogs.main'])
             return dropped;
         };
     }])
-    .service('resultsGeneratorService', ['global', 'templatesService', 'personalService', function(global, templatesService, personalService) {
+    .service('resultsGeneratorService', ['global', 'templatesService', 'personalService', 'log', function(global, templatesService, personalService, log) {
         var self = this;
         self.downloading = false;
         self.downloadResults = function() {
             if (self.downloading) {
                 return;
             }
+            log.debug("Downloading results");
             self.downloading = true;
             personalService.ensureInitials().then(function() {
                 var results = self.getResultsCSV();
@@ -612,6 +625,7 @@ angular.module('servicesZ', ['dialogs.main'])
             return global.data.fitsFileName + "_" + personalService.getInitials() + ".mz";
         };
         self.getResultsCSV = function() {
+            log.debug("Getting result CSV");
             var results = self.getResultsArray();
             var string = "# Results generated by " + personalService.getInitials()
                 + " for file [[" + global.data.fitsFileName + "]] at " + new Date().toLocaleString() + " (JSON: " + JSON.stringify(new Date()) + ")\n#";
@@ -625,6 +639,7 @@ angular.module('servicesZ', ['dialogs.main'])
                         }
                     }
                 }
+
                 for (var i = 0; i < results.length; i++) {
                     var res = results[i];
                     var first = 0;
@@ -641,6 +656,7 @@ angular.module('servicesZ', ['dialogs.main'])
                     string += "\n";
                 }
             }
+
             return string;
         };
         self.getResultsArray = function() {
@@ -654,23 +670,23 @@ angular.module('servicesZ', ['dialogs.main'])
             return result;
         };
         self.getResultFromSpectra = function(spectra) {
-            return [
-                {name: "ID", value: ("" + spectra.id).pad(4)},
-                {name: "Name", value: spectra.name},
-                {name: "RA", value: spectra.ra.toFixed(6)},
-                {name: "DEC", value: spectra.dec.toFixed(6)},
-                {name: "Mag", value: spectra.magnitude.toFixed(2)},
-                {name: "Type", value: spectra.type},
-                {name: "AutoTID", value: spectra.getBestAutomaticResult()? spectra.getBestAutomaticResult().templateId : "0"},
-                {name: "AutoTN", value:  templatesService.getNameForTemplate(spectra.getBestAutomaticResult() ? spectra.getBestAutomaticResult().templateId : "0")},
-                {name: "AutoZ", value: spectra.getBestAutomaticResult() ? spectra.getBestAutomaticResult().z.toFixed(5) : "0"},
-                {name: "AutoXCor", value: spectra.getBestAutomaticResult() ? spectra.getBestAutomaticResult().value.toFixed(5) : "0"},
-                {name: "FinTID", value: spectra.getFinalTemplateID() ? spectra.getFinalTemplateID() : "0"},
-                {name: "FinTN", value: templatesService.getNameForTemplate(spectra.getFinalTemplateID())},
-                {name: "FinZ", value: spectra.getFinalRedshift().toFixed(5)},
-                {name: "QOP", value: "" + spectra.qop},
-                {name: "Comment", value: spectra.getComment()}
-            ]
+            var result = [];
+            result.push({name: "ID", value: ("" + spectra.id).pad(4)});
+            result.push({name: "Name", value: spectra.name});
+            result.push({name: "RA", value: spectra.ra.toFixed(6)});
+            result.push({name: "DEC", value: spectra.dec.toFixed(6)});
+            result.push({name: "Mag", value: spectra.magnitude.toFixed(2)});
+            result.push({name: "Type", value: spectra.type});
+            result.push({name: "AutoTID", value: spectra.getBestAutomaticResult()? spectra.getBestAutomaticResult().templateId : "0"});
+            result.push({name: "AutoTN", value:  templatesService.getNameForTemplate(spectra.getBestAutomaticResult() ? spectra.getBestAutomaticResult().templateId : "0")});
+            result.push({name: "AutoZ", value: spectra.getBestAutomaticResult() ? spectra.getBestAutomaticResult().z.toFixed(5) : "0"});
+            result.push({name: "AutoXCor", value: spectra.getBestAutomaticResult() ? spectra.getBestAutomaticResult().value.toFixed(5) : "0"});
+            result.push({name: "FinTID", value: spectra.getFinalTemplateID() ? spectra.getFinalTemplateID() : "0"});
+            result.push({name: "FinTN", value: templatesService.getNameForTemplate(spectra.getFinalTemplateID())});
+            result.push({name: "FinZ", value: spectra.getFinalRedshift().toFixed(5)});
+            result.push({name: "QOP", value: "" + spectra.qop});
+            result.push({name: "Comment", value: spectra.getComment()});
+            return result;
         };
         self.convertResultToMimicSpectra = function(result) {
             var spectra = new Spectra(result["ID"], null, null, null, null, null, result["Name"],
@@ -769,38 +785,100 @@ angular.module('servicesZ', ['dialogs.main'])
     }])
     .service('cookieService', [function() {
         var self = this;
+        self.vals = {};
+        self.defaults = {};
 
         self.getCookie = function(property) {
-            return getCookie(property)
+            return self.vals[property];
         };
 
         self.saveCookie = function(property, value, exdays) {
             saveCookie(property, value, exdays);
         };
+
+        self.getCookieCookie = function(property) {
+            return getCookie(property);
+        };
+
+
+        self.setCookie = function(property, value) {
+            self.vals[property] = value;
+            try {
+                self.saveCookie(property, value);
+            } catch (err) {
+                console.log("Error saving cookie " + property + ": " + err.message);
+            }
+        };
+        self.registerCookieValue = function(property, defaultValue) {
+            self.defaults[property] = defaultValue;
+            var value = null;
+            try {
+                value = self.getCookieCookie(property);
+            } catch (err) {
+                console.log("Error getting cookie " + property)
+            }
+            self.vals[property] = value == null ? defaultValue : value;
+            return self.vals[property];
+        };
+        self.setToDefault = function(property) {
+            self.setCookie(property, self.defaults[property]);
+            return self.defaults[property];
+        };
+
     }])
-    .service('processorService', ['$q', 'spectraService', 'cookieService', 'templatesService', function($q, spectraService, cookieService, templatesService) {
+    .service('processorService', ['$q', 'spectraService', 'cookieService', 'templatesService', 'log', function($q, spectraService, cookieService, templatesService, log) {
         var self = this;
 
         var processors = [];
         var priorityJobs = [];
         var processing = true;
         var jobs = [];
+        var node = false;
+        var coreCookie = "numCores";
+        var processTogetherCookie = "processTogether";
+
+        self.getDefaultProcessType = function() {
+            var def = false;
+            if (window.getNodeDefault != null) {
+                var v = window.getNodeDefault(processTogetherCookie);
+                if (v != null) {
+                    def = v;
+                }
+            }
+            return def;
+        };
+        self.getProcessTogether = function() {
+            return processTogether;
+        };
+        self.setDefaultProcessTogether = function() {
+            processTogether = cookieService.setToDefault(processTogetherCookie);
+        };
+        self.setProcessTogether = function(value) {
+            processTogether = value;
+            cookieService.setCookie(processTogetherCookie, processTogether);
+        };
+        var processTogether = cookieService.registerCookieValue(processTogetherCookie, self.getDefaultProcessType());
 
         self.setDefaultNumberOfCores = function() {
-            var initialNumberProcessors = navigator.hardwareConcurrency;
-            if (typeof(initialNumberProcessors) === "undefined") {
-                initialNumberProcessors = 4;
+            var defaultValue = 3;
+            try {
+                if (navigator != null && navigator.hardwareConcurrency != null) {
+                    defaultValue = navigator.hardwareConcurrency;
+                }
+            } catch (err) {
+                log.warn("Could not fetch navigator.hardwareConcurrency");
             }
-            self.setNumberProcessors(initialNumberProcessors - 1);
-        };
-        self.setDefaultNumberOfCoresInitial = function() {
-            var initialNumberProcessors = cookieService.getCookie('numCores');
-            if (initialNumberProcessors == null) {
-                self.setDefaultNumberOfCores();
-            } else {
-                self.setNumberProcessors(initialNumberProcessors);
+            var c = cookieService.registerCookieValue(coreCookie, defaultValue);
+            try {
+                c = window.require('os').cpus().length;
+                node = true;
+                log.debug("Node/iojs detected");
+            } catch (err) {
+                log.debug("No Node/iojs");
             }
+            self.setNumberProcessors(c);
         };
+
         self.getNumberProcessors = function() {
             return processors.length;
         };
@@ -810,15 +888,19 @@ angular.module('servicesZ', ['dialogs.main'])
             } else if (num > 32) {
                 num = 32;
             }
-            cookieService.saveCookie('numCores', num);
+            cookieService.setCookie(coreCookie, num);
             if (num < processors.length) {
                 while (processors.length > num) {
                     processors[0].flagForDeletion();
                     processors.splice(0, 1);
                 }
             } else if (num > processors.length) {
-                while (processors.length < num) {
-                    processors.push(new Processor($q));
+                if (node) {
+                    processors = getProcessors($q, num, true);
+                } else {
+                    while (processors.length < num) {
+                        processors.push(new Processor($q));
+                    }
                 }
             }
         };
@@ -828,10 +910,11 @@ angular.module('servicesZ', ['dialogs.main'])
         self.processSpectra = function(spectra) {
             spectra.inactiveTemplates = templatesService.getInactiveTemplates();
             var processor = self.getIdleProcessor();
-            processor.workOnSpectra(spectra).then(function(result) {
+            processor.workOnSpectra(spectra, node).then(function(result) {
                 if (result.data.processing) {
                     spectraService.setProcessedResults(result.data);
-                } else {
+                }
+                if (result.data.matching) {
                     spectraService.setMatchedResults(result.data);
                 }
                 self.processJobs();
@@ -840,7 +923,7 @@ angular.module('servicesZ', ['dialogs.main'])
             });
         };
         self.getIdleProcessor = function() {
-            for (i = 0; i < processors.length; i++) {
+            for (var i = 0; i < processors.length; i++) {
                 if (processors[i].isIdle()) {
                     return processors[i];
                 }
@@ -869,6 +952,9 @@ angular.module('servicesZ', ['dialogs.main'])
         };
         self.shouldMatch = function(spectra) {
             return spectra.isProcessed && !spectra.isMatching && (!spectra.isMatched || spectra.templateResults == null);
+        };
+        self.shouldProcessAndMatch = function(spectra) {
+            return !spectra.isProcessing && !spectra.isProcessed;
         };
         self.processJobs = function() {
             var findingJobs = true;
@@ -913,25 +999,35 @@ angular.module('servicesZ', ['dialogs.main'])
                 }
             }
             if (processing) {
-                for (i = 0; i < jobs.length; i++) {
-                    if (self.shouldProcess(jobs[i])) {
-                        jobs[i].isProcessing = true;
-                        self.processSpectra(jobs[i].getProcessMessage());
-                        return true;
+                if (processTogether) {
+                    for (i = 0; i < jobs.length; i++) {
+                        if (self.shouldProcessAndMatch(jobs[i])) {
+                            jobs[i].isProcessing = true;
+                            self.processSpectra(jobs[i].getProcessingAndMatchingMessage());
+                            return true;
+                        }
                     }
-                }
-                for (i = 0; i < jobs.length; i++) {
-                    if (self.shouldMatch(jobs[i])) {
-                        jobs[i].isMatching = true;
-                        self.processSpectra(jobs[i].getMatchMessage());
-                        return true;
+                } else {
+                    for (i = 0; i < jobs.length; i++) {
+                        if (self.shouldProcess(jobs[i])) {
+                            jobs[i].isProcessing = true;
+                            self.processSpectra(jobs[i].getProcessMessage());
+                            return true;
+                        }
+                    }
+                    for (i = 0; i < jobs.length; i++) {
+                        if (self.shouldMatch(jobs[i])) {
+                            jobs[i].isMatching = true;
+                            self.processSpectra(jobs[i].getMatchMessage());
+                            return true;
+                        }
                     }
                 }
             }
             return false;
         };
 
-        self.setDefaultNumberOfCoresInitial();
+        self.setDefaultNumberOfCores();
 
     }])
     .service('templatesService', [function() {
@@ -972,7 +1068,7 @@ angular.module('servicesZ', ['dialogs.main'])
         };
 
     }])
-    .service('fitsFile', ['$q', 'global', 'spectraService', 'processorService', 'drawingService', '$log', function($q, global, spectraService, processorService, drawingService, $log) {
+    .service('fitsFile', ['$q', 'global', 'spectraService', 'processorService', 'log', function($q, global, spectraService, processorService, log) {
         var self = this;
 
         var hasFitsFile = false;
@@ -1002,12 +1098,18 @@ angular.module('servicesZ', ['dialogs.main'])
             var q = $q.defer();
             isLoading = true;
             hasFitsFile = true;
-            originalFilename = file.name.replace(/\.[^/.]+$/, "");
+            var pass = file;
+            if (file.actualName != null) {
+                originalFilename = file.actualName.replace(/\.[^/.]+$/, "");
+                pass = file.file;
+            } else {
+                originalFilename = file.name.replace(/\.[^/.]+$/, "");
+            }
             global.data.fitsFileName = originalFilename;
             filename = originalFilename.replace(/_/g, " ");
-            $log.debug("Loading FITs file");
-            self.fits = new astro.FITS(file, function() {
-                $log.debug("Loaded FITs file");
+            log.debug("Loading FITs file");
+            self.fits = new astro.FITS(pass, function() {
+                log.debug("Loaded FITS file");
                 parseFitsFile(q);
                 processorService.setPause();
             });
@@ -1019,7 +1121,7 @@ angular.module('servicesZ', ['dialogs.main'])
             for (var i = 0; i < self.fits.hdus.length; i++) {
                 var h = self.fits.getHeader(i).cards['EXTNAME'];
                 if (h != null && h.value.toUpperCase() == n) {
-                    $log.debug(name + " index found at " + i);
+                    log.debug(name + " index found at " + i);
                     return i;
                 }
             }
@@ -1034,9 +1136,8 @@ angular.module('servicesZ', ['dialogs.main'])
          * @param q
          */
         var parseFitsFile = function(q) {
-            $log.debug("Getting headers");
+            log.debug("Getting headers");
             var header0 = self.fits.getHDU(0).header;
-
             MJD = header0.get('UTMJD');
             date = MJDtoYMD(MJD);
 
@@ -1058,11 +1159,11 @@ angular.module('servicesZ', ['dialogs.main'])
             lambdaEnd = lambda[lambda.length - 1];
 
             $q.all([getIntensityData(),getVarianceData(), getSkyData(), getDetailsData()]).then(function(data) {
+                log.debug("Load promises complete");
                 var intensity = data[0];
                 var variance = data[1];
                 var sky = data[2];
                 var details = data[3];
-
                 var indexesToRemove = [];
                 if (details != null) {
                     if (details['FIBRE'] != null) {
@@ -1099,15 +1200,14 @@ angular.module('servicesZ', ['dialogs.main'])
                     var type = details == null ? null : details['TYPE'][i];
 
 
-                    var s = new Spectra(id, lambda.slice(0), int, vari, skyy, name, ra, dec, mag, type, originalFilename, drawingService);
+                    var s = new Spectra(id, lambda.slice(0), int, vari, skyy, name, ra, dec, mag, type, originalFilename);
                     s.setCompute(int != null && vari != null);
                     spectraList.push(s)
                 }
-
                 isLoading = false;
                 spectraService.setSpectra(spectraList);
                 processorService.addSpectraListToQueue(spectraList);
-                $log.debug("Returning FITs object");
+                log.debug("Returning FITs object");
                 q.resolve();
 
             })
@@ -1121,7 +1221,8 @@ angular.module('servicesZ', ['dialogs.main'])
          * @returns {deferred.promise}
          */
         var getIntensityData = function() {
-            $log.debug("Getting spectra intensity");
+            log.debug("Getting spectra intensity");
+
             var index = getHDUFromName("intensity");
             if (index == null) {
                 index = primaryIndex;
@@ -1148,7 +1249,7 @@ angular.module('servicesZ', ['dialogs.main'])
          * @returns {deferred.promise}
          */
         var getVarianceData = function() {
-            $log.debug("Getting spectra variance");
+            log.debug("Getting spectra variance");
             var index = getHDUFromName("variance");
             var q = $q.defer();
             if (index == null) {
@@ -1181,7 +1282,7 @@ angular.module('servicesZ', ['dialogs.main'])
          * @returns {deferred.promise}
          */
         var getSkyData = function() {
-            $log.debug("Getting sky");
+            log.debug("Getting sky");
             var index = getHDUFromName("sky");
             var q = $q.defer();
             if (index == null) {
@@ -1215,7 +1316,7 @@ angular.module('servicesZ', ['dialogs.main'])
          * @returns {deferred.promise}
          */
         var getDetailsData = function() {
-            $log.debug("Getting details");
+            log.debug("Getting details");
             var index = getHDUFromName("fibres");
             var q = $q.defer();
             if (index == null) {
@@ -1230,14 +1331,14 @@ angular.module('servicesZ', ['dialogs.main'])
             return q.promise;
         };
         var getFibres = function(q, index, cumulative) {
-            $log.debug("Getting fibres");
+            log.debug("Getting fibres");
             self.fits.getDataUnit(index).getColumn("TYPE", function(data) {
                 cumulative['FIBRE'] = data;
                 getNames(q, index, cumulative);
             });
         };
         var getNames = function(q, index, cumulative) {
-            $log.debug("Getting names");
+            log.debug("Getting names");
             self.fits.getDataUnit(index).getColumn("NAME", function(data) {
                 var names = [];
                 for (var i = 0; i < data.length; i++) {
@@ -1248,14 +1349,14 @@ angular.module('servicesZ', ['dialogs.main'])
             });
         };
         var getRA = function(q, index, cumulative) {
-            $log.debug("Getting RA");
+            log.debug("Getting RA");
             self.fits.getDataUnit(index).getColumn("RA", function(data) {
                 cumulative['RA'] = data;
                 getDec(q, index, cumulative);
             });
         };
         var getDec = function(q, index, cumulative) {
-            $log.debug("Getting DEC");
+            log.debug("Getting DEC");
             self.fits.getDataUnit(index).getColumn("DEC", function(data) {
                 cumulative['DEC'] = data;
                 getMagnitudes(q, index, cumulative);
@@ -1263,14 +1364,14 @@ angular.module('servicesZ', ['dialogs.main'])
         };
 
         var getMagnitudes = function(q, index, cumulative) {
-            $log.debug("Getting magnitude");
+            log.debug("Getting magnitude");
             self.fits.getDataUnit(index).getColumn("MAGNITUDE", function(data) {
                 cumulative['MAGNITUDE'] = data;
                 getComments(q, index, cumulative);
             });
         };
         var getComments = function(q, index, cumulative) {
-            $log.debug("Getting comment");
+            log.debug("Getting comment");
             self.fits.getDataUnit(index).getColumn("COMMENT", function(data) {
                 global.data.types.length = 0;
                 var ts = [];

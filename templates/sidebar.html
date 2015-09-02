@@ -1,8 +1,8 @@
 <div class="filler light-grey-background" ng-controller="SidebarController">
     <div class="spacing">
         <div id="sidebar-wrapper">
-            <div dropzone ng-if="!showSave() || !ui.sidebarSmall">
-                <div ng-if="isWaitingDrop()">
+            <div dropzone id="sidebarDrop">
+                <div ng-if="isWaitingDrop()"  ng-if="!(showSave() && ui.sidebarSmall)">
 
                     <h4>{{getDropText()}}</h4>
                 </div>

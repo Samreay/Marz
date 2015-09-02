@@ -16,7 +16,7 @@
  * @param drawingService - bad code style, but the angularjs drawing service is passed in to simplify logic in other locations
  * @constructor
  */
-function Spectra(id, lambda, intensity, variance, sky, name, ra, dec, magnitude, type, filename, drawingService) {
+function Spectra(id, lambda, intensity, variance, sky, name, ra, dec, magnitude, type, filename) {
     this.id = id;
     this.name = name;
     this.ra = ra;
@@ -59,7 +59,6 @@ function Spectra(id, lambda, intensity, variance, sky, name, ra, dec, magnitude,
     this.automaticBestResults = null;
     this.manualRedshift = null;
     this.manualTemplateID = null;
-    this.drawingService = drawingService;
 
     this.qopLabel = "";
     this.setQOP(0);
@@ -103,11 +102,11 @@ Spectra.prototype.getRA = function() {
 Spectra.prototype.getDEC = function() {
     return this.dec * 180 / Math.PI;
 };
-Spectra.prototype.getImage = function() {
+Spectra.prototype.getImage = function(drawingService) {
     if (this.getFinalRedshift() != this.imageZ || this.imageTID != this.getFinalTemplateID() || this.image == null) {
         this.imageTID = this.getFinalTemplateID();
         this.imageZ = this.getFinalRedshift();
-        this.image = this.getImageUrl();
+        this.image = this.getImageUrl(drawingService);
     }
     return this.image;
 
@@ -118,11 +117,11 @@ Spectra.prototype.getComment = function() {
 Spectra.prototype.setComment = function(comment) {
     this.comment = comment;
 };
-Spectra.prototype.getImageUrl = function() {
+Spectra.prototype.getImageUrl = function(drawingService) {
     var canvas = document.createElement('canvas');
     canvas.width = 318;
     canvas.height = 118;
-    this.drawingService.drawOverviewOnCanvas(this, canvas);
+    drawingService.drawOverviewOnCanvas(this, canvas);
     return canvas.toDataURL();
 };
 Spectra.prototype.getTemplateResults = function() {
@@ -187,6 +186,17 @@ Spectra.prototype.getFinalTemplateID = function() {
       return null;
   }
 };
+Spectra.prototype.getProcessingAndMatchingMessage = function() {
+    return {
+        processing: true,
+        matching: true,
+        id: this.id,
+        name: this.name,
+        lambda: this.lambda,
+        intensity: this.intensity,
+        variance: this.variance
+    }
+};
 Spectra.prototype.getProcessMessage = function() {
     return {
         processing: true,
@@ -199,7 +209,7 @@ Spectra.prototype.getProcessMessage = function() {
 };
 Spectra.prototype.getMatchMessage = function() {
     return {
-        processing: false,
+        matching: true,
         id: this.id,
         name: this.name,
         type: this.type,
@@ -218,18 +228,34 @@ Spectra.prototype.getMatchMessage = function() {
  * The processor is responsible for hosting the worker and communicating with it.
  * @param $q - the angular promise creation object
  */
-function Processor($q) {
+function Processor($q, node, worker) {
     this.flaggedForDeletion = false;
+    this.node = node;
     this.$q = $q;
-    this.worker = new Worker('js/worker.js');
-    this.worker.addEventListener('message', function(e) {
-        this.promise.resolve(e);
-        this.promise = null;
-        if (this.flaggedForDeletion) {
-            this.worker = null;
-        }
-    }.bind(this), false);
+    if (worker == null) {
+        this.worker = new Worker('js/worker.js');
+    } else {
+        this.worker = worker;
+    }
+    if (node) {
+        try {
+            this.worker.on('message', this.respond.bind(this));
+        } catch (err) {}
+
+    } else {
+        try {
+            this.worker.addEventListener('message', this.respond.bind(this), false);
+        } catch (err) {}
+    }
 }
+Processor.prototype.respond = function(e) {
+    //window.onFileMatched("Got response");
+    this.promise.resolve(e);
+    this.promise = null;
+    if (this.flaggedForDeletion) {
+        this.worker = null;
+    }
+};
 Processor.prototype.flagForDeletion = function() {
     this.flaggedForDeletion = true;
 };
@@ -238,9 +264,36 @@ Processor.prototype.isIdle = function() {
 };
 Processor.prototype.workOnSpectra = function(data) {
     this.promise = this.$q.defer();
-    this.worker.postMessage(data);
+    if (this.node) {
+        this.worker.send(data);
+    } else {
+        this.worker.postMessage(data);
+    }
     return this.promise.promise;
 };
+
+function getProcessors($q, numberProcessors, node) {
+    var processors = [];
+    if (node) {
+        //window.onFileMatched("IN 1");
+        var workers = getNodeWorkers(numberProcessors);
+        //window.onFileMatched("IN 2");
+        //window.onFileMatched(workers.length);
+        for (var i = 0; i < workers.length; i++) {
+            processors.push(new Processor($q, true, workers[i]))
+        }
+    } else {
+        for (var i = 0; i < numberProcessors; i++) {
+            processors.push(new Processor($q, false))
+        }
+    }
+    //window.onFileMatched("IN 3");
+    return processors;
+}
+
+function getNodeWorkers(numberProcessors) {
+    return window.getWorkers();
+}
 
 
 /**
