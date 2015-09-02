@@ -232,6 +232,15 @@ angular.module('servicesZ', ['dialogs.main'])
         };
         var assignAutoQOPs = cookieService.registerCookieValue(assignAutoQOPsCookie, self.getAutoQOPDefault());
 
+        self.setDownloadAutomaticallyDefault = function() {
+            self.setDownloadAutomatically(cookieService.setToDefault(downloadAutomaticallyCookie));
+        };
+        self.setSaveAutomaticallyDefault = function() {
+            self.setSaveAutomatically(cookieService.setToDefault(saveAutomaticallyCookie));
+        };
+        self.setDefaultAssignAutoQOPs = function() {
+            self.setAssignAutoQOPs(cookieService.setToDefault(assignAutoQOPsCookie));
+        };
         self.setDownloadAutomatically = function(value) {
             downloadAutomatically = value;
             cookieService.setCookie(downloadAutomaticallyCookie, downloadAutomatically);
@@ -810,7 +819,12 @@ angular.module('servicesZ', ['dialogs.main'])
             }
             self.vals[property] = value == null ? defaultValue : value;
             return self.vals[property];
-        }
+        };
+        self.setToDefault = function(property) {
+            self.setCookie(property, self.defaults[property]);
+            return self.defaults[property];
+        };
+
     }])
     .service('processorService', ['$q', 'spectraService', 'cookieService', 'templatesService', 'log', function($q, spectraService, cookieService, templatesService, log) {
         var self = this;
@@ -821,7 +835,29 @@ angular.module('servicesZ', ['dialogs.main'])
         var jobs = [];
         var node = false;
         var coreCookie = "numCores";
+        var processTogetherCookie = "processTogether";
 
+        self.getDefaultProcessType = function() {
+            var def = false;
+            if (window.getNodeDefault != null) {
+                var v = window.getNodeDefault(processTogetherCookie);
+                if (v != null) {
+                    def = v;
+                }
+            }
+            return def;
+        };
+        self.getProcessTogether = function() {
+            return processTogether;
+        };
+        self.setDefaultProcessTogether = function() {
+            processTogether = cookieService.setToDefault(processTogetherCookie);
+        };
+        self.setProcessTogether = function(value) {
+            processTogether = value;
+            cookieService.setCookie(processTogetherCookie, processTogether);
+        };
+        var processTogether = cookieService.registerCookieValue(processTogetherCookie, self.getDefaultProcessType());
 
         self.setDefaultNumberOfCores = function() {
             var defaultValue = 3;
@@ -877,7 +913,8 @@ angular.module('servicesZ', ['dialogs.main'])
             processor.workOnSpectra(spectra, node).then(function(result) {
                 if (result.data.processing) {
                     spectraService.setProcessedResults(result.data);
-                } else {
+                }
+                if (result.data.matching) {
                     spectraService.setMatchedResults(result.data);
                 }
                 self.processJobs();
@@ -915,6 +952,9 @@ angular.module('servicesZ', ['dialogs.main'])
         };
         self.shouldMatch = function(spectra) {
             return spectra.isProcessed && !spectra.isMatching && (!spectra.isMatched || spectra.templateResults == null);
+        };
+        self.shouldProcessAndMatch = function(spectra) {
+            return !spectra.isProcessing && !spectra.isProcessed;
         };
         self.processJobs = function() {
             var findingJobs = true;
@@ -959,18 +999,28 @@ angular.module('servicesZ', ['dialogs.main'])
                 }
             }
             if (processing) {
-                for (i = 0; i < jobs.length; i++) {
-                    if (self.shouldProcess(jobs[i])) {
-                        jobs[i].isProcessing = true;
-                        self.processSpectra(jobs[i].getProcessMessage());
-                        return true;
+                if (processTogether) {
+                    for (i = 0; i < jobs.length; i++) {
+                        if (self.shouldProcessAndMatch(jobs[i])) {
+                            jobs[i].isProcessing = true;
+                            self.processSpectra(jobs[i].getProcessingAndMatchingMessage());
+                            return true;
+                        }
                     }
-                }
-                for (i = 0; i < jobs.length; i++) {
-                    if (self.shouldMatch(jobs[i])) {
-                        jobs[i].isMatching = true;
-                        self.processSpectra(jobs[i].getMatchMessage());
-                        return true;
+                } else {
+                    for (i = 0; i < jobs.length; i++) {
+                        if (self.shouldProcess(jobs[i])) {
+                            jobs[i].isProcessing = true;
+                            self.processSpectra(jobs[i].getProcessMessage());
+                            return true;
+                        }
+                    }
+                    for (i = 0; i < jobs.length; i++) {
+                        if (self.shouldMatch(jobs[i])) {
+                            jobs[i].isMatching = true;
+                            self.processSpectra(jobs[i].getMatchMessage());
+                            return true;
+                        }
                     }
                 }
             }

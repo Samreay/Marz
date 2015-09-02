@@ -679,6 +679,7 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             $scope.numberOfCores = processorService.getNumberProcessors();
             $scope.saveAutomatically = spectraService.getSaveAutomatically();
             $scope.assignAutoQOPs  = spectraService.getAssignAutoQOPs();
+            $scope.processTogether  = processorService.getProcessTogether();
         };
         $scope.getValues();
         $scope.updateAssignAutoQOPs = function() {
@@ -696,11 +697,15 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
                 processorService.setNumberProcessors($scope.numberOfCores);
             }
         };
+        $scope.updateProcessTogether = function() {
+            processorService.setProcessTogether($scope.processTogether)
+        };
         $scope.resetToDefaults = function() {
             spectraService.setDownloadAutomaticallyDefault();
             spectraService.setSaveAutomaticallyDefault();
             processorService.setDefaultNumberOfCores();
             spectraService.setDefaultAssignAutoQOPs();
+            processorService.setDefaultProcessTogether();
             $scope.getValues();
         };
 

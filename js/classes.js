@@ -186,6 +186,17 @@ Spectra.prototype.getFinalTemplateID = function() {
       return null;
   }
 };
+Spectra.prototype.getProcessingAndMatchingMessage = function() {
+    return {
+        processing: true,
+        matching: true,
+        id: this.id,
+        name: this.name,
+        lambda: this.lambda,
+        intensity: this.intensity,
+        variance: this.variance
+    }
+};
 Spectra.prototype.getProcessMessage = function() {
     return {
         processing: true,
@@ -198,7 +209,7 @@ Spectra.prototype.getProcessMessage = function() {
 };
 Spectra.prototype.getMatchMessage = function() {
     return {
-        processing: false,
+        matching: true,
         id: this.id,
         name: this.name,
         type: this.type,

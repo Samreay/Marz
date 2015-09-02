@@ -21,12 +21,15 @@ function handleEvent(data) {
     if (data.processing) {
         self.process(data);
         result = data;
-    } else {
-        result = {
-            id: data.id,
-            name: data.name,
-            results: self.matchTemplates(data.lambda, data.intensity, data.variance, data.type)
-        };
+    }
+    if (result == null) {
+        result = {}
+    }
+    if (data.matching) {
+        result['matching'] = true;
+        result['id'] = data.id;
+        result['name'] = data.name;
+        result['results'] = self.matchTemplates(data.lambda, data.intensity, data.variance, data.type);
     }
     return result;
 }

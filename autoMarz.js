@@ -29,7 +29,7 @@ var debug = function(output) {
 if (cluster.isMaster) {
   var filenames = argv['_'];
 
-  debug("Input Parameters:")
+  debug("Input Parameters:");
   debug(argv);
   if (filenames == null || filenames.length > 1 || filenames.length == 0) {
     help();
@@ -43,7 +43,7 @@ if (cluster.isMaster) {
   }
   outputFile = argv['o'] || argv['outFile'] || outputFile;
 
-  debug("Parsed Parameters:")
+  debug("Parsed Parameters:");
   debug({'outputFile': outputFile, 'filename': filename, 'fname': fname, 'debug': debugFlag, 'dir': dir})
   var jsdom = require('jsdom');
 
@@ -71,7 +71,8 @@ if (cluster.isMaster) {
 
   var defaults = {
     "assignAutoQOPs": true,       // Whether or not assign autoQops
-    "tenabled": []            // List of template IDs to disable in matching, eg to disable only quasars set to ['12']
+    "tenabled": [],               // List of template IDs to disable in matching, eg to disable only quasars set to ['12']
+    "processTogether": true
   };
   var startTime = new Date();
   debug("Processing file " + filename);
@@ -102,7 +103,7 @@ if (cluster.isMaster) {
 
       window.getNodeDefault = function(property) {
         var val = defaults[property];
-        console.log("Asking for property " + property + ", returning " + val);
+        debug("Asking for property " + property + ", returning " + val);
         return val;
       };
 
