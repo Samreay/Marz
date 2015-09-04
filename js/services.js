@@ -575,7 +575,13 @@ angular.module('servicesZ', ['dialogs.main'])
                 if (newFilename.length > 1) {
                     filename = newFilename;
                 }
-                var headers = lines[1].replace('#','').split(',');
+                for (var n = 0; n < lines.length; n++) {
+                    if (lines[n].indexOf("#") != 0) {
+                        break;
+                    }
+                }
+                n--;
+                var headers = lines[n].replace('#','').split(',');
                 for (var w = 0; w < headers.length; w++) {
                     headers[w] = headers[w].trim();
                 }
@@ -709,7 +715,7 @@ angular.module('servicesZ', ['dialogs.main'])
             return result;
         };
         self.convertResultToMimicSpectra = function(result) {
-            var spectra = new Spectra(result["ID"], null, null, null, null, null, result["Name"],
+            var spectra = new Spectra(result["ID"], null, null, null, null, result["Name"],
                 result["RA"], result["DEC"],result["Mag"], result["Type"], result.filename);
             spectra.automaticBestResults = [{templateId: result["AutoTID"], z: result["AutoZ"], value: result["AutoXCor"]}];
             spectra.setComment(result["Comment"]);
