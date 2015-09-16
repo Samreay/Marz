@@ -8,8 +8,8 @@ html, body, .filler {
 .relative {
     position: relative;
 }
-html, body {
-    min-width: 940px;
+html, body, .navbar-fixed-top, .navbar-fixed-botom {
+    min-width: 970px;
 }
 .detailed-control {
     min-width: 1300px;
