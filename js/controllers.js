@@ -145,26 +145,27 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
                 global.ui.dataSelection.matched = !global.ui.dataSelection.matched;
                 $scope.$apply();
             }},
-            {key: ['1', 'num1'], label: '1', controller: "detailed", description: '[Detailed screen] Save with manual QOP of 1', fn: function() {
+            {key: ['1', 'num1'], label: '1', controller: "detailed", description: '[Detailed screen] Save with manual QOP of 1', fn: _.throttle(function($scope) {
                 $scope.saveManual(1);
                 $scope.$apply();
-            }},
-            {key: ['2', 'num2'], label: '2', controller: "detailed", description: '[Detailed screen] Save with manual QOP of 2', fn: function() {
+                $scope.$apply();
+            }, 400, { 'trailing': false})},
+            {key: ['2', 'num2'], label: '2', controller: "detailed", description: '[Detailed screen] Save with manual QOP of 2', fn: _.throttle(function($scope) {
                 $scope.saveManual(2);
                 $scope.$apply();
-            }},
-            {key: ['3', 'num3'], label: '3', controller: "detailed", description: '[Detailed screen] Save with manual QOP of 3', fn: function() {
+            }, 400, { 'trailing': false})},
+            {key: ['3', 'num3'], label: '3', controller: "detailed", description: '[Detailed screen] Save with manual QOP of 3', fn: _.throttle(function($scope) {
                 $scope.saveManual(3);
                 $scope.$apply();
-            }},
-            {key: ['4', 'num4'], label: '4', controller: "detailed", description: '[Detailed screen] Save with manual QOP of 4', fn: function() {
+            }, 400, { 'trailing': false})},
+            {key: ['4', 'num4'], label: '4', controller: "detailed", description: '[Detailed screen] Save with manual QOP of 4', fn: _.throttle(function($scope) {
                 $scope.saveManual(4);
                 $scope.$apply();
-            }},
-            {key: ['6', 'num6'], label: '6', controller: "detailed", description: '[Detailed screen] Save with manual QOP of 6', fn: function() {
+            }, 400, { 'trailing': false})},
+            {key: ['6', 'num6'], label: '6', controller: "detailed", description: '[Detailed screen] Save with manual QOP of 6', fn: _.throttle(function($scope) {
                 $scope.saveManual(6);
                 $scope.$apply();
-            }},
+            }, 400, { 'trailing': false})},
             {key: 'z', label: 'z', controller: "detailed", description: '[Detailed screen] Focus on redshift input', fn: function($scope, e) {
                 $scope.setFocusToRedshift();
                 e.preventDefault();
