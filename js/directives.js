@@ -863,7 +863,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                                 c.beginPath();
                                 c.setLineDash([5, 3]);
                                 if (strength == null) {
-                                    c.strokeStyle = spectralLineColour;
+                                    c.strokeStyle = spectralLineColour.replace(/[^,]+(?=\))/, "" + 0.5);
                                 } else {
                                     c.strokeStyle = spectralLineColour.replace(/[^,]+(?=\))/, "" + strength);
                                 }
