@@ -46,7 +46,7 @@ angular.module('servicesZ', ['dialogs.main'])
                 colours: {
                     unselected: '#E8E8E8',
                     raw: "#111111",
-                    processed: "#067800",
+                    processed: "#005201",
                     matched: "#AA0000",
                     sky: "#009DFF",
                     template: '#8C0623',

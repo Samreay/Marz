@@ -209,7 +209,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
 
                 var minDragForZoom = 20;
                 var displayingSpectralLines = true;
-                var spectralLineColour = 'rgba(0, 115, 255, 1)';
+                var spectralLineColours = ['rgba(0, 115, 255, 1)',  'rgba(0, 115, 255, 1)', 'rgba(30, 200, 50, 1)'];
                 var spectralLineTextColour = '#FFFFFF';
 
                 var templatePixelOffset = 30;
@@ -834,8 +834,6 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     if (!$scope.detailed.spectralLines) return;
                     var lines = spectraLineService.getAll();
                     c.save();
-                    c.strokeStyle = spectralLineColour;
-                    c.fillStyle = spectralLineColour;
                     c.textAlign = 'center';
                     c.textBaseline = 'bottom';
                     c.font = labelFont;
@@ -844,6 +842,8 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     var px = -100;
                     for (var i = 0; i < lines.length; i++) {
                         var z = parseFloat(global.ui.detailed.redshift);
+                        var spectralLineColour = spectralLineColours[lines[i].type];
+                        c.fillStyle = spectralLineColour;
                         for (var j = 0; j < lines[i].displayLines.length; j++) {
                             var lambda = shiftWavelength(lines[i].displayLines[j], z);
                             if (checkDataXInRange(bound, lambda)) {
