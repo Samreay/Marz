@@ -166,6 +166,10 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
                 $scope.saveManual(6);
                 $scope.$apply();
             }, 400, { 'trailing': false})},
+            {key: ['0', 'num0'], label: '0', controller: "detailed", description: '[Detailed screen] Remove QOP result (set QOP to 0)', fn: _.throttle(function($scope) {
+                $scope.saveManual(0);
+                $scope.$apply();
+            }, 400, { 'trailing': false})},
             {key: 'z', label: 'z', controller: "detailed", description: '[Detailed screen] Focus on redshift input', fn: function($scope, e) {
                 $scope.setFocusToRedshift();
                 e.preventDefault();
@@ -829,7 +833,7 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
         });
 
         $scope.getButtonLabel = function(qop) {
-            var labels = {4: ['Great (4)', '4'], 3: ['Good (3)', '3'], 2: ['Possible (2)', '2'], 1: ['Unknown (1)', '1'], 6: ['It\'s a star! (6)', '6']};
+            var labels = {4: ['Great (4)', '4'], 3: ['Good (3)', '3'], 2: ['Possible (2)', '2'], 1: ['Unknown (1)', '1'], 6: ['It\'s a star! (6)', '6'], 0: ['Unassigned (0)', '0']};
             return labels[qop][$scope.ui.sidebarSmall ? 1 : 0]
         };
         $scope.getContractButtonLabel = function() {
