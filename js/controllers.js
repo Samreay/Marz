@@ -184,9 +184,9 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
                     $scope.resetToAutomatic();
                 });
             }},
-            {key: 'o', label: 'o', controller: "detailed", description: '[Detailed screen] Show the next automatic redshift result', fn: function($scope) {
+            {key: 'o', label: 'o', controller: "detailed", description: '[Detailed screen] Show the next automatic redshift result', fn: _.throttle(function($scope) {
                 $timeout(function() { $scope.nextMatchedDetails()});
-            }},
+            }, 300, { 'trailing': false})},
             {key: 'u', label: 'u', controller: "detailed", description: '[Detailed screen] Fit the result within a localised window', fn: function($scope) {
                 $timeout(function() { $scope.fit()});
             }},
