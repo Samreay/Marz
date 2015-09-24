@@ -1103,11 +1103,9 @@ angular.module('servicesZ', ['dialogs.main'])
         var filename = null;
         var MJD = null;
         var date = null;
-        var lambdaStart = null;
-        var lambdaEnd = null;
+        var header0 = null;
 
         var spectra = null;
-        var lambda = null;
         var primaryIndex = 0;
         var numPoints = null;
 
@@ -1163,33 +1161,19 @@ angular.module('servicesZ', ['dialogs.main'])
          */
         var parseFitsFile = function(q) {
             log.debug("Getting headers");
-            var header0 = self.fits.getHDU(0).header;
+            header0 = self.fits.getHDU(0).header;
             MJD = header0.get('UTMJD');
             date = MJDtoYMD(MJD);
 
             numPoints = self.fits.getHDU(0).data.width;
 
-            var CRVAL1 = header0.get('CRVAL1');
-            var CRPIX1 = header0.get('CRPIX1');
-            var CDELT1 = header0.get('CDELT1');
-            if (CDELT1 == null) {
-                CDELT1 = header0.get('CD1_1');
-            }
-
-            lambda = [];
-            for (var i = 0; i < numPoints; i++) {
-                lambda.push(((i + 1 - CRPIX1) * CDELT1) + CRVAL1);
-            }
-            convertVacuumFromAir(lambda);
-            lambdaStart = lambda[0];
-            lambdaEnd = lambda[lambda.length - 1];
-
-            $q.all([getIntensityData(),getVarianceData(), getSkyData(), getDetailsData()]).then(function(data) {
+            $q.all([getWavelengths(), getIntensityData(),getVarianceData(), getSkyData(), getDetailsData()]).then(function(data) {
                 log.debug("Load promises complete");
-                var intensity = data[0];
-                var variance = data[1];
-                var sky = data[2];
-                var details = data[3];
+                var lambda = data[0];
+                var intensity = data[1];
+                var variance = data[2];
+                var sky = data[3];
+                var details = data[4];
                 var indexesToRemove = [];
                 if (details != null) {
                     if (details['FIBRE'] != null) {
@@ -1216,6 +1200,7 @@ angular.module('servicesZ', ['dialogs.main'])
                         continue;
                     }
                     var id = i + 1;
+                    var llambda = (lambda.length == 1) ? lambda[0].slice(0) : lambda[i];
                     var int = intensity[i];
                     var vari = variance == null ? null : variance[i];
                     var skyy = sky == null ? null : (sky.length == 1) ? sky[0] : sky[i];
@@ -1226,7 +1211,7 @@ angular.module('servicesZ', ['dialogs.main'])
                     var type = details == null ? null : details['TYPE'][i];
 
 
-                    var s = new Spectra(id, lambda.slice(0), int, vari, skyy, name, ra, dec, mag, type, originalFilename);
+                    var s = new Spectra(id, llambda, int, vari, skyy, name, ra, dec, mag, type, originalFilename);
                     s.setCompute(int != null && vari != null);
                     spectraList.push(s)
                 }
@@ -1238,7 +1223,75 @@ angular.module('servicesZ', ['dialogs.main'])
 
             })
 
+        };
 
+        var getWavelengths = function() {
+            var q = $q.defer();
+            getRawWavelengths().then(function(lambdas) {
+                var needToShift = header0.get('VACUUM') == null || header0.get('VACUUM') == 0;
+                var logLinear = header0.get('LOGSCALE') != null && header0.get('LOGSCALE') != 0;
+
+                if (logLinear) {
+                    log.debug("Log linear wavelength detected");
+                    for (var i = 0; i < lambdas.length; i++) {
+                        for (var j = 0; j < lambdas[i].length; j++) {
+                            lambdas[i][j] = Math.pow(10, lambdas[i][j]);
+                        }
+                    }
+                }
+                if (needToShift) {
+                    log.debug("Shifting air wavelengths into vacuum");
+                    for (var i = 0; i < lambdas.length; i++) {
+                        convertVacuumFromAir(lambdas[i]);
+                    }
+                }
+
+                q.resolve(lambdas);
+            }, function(err) {
+                log.error(err);
+                q.reject(err);
+            });
+
+            return q.promise;
+        };
+
+
+        var getRawWavelengths = function() {
+            log.debug("Getting spectra wavelengths");
+            var q = $q.defer();
+            var index = getHDUFromName("wavelength");
+            if (index == null) {
+                log.debug("Wavelength extension not found. Checking headings");
+                var CRVAL1 = header0.get('CRVAL1');
+                var CRPIX1 = header0.get('CRPIX1');
+                var CDELT1 = header0.get('CDELT1');
+                if (CDELT1 == null) {
+                    CDELT1 = header0.get('CD1_1');
+                }
+                if (CRVAL1 == null || CRPIX1 == null || CDELT1 == null) {
+                    q.reject("Wavelength header values incorrect: CRVAL1=" + CRVAL1 + ", CRPIX1=" + CRPIX1 + ", CDELT1=" + CDELT1 + ".");
+                }
+                var lambdas = [];
+                var lambda = [];
+                for (var i = 0; i < numPoints; i++) {
+                    lambda.push(((i + 1 - CRPIX1) * CDELT1) + CRVAL1);
+                }
+                lambdas.push(lambda);
+                q.resolve(lambdas);
+
+            } else {
+                self.fits.getDataUnit(index).getFrame(0, function (data, q) {
+                    var d = Array.prototype.slice.call(data);
+                    var lambdas = [];
+                    for (var i = 0; i < data.length / numPoints; i++) {
+                        var s = d.slice(i * numPoints, (i + 1) * numPoints);
+                        lambdas.push(s);
+                    }
+                    log.debug(lambdas.length + " wavelength rows found");
+                    q.resolve(lambdas);
+                }, q);
+            }
+            return q.promise;
         };
         /**
          * Attempts to extract the spectrum intensity data from the right extension.
