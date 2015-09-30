@@ -146,21 +146,22 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
                 $scope.$apply();
             }},
             {key: ['1', 'num1'], label: '1', controller: "detailed", description: '[Detailed screen] Save with manual QOP of 1', fn: _.throttle(function($scope) {
-                $scope.saveManual(1);
-                $scope.$apply();
-                $scope.$apply();
+                $timeout(function() {
+                    $scope.saveManual(1);
+                });
             }, 400, { 'trailing': false})},
             {key: ['2', 'num2'], label: '2', controller: "detailed", description: '[Detailed screen] Save with manual QOP of 2', fn: _.throttle(function($scope) {
-                $scope.saveManual(2);
-                $scope.$apply();
+                $timeout(function() {
+                    $scope.saveManual(2);
+                    $scope.$digest();
+                });
             }, 400, { 'trailing': false})},
             {key: ['3', 'num3'], label: '3', controller: "detailed", description: '[Detailed screen] Save with manual QOP of 3', fn: _.throttle(function($scope) {
                 $scope.saveManual(3);
                 $scope.$apply();
             }, 400, { 'trailing': false})},
             {key: ['4', 'num4'], label: '4', controller: "detailed", description: '[Detailed screen] Save with manual QOP of 4', fn: _.throttle(function($scope) {
-                $scope.saveManual(4);
-                $scope.$apply();
+                $scope.$apply(function() {$scope.saveManual(4);});
             }, 400, { 'trailing': false})},
             {key: ['6', 'num6'], label: '6', controller: "detailed", description: '[Detailed screen] Save with manual QOP of 6', fn: _.throttle(function($scope) {
                 $scope.saveManual(6);
