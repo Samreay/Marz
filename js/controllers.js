@@ -133,18 +133,18 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             {key: 'shift+?', label: '?', description: 'Go to the Usage tab', fn: function() {
                 $state.go('usage');
             }},
-            {key: 'n', label: 'n', description: 'Selects to the next spectra', fn: function() {
+            {key: 'n', label: 'n', description: 'Selects to the next spectra', fn: _.throttle(function() {
                 $scope.setNextSpectra();
                 $scope.$apply();
-            }},
-            {key: 'b', label: 'b', description: 'Selects to the previous spectra', fn: function() {
+            }, 300, { 'trailing': false})},
+            {key: 'b', label: 'b', description: 'Selects to the previous spectra', fn: _.throttle(function() {
                 $scope.setPreviousSpectra();
                 $scope.$apply();
-            }},
-            {key: 't', label: 't', description: 'Toggle whether templates are displayed', fn: function() {
+            }, 300, { 'trailing': false})},
+            {key: 't', label: 't', description: 'Toggle whether templates are displayed', fn: _.throttle(function() {
                 global.ui.dataSelection.matched = !global.ui.dataSelection.matched;
                 $scope.$apply();
-            }},
+            }, 300, { 'trailing': false})},
             {key: ['1', 'num1'], label: '1', controller: "detailed", description: '[Detailed screen] Save with manual QOP of 1', fn: _.throttle(function($scope) {
                 $timeout(function() {
                     $scope.saveManual(1);
@@ -180,7 +180,7 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
                     $scope.resetToManual();
                 });
             }},
-            {key: 'shift+r', label: 'shift+r', controller: "detailed", description: '[Detailed screen] Set view to automaticly found redshift', fn: function($scope) {
+            {key: 'shift+r', label: 'shift+r', controller: "detailed", description: '[Detailed screen] Set view to automatically found redshift', fn: function($scope) {
                 $timeout(function() {
                     $scope.resetToAutomatic();
                 });
@@ -191,12 +191,12 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             {key: 'u', label: 'u', controller: "detailed", description: '[Detailed screen] Fit the result within a localised window', fn: function($scope) {
                 $timeout(function() { $scope.fit()});
             }},
-            {key: 's', label: 's', controller: "detailed", description: '[Detailed screen] Increase smoothing level', fn: function($scope) {
+            {key: 's', label: 's', controller: "detailed", description: '[Detailed screen] Increase smoothing level', fn: _.throttle(function($scope) {
                 $timeout(function() { $scope.incrementSmooth(); });
-            }},
-            {key: 'd', label: 'd', controller: "detailed", description: '[Detailed screen] Decrease smoothing level', fn: function($scope) {
+            }, 200, { 'trailing': false})},
+            {key: 'd', label: 'd', controller: "detailed", description: '[Detailed screen] Decrease smoothing level', fn: _.throttle(function($scope) {
                 $timeout(function() { $scope.decrementSmooth(); });
-            }},
+            }, 200, { 'trailing': false})},
             {key: 'r', label: 'r', controller: "detailed", description: '[Detailed screen] Reset graph zoom to extents', fn: function($scope) {
                 $timeout(function() {
                     global.ui.detailed.lockedBounds = false;
