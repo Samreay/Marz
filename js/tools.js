@@ -10,6 +10,12 @@ String.prototype.pad = function(width) {
 String.prototype.spacePad = function(width) {
     return this.length >= width ? this : this + new Array(width - this.length + 1).join(' ');
 };
+function defaultFor(arg, val) {
+    return typeof arg !== 'undefined' ? arg : val;
+}
+function degToRad(val) {
+    return val * Math.PI / 180;
+}
 function range(start, stop, step) {
     var result = [];
     for (var i = start; i < stop; i += step) {
