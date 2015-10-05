@@ -238,11 +238,15 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                 var canvas = $element[0];
                 var c = canvas.getContext("2d");
                 var ratio = window.devicePixelRatio || 1.0;
-                var escale = 1.0;
-                var scale = ratio * escale;
+                var scale = 1.0;
                 var canvasWidth = 0.0;
                 var canvasHeight = 0.0;
 
+                var setScale = function(extra) {
+                    extra = defaultFor(extra, 1.0);
+                    scale = ratio * extra;
+                };
+                setScale();
                 var convertCanvasXCoordinateToDataPoint = function(bound, x) {
                     return bound.xMin + ((x-bound.left)/(bound.width)) * (bound.xMax - bound.xMin);
                 };
@@ -542,7 +546,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     }
                 };
                 var clearPlot = function(download) {
-                    defaultFor(download, false);
+                    download = defaultFor(download, false);
                     /*c.save();
                     c.setTransform(1, 0, 0, 1, 0, 0);
                     c.clearRect(0, 0, canvas.width, canvas.height);
@@ -1098,6 +1102,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     requested = false;
                 };
                 var downloadImage = function() {
+                    setScale(2.0);
                     refreshSettings();
                     selectCalloutWindows();
                     clearPlot(true);
@@ -1108,6 +1113,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     var d=canvas.toDataURL("image/png");
                     var w=window.open('about:blank','image from canvas');
                     w.document.write("<img src='"+d+"' alt='from canvas'/>");
+                    setScale();
                     redraw();
                 };
                 var redraw = function() {
