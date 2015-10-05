@@ -119,9 +119,14 @@ Spectra.prototype.setComment = function(comment) {
 };
 Spectra.prototype.getImageUrl = function(drawingService) {
     var canvas = document.createElement('canvas');
-    canvas.width = 318;
-    canvas.height = 118;
-    drawingService.drawOverviewOnCanvas(this, canvas);
+    var ratio = window.devicePixelRatio || 1.0;
+    var width = 318;
+    var height = 118;
+    canvas.width = width * ratio;
+    canvas.height = height * ratio;
+    var ctx = canvas.getContext('2d');
+    ctx.scale(ratio, ratio);
+    drawingService.drawOverviewOnCanvas(this, canvas, width, height);
     return canvas.toDataURL();
 };
 Spectra.prototype.getTemplateResults = function() {
