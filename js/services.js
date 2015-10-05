@@ -1620,8 +1620,12 @@ angular.module('servicesZ', ['dialogs.main'])
             return [xmin, xmax, ymin, ymax];
         };
         self.clearPlot = function(canvas) {
-            canvas.width = canvas.clientWidth;
-            canvas.height =canvas.clientHeight;
+            var ratio = window.devicePixelRatio || 1.0;
+            canvas.style.width = canvas.clientWidth;
+            canvas.style.height = canvas.clientHeight;
+            canvas.width = canvas.clientWidth * ratio;
+            canvas.height = canvas.clientHeight * ratio;
+            canvas.scale(ratio, ratio);
             var c = canvas.getContext("2d");
             c.save();
             // Use the identity matrix while clearing the canvas

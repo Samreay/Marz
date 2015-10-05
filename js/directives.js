@@ -234,6 +234,11 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
 
                 var canvas = $element[0];
                 var c = canvas.getContext("2d");
+                var ratio = window.devicePixelRatio || 1.0;
+                var escale = 1.0;
+                var scale = ratio * escale;
+                var canvasWidth = 0.0;
+                var canvasHeight = 0.0;
 
                 var convertCanvasXCoordinateToDataPoint = function(bound, x) {
                     return bound.xMin + ((x-bound.left)/(bound.width)) * (bound.xMax - bound.xMin);
@@ -447,16 +452,24 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     }
                 };
                 var refreshSettings = function () {
-                    canvas.width = canvas.clientWidth;
-                    canvas.height = canvas.clientHeight;
-                    callout = canvas.height > 450;
-                    xcor = xcorData && (canvas.height > 300);
-                    xcorBound.width = canvas.width - xcorBound.left - xcorBound.right;
+                    var parent = $('#detailedCanvasParent');
+                    var h = parent.height();
+                    var w = parent.width();
+                    canvas.width = canvas.clientWidth * scale;
+                    canvasHeight = h;
+                    canvasWidth = w;
+                    canvas.height = canvas.clientHeight * scale;
+                    canvas.style.width = w + "px";
+                    canvas.style.height = h + "px";
+                    c.scale(scale,scale);
+                    callout = canvasHeight > 450;
+                    xcor = xcorData && (canvasHeight > 300);
+                    xcorBound.width = canvasWidth - xcorBound.left - xcorBound.right;
                     xcorBound.height = xcorHeight - xcorBound.top - xcorBound.bottom;
                     bounds[0].top = xcor ? baseTop + xcorHeight : baseTop;
-                    bounds[0].bottom =  callout ? Math.floor(canvas.height * 0.3) + baseBottom : baseBottom;
-                    bounds[0].width = canvas.width - bounds[0].left - bounds[0].right;
-                    bounds[0].height = canvas.height - bounds[0].top - bounds[0].bottom;
+                    bounds[0].bottom =  callout ? Math.floor(canvasHeight * 0.3) + baseBottom : baseBottom;
+                    bounds[0].width = canvasWidth - bounds[0].left - bounds[0].right;
+                    bounds[0].height = canvasHeight - bounds[0].top - bounds[0].bottom;
                 };
                 var getBounds = function(bound) {
                     if (bound.lockedBounds) return;
@@ -970,7 +983,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     var start = defaultMin;
                     var end = defaultMax;
 
-                    var desiredNumberOfCallouts = Math.min(Math.floor(canvas.width * 1.0 / minCalloutWidth), maxCallouts);
+                    var desiredNumberOfCallouts = Math.min(Math.floor(canvasWidth * 1.0 / minCalloutWidth), maxCallouts);
 
                     if (baseData != null && baseData.length > 0 && !isNaN(redshift)) {
                         start = baseData[0].x[0];
@@ -1008,13 +1021,13 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     }
 
                     if (callout) {
-                        var w = (canvas.width / numCallouts);
-                        var h = Math.floor(canvas.height * 0.3);
+                        var w = (canvasWidth / numCallouts);
+                        var h = Math.floor(canvasHeight * 0.3);
                         var numCallout = 0;
                         for (var i = 0; i < bounds.length; i++) {
                             if (bounds[i].callout) {
                                 bounds[i].left = 60 + w*numCallout;
-                                bounds[i].top = 20 + canvas.height - h;
+                                bounds[i].top = 20 + canvasHeight - h;
                                 bounds[i].bottom = 20;
                                 bounds[i].right = 10+(w*(numCallout+1));
                                 bounds[i].height = h - 40;
