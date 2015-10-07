@@ -1517,7 +1517,7 @@ angular.module('servicesZ', ['dialogs.main'])
                 if (r == null || r[0] == null || r[1] == null) {
                     var tempIntensity = null;
                 } else {
-                    var tempIntensity = self.condenseToXPixels(interpolate(spectra.lambda, r[0], r[1]), canvas.width);
+                    var tempIntensity = self.condenseToXPixels(interpolate(spectra.lambda, r[0], r[1]), width);
                 }
                 //self.clearPlot(canvas);
                 var toBound = [];
@@ -1615,7 +1615,6 @@ angular.module('servicesZ', ['dialogs.main'])
             return [xmin, xmax, ymin, ymax];
         };
         self.clearPlot = function(canvas) {
-            console.log("DOOOOOOOOOOOOOOOOM");
             var ratio = window.devicePixelRatio || 1.0;
             canvas.style.width = canvas.clientWidth;
             canvas.style.height = canvas.clientHeight;
