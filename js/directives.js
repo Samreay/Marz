@@ -466,14 +466,12 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                 };
                 var refreshSettings = function () {
                     var parent = $('#detailedCanvasParent');
-                    var h = parent.height();
-                    var w = parent.width();
-                    canvas.width = canvas.clientWidth * scale;
-                    canvasHeight = h;
-                    canvasWidth = w;
-                    canvas.height = canvas.clientHeight * scale;
-                    canvas.style.width = w + "px";
-                    canvas.style.height = h + "px";
+                    canvasHeight = parent.height();
+                    canvasWidth = parent.width();
+                    canvas.width = canvasWidth * scale;
+                    canvas.height = canvasHeight * scale;
+                    canvas.style.width = canvasWidth + "px";
+                    canvas.style.height = canvasHeight + "px";
                     c.scale(scale,scale);
                     callout = canvasHeight > 450;
                     xcor = xcorData && (canvasHeight > 300);
@@ -1114,7 +1112,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     var w=window.open('about:blank','image from canvas');
                     w.document.write("<img src='"+d+"' alt='from canvas'/>");
                     setScale();
-                    redraw();
+                    handleRedrawRequest();
                 };
                 var redraw = function() {
                     if (!requested) {
