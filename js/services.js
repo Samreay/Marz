@@ -1502,7 +1502,10 @@ angular.module('servicesZ', ['dialogs.main'])
                 [r[0], r[1]]
             ]);
             self.clearPlot(canvas);
-            self.plot(r[0], r[1], ui.colours.template, canvas, bounds);
+            var ratio = window.devicePixelRatio || 1.0;
+            var width = canvas.width / ratio;
+            var height = canvas.height / ratio;
+            self.plot(r[0], r[1], ui.colours.template, canvas, bounds, width, height);
         };
         self.drawOverviewOnCanvas = function(spectra, canvas, width, height) {
             if (spectra.intensity.length > 0) {
@@ -1621,8 +1624,8 @@ angular.module('servicesZ', ['dialogs.main'])
             canvas.width = canvas.clientWidth * ratio;
             canvas.height = canvas.clientHeight * ratio;
             console.log("W:" + canvas.clientWidth);
-            canvas.scale(ratio, ratio);
             var c = canvas.getContext("2d");
+            c.scale(ratio, ratio);
             c.save();
             // Use the identity matrix while clearing the canvas
             c.setTransform(1, 0, 0, 1, 0, 0);
