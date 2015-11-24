@@ -1,3 +1,13 @@
+// Forgive me for manual versioning, but I didn't want to introduce
+// and proper build tools (grunt/bower/mvn) as that would complicate contributions
+// from non-technical persons. Please see http://semver.org/ for explanations.
+
+// Version only needs to be incremented when matching algorithm changes, not UI.
+// Any change in the version will mean prior redshifts stored in the program
+// will not be loaded (as they may be different with the update).
+var marzVersion = "1.0.0";
+
+
 // CONFIG FOR PIXEL MASKING
 var minVal = -1e4;          // Intensity less than this is bad
 var maxVal = 1e6;           // Intensity greater than this is bad

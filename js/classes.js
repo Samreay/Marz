@@ -17,6 +17,7 @@
  * @constructor
  */
 function Spectra(id, lambda, intensity, variance, sky, name, ra, dec, magnitude, type, filename) {
+    this.version = marzVersion;
     this.id = id;
     this.name = name;
     this.ra = ra;
@@ -52,7 +53,7 @@ function Spectra(id, lambda, intensity, variance, sky, name, ra, dec, magnitude,
     this.processedLambda = null;
     this.processedContinuum = null;
     this.processedIntensity = null;
-    this.processedVariance = null
+    this.processedVariance = null;
 
     this.templateResults = null;
     this.automaticResults = null;
@@ -75,6 +76,9 @@ Spectra.prototype.setCompute = function(compute) {
         this.isProcessed = true;
         this.isMatched = true;
     }
+};
+Spectra.prototype.setVersion = function(version) {
+    this.version = version;
 };
 Spectra.prototype.setQOP = function(qop) {
     if (isNaN(qop)) {
