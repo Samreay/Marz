@@ -1,4 +1,7 @@
-
+/******************************************************************
+ * ANY CHANGES OF THIS FILE MUST BE CONVEYED IN A VERSION INCREMENT
+ * OF marzVersion IN config.js!
+ ******************************************************************/
 
 var templateManager = new TemplateManager();
 var shifted_temp = false;
@@ -14,6 +17,13 @@ if (!shifted_temp) {
     shifted_temp = true;
 }
 
+/**
+ * Handles all worker related events, including data processing and spectra matching.
+ *
+ * ANY CHANGES IN THIS FUNCTION OR CHILD FUNCTIONS MUST BE CONVEYED IN A VERSION INCREMENT
+ * OF marzVersion IN config.js!
+ *
+ */
 function handleEvent(data) {
     templateManager.setInactiveTemplates(data.inactiveTemplates);
     var result = null;
