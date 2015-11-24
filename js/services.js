@@ -1508,10 +1508,12 @@ angular.module('servicesZ', ['dialogs.main'])
                 [r[0], r[1]]
             ]);
             self.clearPlot(canvas);
-            self.plot(r[0], r[1], ui.colours.template, canvas, bounds);
+            var ratio = window.devicePixelRatio || 1.0;
+            var width = canvas.width / ratio;
+            var height = canvas.height / ratio;
+            self.plot(r[0], r[1], ui.colours.template, canvas, bounds, width, height);
         };
-        self.drawOverviewOnCanvas = function(spectra, canvas) {
-            var width = canvas.width;
+        self.drawOverviewOnCanvas = function(spectra, canvas, width, height) {
             if (spectra.intensity.length > 0) {
                 var hasProcessed = !(spectra.processedLambdaPlot == null || typeof spectra.processedLambdaPlot === 'undefined');
 
@@ -1531,22 +1533,20 @@ angular.module('servicesZ', ['dialogs.main'])
                 var toBound2 = [];
                 toBound.push([lambda, intensity]);
                 var bounds = self.getMaxes(toBound);
-                self.plotZeroLine(canvas, "#C4C4C4", bounds);
-                self.plot(lambda, intensity, ui.colours.raw, canvas, bounds);
+                self.plotZeroLine(canvas, "#C4C4C4", bounds, width, height);
+                self.plot(lambda, intensity, ui.colours.raw, canvas, bounds, width, height);
                 if (tempIntensity != null) {
                     toBound2.push([lambda, tempIntensity]);
                     var bounds2 = self.getMaxes(toBound2);
-                    self.plot(lambda, tempIntensity, ui.colours.matched, canvas, [bounds[0], bounds[1], bounds2[2], bounds2[2] + (2*(bounds2[3] - bounds2[2]))]);
+                    self.plot(lambda, tempIntensity, ui.colours.matched, canvas, [bounds[0], bounds[1], bounds2[2], bounds2[2] + (2*(bounds2[3] - bounds2[2]))], width, height);
                 }
             }
         };
-        self.plot = function(xs, data, colour, canvas, bounds) {
+        self.plot = function(xs, data, colour, canvas, bounds, w, h) {
             if (data == null || data.length == 0) {
                 return;
             }
             var c = canvas.getContext("2d");
-            var h = canvas.height;
-            var w = canvas.width;
             c.beginPath();
             c.strokeStyle = colour;
             var xmin = bounds[0];
@@ -1565,10 +1565,8 @@ angular.module('servicesZ', ['dialogs.main'])
             }
             c.stroke();
         };
-        self.plotZeroLine = function (canvas, colour, bounds) {
+        self.plotZeroLine = function (canvas, colour, bounds, w, h) {
             var c = canvas.getContext("2d");
-            var h = canvas.height;
-            var w = canvas.width;
             var ymin = bounds[2];
             var ymax = bounds[3];
             var hh = h - (5 + (0 - ymin) * (h - 10) / (ymax - ymin)) + 0.5;
@@ -1626,9 +1624,14 @@ angular.module('servicesZ', ['dialogs.main'])
             return [xmin, xmax, ymin, ymax];
         };
         self.clearPlot = function(canvas) {
-            canvas.width = canvas.clientWidth;
-            canvas.height =canvas.clientHeight;
+            var ratio = window.devicePixelRatio || 1.0;
+            canvas.style.width = canvas.clientWidth;
+            canvas.style.height = canvas.clientHeight;
+            canvas.width = canvas.clientWidth * ratio;
+            canvas.height = canvas.clientHeight * ratio;
+            console.log("W:" + canvas.clientWidth);
             var c = canvas.getContext("2d");
+            c.scale(ratio, ratio);
             c.save();
             // Use the identity matrix while clearing the canvas
             c.setTransform(1, 0, 0, 1, 0, 0);

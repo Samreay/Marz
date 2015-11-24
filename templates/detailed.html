@@ -1,6 +1,6 @@
 <div class="detailedView filler">
     <div class="panel panel-default detailed-control">
-        <div class="panel-heading">
+        <div class="panel-heading" style="max-height: 41px">
             <strong>ID</strong> {{getActive().id}}
             <strong>NAME</strong> {{getActive().name}}
             <strong ng-if="displayAuto()">AutoQOP</strong><h4 ng-if="displayAuto()" style="cursor: pointer; display: inline; margin-left: 10px;" ng-click="acceptAutoQOP()"><span class="{{getQOPLabel(getActive().autoQOP)}}">{{getAutoQOPText()}}</span></h4>
@@ -87,7 +87,7 @@
             </li>
          </ul>
     </div>
-    <div style="position: absolute; top: 165px; bottom: 0; left: 0; right: 0">
+    <div id="detailedCanvasParent" style="position: absolute; top: 165px; bottom: 0; left: 0; right: 0">
         <canvas id="detailedCanvas" detailed-item></canvas>
     </div>
 </div>
