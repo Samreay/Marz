@@ -778,7 +778,11 @@ angular.module('servicesZ', ['dialogs.main'])
 
 
         self.getKeyFromSpectra = function(spectra) {
-            return spectra.version + spectra.filename + spectra.name;
+            var v = "";
+            if (spectra.version != "1.0.0") {
+                v = spectra.version;
+            }
+            return v + spectra.filename + spectra.name;
         };
         self.clearFile = function() {
             var filename = global.data.fitsFileName;
