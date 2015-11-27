@@ -1140,7 +1140,7 @@ function matchTemplate(template, fft) {
  *
  * @param data - the data to fit around (y values)
  * @param index - the index to place the pixel window
- * @returns a double representing the non-integer maximal index
+ * @returns {number} a double representing the non-integer maximal index
  */
 function fitAroundIndex(data, index) {
     var window = 3;
@@ -1161,9 +1161,10 @@ function fitAroundIndex(data, index) {
  *
  * @param t - the template to use
  * @param index - the index to calculate the redshift for
- * @returns the redshift of the index
+ * @returns {number} the redshift of the index
  */
 function getRedshiftForNonIntegerIndex(t, index) {
+    //TODO: When implementing heliocentric corrections, unify this function with line309 in templates.js: code duplication
     var gap =  (t.lambda[t.lambda.length - 1] - t.lambda[0]) / (t.lambda.length - 1);
     var num = t.lambda.length / 2;
     var z = (Math.pow(10, (index + t.startZIndex - num) * gap) * (1 + t.redshift)) - 1;
