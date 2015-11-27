@@ -1102,9 +1102,12 @@ angular.module('servicesZ', ['dialogs.main'])
         var originalFilename = null;
         var filename = null;
         var MJD = null;
-        var date = null;
+        var JD = null;
+        var longitude = null;
+        var latitude = null;
+        var altitude = null;
         var header0 = null;
-
+        var epoch = null;
         var spectra = null;
         var primaryIndex = 0;
         var numPoints = null;
@@ -1163,6 +1166,12 @@ angular.module('servicesZ', ['dialogs.main'])
             log.debug("Getting headers");
             header0 = self.fits.getHDU(0).header;
             MJD = header0.get('UTMJD');
+            JD = MJD + 2400000.5;
+            longitude = header0.get('LONG_OBS');
+            latitude  = header0.get('LAT_OBS');
+            altitude  = header0.get('ALT_OBS');
+            epoch = header0.get('EPOCH');
+
             date = MJDtoYMD(MJD);
 
             numPoints = self.fits.getHDU(0).data.width;
@@ -1207,6 +1216,10 @@ angular.module('servicesZ', ['dialogs.main'])
                     var name = details == null ? "Unknown spectra " + id : details['NAME'][i];
                     var ra = details == null ? null : details['RA'][i];
                     var dec = details == null ? null : details['DEC'][i];
+                    if (ra != null && dec != null) {
+                        var helio = getHeliocentricVelocityCorrection(ra, dec, JD, longitude, latitude, altitude, epoch);
+
+                    }
                     var mag = details == null ? null : details['MAGNITUDE'][i];
                     var type = details == null ? null : details['TYPE'][i];
 
