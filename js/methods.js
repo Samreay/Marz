@@ -1156,7 +1156,13 @@ function fitAroundIndex(data, index) {
     }
     return index + (-e[1]/(2*e[2]));
 }
-
+/**
+ * Calculates a redshift based from a given index
+ *
+ * @param t - the template to use
+ * @param index - the index to calculate the redshift for
+ * @returns the redshift of the index
+ */
 function getRedshiftForNonIntegerIndex(t, index) {
     var gap =  (t.lambda[t.lambda.length - 1] - t.lambda[0]) / (t.lambda.length - 1);
     var num = t.lambda.length / 2;
