@@ -1133,6 +1133,15 @@ function matchTemplate(template, fft) {
     };
 }
 
+/**
+ * Performs a quadratic fit around a given index, and returns the
+ * non-integer index of the quadratic maximum. Pixel window size starts at 3,
+ * and increases if the quadratic does not give a maximum.
+ *
+ * @param data - the data to fit around (y values)
+ * @param index - the index to place the pixel window
+ * @returns a double representing the non-integer maximal index
+ */
 function fitAroundIndex(data, index) {
     var window = 3;
     var e = null;
