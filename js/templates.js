@@ -239,6 +239,13 @@ TemplateManager.prototype.getTemplate = function (id, z, withContinuum) {
         return [lambda, t.spec_linear];
     }
 };
+TemplateManager.prototype.getNameForTemplate = function(templateId) {
+    if (this.templatesHash[templateId]) {
+        return this.templatesHash[templateId].name;
+    } else {
+        return "Unspecified";
+    }
+};
 TemplateManager.prototype.processTemplates = function () {
     for (var i = 0; i < this.originalTemplates.length; i++) {
         var t = this.originalTemplates[i];

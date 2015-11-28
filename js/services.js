@@ -220,6 +220,8 @@ angular.module('servicesZ', ['dialogs.main'])
         var saveAutomatically = cookieService.registerCookieValue(saveAutomaticallyCookie, true);
         var assignAutoQOPsCookie = "assignAutoQOPs";
 
+        self.spectraManager = new SpectraManager(data, log);
+
         self.getAutoQOPDefault = function() {
             var def = false;
             if (window.getNodeDefault != null) {
@@ -267,22 +269,10 @@ angular.module('servicesZ', ['dialogs.main'])
             return data.spectra.length > 0;
         };
         self.getNumberMatched = function() {
-            var num = 0;
-            for (var i = 0; i < data.spectra.length; i++) {
-                if (data.spectra[i].isMatched) {
-                    num++;
-                }
-            }
-            return num;
+            return self.spectraManager.getNumberMatched();
         };
         self.getNumberProcessed = function() {
-            var num = 0;
-            for (var i = 0; i < data.spectra.length; i++) {
-                if (data.spectra[i].isProcessed) {
-                    num++;
-                }
-            }
-            return num;
+            return self.spectraManager.getNumberProcessed();
         };
         self.isFinishedMatching = function() {
             return self.getNumberMatched() == self.getNumberTotal();
@@ -294,7 +284,7 @@ angular.module('servicesZ', ['dialogs.main'])
             return self.getNumberProcessed() < self.getNumberTotal();
         };
         self.getNumberTotal = function() {
-            return data.spectra.length;
+            return self.spectraManager.getNumberTotal();
         };
         self.setNextSpectra = function() {
             if (global.ui.detailed.onlyQOP0) {
@@ -424,16 +414,13 @@ angular.module('servicesZ', ['dialogs.main'])
             var spectra = data.spectraHash[results.id];
             log.debug("Processed " + results.id);
             if (spectra.name != results.name) return;
-            spectra.processedLambda = results.lambda;
-            spectra.processedIntensity = results.intensity;
-            spectra.processedContinuum = results.continuum;
-            spectra.processedLambdaPlot = results.lambda; //.map(function(x) { return Math.pow(10, x); });
+            self.spectraManager.setProcessedResults(results);
+            spectra.processedLambdaPlot = results.lambda;
             spectra.processedVariance = results.variance;
             spectra.processedVariancePlot = results.variance.slice();
             removeNaNs(spectra.processedVariancePlot);
             normaliseViaShift(spectra.processedVariancePlot, 0, 50, null);
-            spectra.isProcessing = false;
-            spectra.isProcessed = true;
+
 
             if (!self.isProcessing() && self.isFinishedMatching()) {
                 if (global.data.fits.length > 0) {
@@ -443,21 +430,14 @@ angular.module('servicesZ', ['dialogs.main'])
         };
         self.setMatchedResults = function(results) {
             var spectra = data.spectraHash[results.id];
-            log.debug("Matched " + results.id);
-            if (spectra == null || spectra.name != results.name) return;
             var prior = spectra.automaticResults;
-            spectra.automaticResults = results.results.coalesced;
-            spectra.templateResults = results.results.templates;
-            spectra.setVersion(marzVersion);
-            spectra.autoQOP = results.results.autoQOP;
+            log.debug("Matched " + results.id);
+            self.spectraManager.setMatchedResults(results);
             if (assignAutoQOPs == true) {
                 qualityService.changeSpectra(spectra.qop, spectra.autoQOP);
                 spectra.setQOP(results.results.autoQOP);
 
             }
-            spectra.automaticBestResults = results.results.coalesced; // TODO: REMOVE BEST RESULTS, ONLY HAVE AUTOMATIC RESULTS
-            spectra.isMatching = false;
-            spectra.isMatched = true;
             if (results.results.fft == null) {
                 spectra.fft = null;
             } else {
@@ -610,6 +590,7 @@ angular.module('servicesZ', ['dialogs.main'])
     }])
     .service('resultsGeneratorService', ['global', 'templatesService', 'personalService', 'log', function(global, templatesService, personalService, log) {
         var self = this;
+        self.resultsGenerator = new ResultsGenerator(global.data, templatesService);
         self.downloading = false;
         self.downloadResults = function() {
             if (self.downloading) {
@@ -618,7 +599,7 @@ angular.module('servicesZ', ['dialogs.main'])
             log.debug("Downloading results");
             self.downloading = true;
             personalService.ensureInitials().then(function() {
-                var results = self.getResultsCSV();
+                var results = self.resultsGenerator.getResultsCSV();
                 console.log(results);
                 if (results.length > 0) {
                     var blob = new window.Blob([results], {type: 'text/plain'});
@@ -632,89 +613,12 @@ angular.module('servicesZ', ['dialogs.main'])
         self.getFilename = function() {
             return global.data.fitsFileName + "_" + personalService.getInitials() + ".mz";
         };
-
-        self.getStatistics = function(results) {
-            var totalSpectra = results.length;
-            var uses = _.filter(results, function(d) {
-                return _.some(d, function(dict) {
-                    return dict['name'] == 'QOP' && parseInt(dict['value']) > 2;
-                });
-            });
-            var string = "# Redshift quality > 2 for ";
-            string += uses.length;
-            string += " out of " ;
-            string += totalSpectra;
-            string += " targets, a success rate of  ";
-            string += (100.0 * uses.length / totalSpectra).toFixed(1);
-            string += "%\n";
-            return string;
+        self.getResultFromSpectra = function(spectra) {
+            return self.resultsGenerator.getResultFromSpectra(spectra);
         };
-
         self.getResultsCSV = function() {
             log.debug("Getting result CSV");
-            var results = self.getResultsArray();
-            var string = "# Results generated by " + personalService.getInitials()
-                + " for file [[" + global.data.fitsFileName + "]] at " + new Date().toLocaleString() + " (JSON: " + JSON.stringify(new Date()) + ") at version {{" + marzVersion + "}}\n";
-            string += self.getStatistics(results);
-            string += "#";
-            if (results.length > 0) {
-                var spaces = results[0].map(function(x) { return x.name.length; });
-                for (var i = 0; i < results.length; i++) {
-                    var lengths = results[i];
-                    for (var j = 0; j < lengths.length; j++) {
-                        if (lengths[j].value.length > spaces[j]) {
-                            spaces[j] = lengths[j].value.length;
-                        }
-                    }
-                }
-
-                for (var i = 0; i < results.length; i++) {
-                    var res = results[i];
-                    var first = 0;
-                    if (i == 0) {
-                        for (var k = 0; k < res.length; k++) {
-                            string += ((first++ == 0) ? "" : ",  ") + res[k].name.spacePad(spaces[k]);
-                        }
-                        string += "\n";
-                        first = 0;
-                    }
-                    for (var j = 0; j < res.length; j++) {
-                        string += ((first++ == 0) ? " " : ",  ") + res[j].value.replace(",","").spacePad(spaces[j]);
-                    }
-                    string += "\n";
-                }
-            }
-
-            return string;
-        };
-        self.getResultsArray = function() {
-            var result = [];
-            for (var i = 0; i < global.data.spectra.length; i++) {
-                var spectra = global.data.spectra[i];
-                if (spectra.hasRedshiftToBeSaved()) {
-                    result.push(self.getResultFromSpectra(spectra));
-                }
-            }
-            return result;
-        };
-        self.getResultFromSpectra = function(spectra) {
-            var result = [];
-            result.push({name: "ID", value: ("" + spectra.id).pad(4)});
-            result.push({name: "Name", value: spectra.name});
-            result.push({name: "RA", value: spectra.ra.toFixed(6)});
-            result.push({name: "DEC", value: spectra.dec.toFixed(6)});
-            result.push({name: "Mag", value: spectra.magnitude.toFixed(2)});
-            result.push({name: "Type", value: spectra.type});
-            result.push({name: "AutoTID", value: spectra.getBestAutomaticResult()? spectra.getBestAutomaticResult().templateId : "0"});
-            result.push({name: "AutoTN", value:  templatesService.getNameForTemplate(spectra.getBestAutomaticResult() ? spectra.getBestAutomaticResult().templateId : "0")});
-            result.push({name: "AutoZ", value: spectra.getBestAutomaticResult() ? spectra.getBestAutomaticResult().z.toFixed(5) : "0"});
-            result.push({name: "AutoXCor", value: spectra.getBestAutomaticResult() ? spectra.getBestAutomaticResult().value.toFixed(5) : "0"});
-            result.push({name: "FinTID", value: spectra.getFinalTemplateID() ? spectra.getFinalTemplateID() : "0"});
-            result.push({name: "FinTN", value: templatesService.getNameForTemplate(spectra.getFinalTemplateID())});
-            result.push({name: "FinZ", value: spectra.getFinalRedshift().toFixed(5)});
-            result.push({name: "QOP", value: "" + spectra.qop});
-            result.push({name: "Comment", value: spectra.getComment()});
-            return result;
+            return self.resultsGenerator.getResultsCSV(personalService.getInitials());
         };
         self.convertResultToMimicSpectra = function(result) {
             var spectra = new Spectra(result["ID"], null, null, null, null, result["Name"],
@@ -974,12 +878,7 @@ angular.module('servicesZ', ['dialogs.main'])
             templates.updateActiveTemplates();
         };
         self.getNameForTemplate = function(templateId) {
-            if (templates.templatesHash[templateId]) {
-                return templates.templatesHash[templateId].name;
-            } else {
-                return "Unspecified";
-            }
-
+            return templates.getNameForTemplate(templateId);
         };
         self.getTemplates = function() {
             return templates.templates;
