@@ -761,3 +761,198 @@ FitsFileLoader.prototype.useSpectra = function(intensity) {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+function ProcessorManager() {
+    this.processing = true;
+
+    this.getInactiveTemplates = null;
+    this.processedCallback = null;
+    this.matchedCallback = null;
+
+    this.processTogether = true;
+
+    this.processors = [];
+    this.jobs = [];
+    this.priorityJobs = [];
+
+    this.node = false;
+}
+ProcessorManager.prototype.setNode = function() {
+    this.node = true;
+};
+ProcessorManager.prototype.setProcessTogether = function(processTogether) {
+    this.processTogether = processTogether;
+};
+ProcessorManager.prototype.setInactiveTemplateCallback = function(fn) {
+    this.getInactiveTemplates = fn;
+};
+ProcessorManager.prototype.toggleProcessing = function() {
+    this.processing = !this.processing;
+};
+ProcessorManager.prototype.setProcessedCallback = function(fn) {
+    this.processedCallback = fn;
+};
+ProcessorManager.prototype.setMatchedCallback = function(fn) {
+    this.matchedCallback = fn;
+};
+ProcessorManager.prototype.setNumberProcessors = function(num, $q) {
+    if (num < this.processors.length) {
+        while (this.processors.length > num) {
+            this.processors[0].flagForDeletion();
+            this.processors.splice(0, 1);
+        }
+    } else if (num > this.processors.length) {
+        while (this.processors.length < num) {
+            this.processors.push(new Processor($q, this.node));
+        }
+    }
+};
+ProcessorManager.prototype.processSpectra = function(spectra) {
+    spectra.inactiveTemplates = this.getInactiveTemplates();
+    var processor = this.getIdleProcessor();
+    processor.workOnSpectra(spectra, this.node).then(function(result) {
+        if (result.data.processing) {
+            this.processedCallback(result.data);
+        }
+        if (result.data.matching) {
+            this.matchedCallback(result.data);
+        }
+        this.processJobs();
+    }.bind(this), function(reason) {
+        console.warn(reason);
+    });
+};
+ProcessorManager.prototype.getNumberProcessors = function() {
+    return this.processors.length;
+};
+ProcessorManager.prototype.getIdleProcessor = function() {
+    for (var i = 0; i < this.processors.length; i++) {
+        if (this.processors[i].isIdle()) {
+            return this.processors[i];
+        }
+    }
+    return null;
+};
+ProcessorManager.prototype.addSpectraListToQueue = function(spectraList) {
+    this.jobs.length = 0;
+    for (var i = 0; i < spectraList.length; i++) {
+        this.jobs.push(spectraList[i]);
+    }
+    this.setRunning();
+};
+ProcessorManager.prototype.addToPriorityQueue = function(spectra, start) {
+    spectra.isMatched = false;
+    this.priorityJobs.push(spectra);
+    if (start) {
+        this.processJobs();
+    }
+};
+ProcessorManager.prototype.hasIdleProcessor = function() {
+    return this.getIdleProcessor() != null;
+};
+ProcessorManager.prototype.shouldProcess = function(spectra) {
+    return !spectra.isProcessing && !spectra.isProcessed;
+};
+ProcessorManager.prototype.shouldMatch = function(spectra) {
+    return spectra.isProcessed && !spectra.isMatching && (!spectra.isMatched || spectra.templateResults == null);
+};
+ProcessorManager.prototype.shouldProcessAndMatch = function(spectra) {
+    return !spectra.isProcessing && !spectra.isProcessed;
+};
+ProcessorManager.prototype.processJobs = function() {
+    var findingJobs = true;
+    while (findingJobs && this.hasIdleProcessor()) {
+        findingJobs = this.processAJob();
+    }
+};
+ProcessorManager.prototype.isPaused = function() {
+    return !this.processing;
+};
+ProcessorManager.prototype.setPause = function() {
+    this.processing = false;
+};
+ProcessorManager.prototype.setRunning = function() {
+    this.processing = true;
+    this.processJobs();
+};
+ProcessorManager.prototype.togglePause = function() {
+    this.processing = !this.processing;
+    if (this.processing) {
+        this.processJobs();
+    }
+};
+/**
+ * Processes priority jobs processing then matching, and then normal
+ * jobs processing and matching if processing is enabled.
+ */
+ProcessorManager.prototype.processAJob = function() {
+    for (var i = 0; i < this.priorityJobs.length; i++) {
+        if (this.shouldProcess(this.priorityJobs[i])) {
+            this.priorityJobs[i].isProcessing = true;
+            this.processSpectra(this.priorityJobs[i].getProcessMessage());
+            return true;
+        }
+    }
+    for (i = 0; i < this.priorityJobs.length; i++) {
+        if (this.shouldMatch(this.priorityJobs[i])) {
+            this.priorityJobs[i].isMatching = true;
+            this.processSpectra(this.priorityJobs[i].getMatchMessage());
+            return true;
+        }
+    }
+    if (this.processing) {
+        if (this.processTogether) {
+            for (i = 0; i < this.jobs.length; i++) {
+                if (this.shouldProcessAndMatch(this.jobs[i])) {
+                    this.jobs[i].isProcessing = true;
+                    this.processSpectra(this.jobs[i].getProcessingAndMatchingMessage());
+                    return true;
+                }
+            }
+        } else {
+            for (i = 0; i < this.jobs.length; i++) {
+                if (this.shouldProcess(this.jobs[i])) {
+                    this.jobs[i].isProcessing = true;
+                    this.processSpectra(this.jobs[i].getProcessMessage());
+                    return true;
+                }
+            }
+            for (i = 0; i < this.jobs.length; i++) {
+                if (this.shouldMatch(this.jobs[i])) {
+                    this.jobs[i].isMatching = true;
+                    this.processSpectra(this.jobs[i].getMatchMessage());
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

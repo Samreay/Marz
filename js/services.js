@@ -436,9 +436,6 @@ angular.module('servicesZ', ['dialogs.main'])
             spectra.isProcessed = true;
 
             if (!self.isProcessing() && self.isFinishedMatching()) {
-                //if (downloadAutomatically) {
-                //    resultsGeneratorService.downloadResults();
-                //}
                 if (global.data.fits.length > 0) {
                     global.data.fits.shift();
                 }
@@ -865,11 +862,12 @@ angular.module('servicesZ', ['dialogs.main'])
     .service('processorService', ['$q', 'spectraService', 'cookieService', 'templatesService', 'log', function($q, spectraService, cookieService, templatesService, log) {
         var self = this;
 
-        var processors = [];
-        var priorityJobs = [];
-        var processing = true;
-        var jobs = [];
-        var node = false;
+        self.processorManager = new ProcessorManager();
+        self.processorManager.setInactiveTemplateCallback(templatesService.getInactiveTemplates);
+        self.processorManager.setProcessedCallback(spectraService.setProcessedResults);
+        self.processorManager.setMatchedCallback(spectraService.setMatchedResults);
+
+
         var coreCookie = "numCores";
         var processTogetherCookie = "processTogether";
 
@@ -894,6 +892,7 @@ angular.module('servicesZ', ['dialogs.main'])
             cookieService.setCookie(processTogetherCookie, processTogether);
         };
         var processTogether = cookieService.registerCookieValue(processTogetherCookie, self.getDefaultProcessType());
+        self.processorManager.setProcessTogether(processTogether);
 
         self.setDefaultNumberOfCores = function() {
             var defaultValue = 3;
@@ -905,18 +904,11 @@ angular.module('servicesZ', ['dialogs.main'])
                 log.warn("Could not fetch navigator.hardwareConcurrency");
             }
             var c = cookieService.registerCookieValue(coreCookie, defaultValue);
-            try {
-                c = window.require('os').cpus().length;
-                node = true;
-                log.debug("Node/iojs detected");
-            } catch (err) {
-                log.debug("No Node/iojs");
-            }
             self.setNumberProcessors(c);
         };
 
         self.getNumberProcessors = function() {
-            return processors.length;
+            return self.processorManager.getNumberProcessors();
         };
         self.setNumberProcessors = function(num) {
             if (num < 1) {
@@ -925,142 +917,40 @@ angular.module('servicesZ', ['dialogs.main'])
                 num = 32;
             }
             cookieService.setCookie(coreCookie, num);
-            if (num < processors.length) {
-                while (processors.length > num) {
-                    processors[0].flagForDeletion();
-                    processors.splice(0, 1);
-                }
-            } else if (num > processors.length) {
-                if (node) {
-                    processors = getProcessors($q, num, true);
-                } else {
-                    while (processors.length < num) {
-                        processors.push(new Processor($q));
-                    }
-                }
-            }
+            self.processorManager.setNumberProcessors(num, $q);
         };
         self.toggleProcessing = function() {
-            processing = !processing;
+            self.processorManager.toggleProcessing();
         };
         self.processSpectra = function(spectra) {
-            spectra.inactiveTemplates = templatesService.getInactiveTemplates();
-            var processor = self.getIdleProcessor();
-            processor.workOnSpectra(spectra, node).then(function(result) {
-                if (result.data.processing) {
-                    spectraService.setProcessedResults(result.data);
-                }
-                if (result.data.matching) {
-                    spectraService.setMatchedResults(result.data);
-                }
-                self.processJobs();
-            }, function(reason) {
-                console.warn(reason);
-            });
-        };
-        self.getIdleProcessor = function() {
-            for (var i = 0; i < processors.length; i++) {
-                if (processors[i].isIdle()) {
-                    return processors[i];
-                }
-            }
-            return null;
+            self.processorManager.processSpectra(spectra);
         };
         self.addSpectraListToQueue = function(spectraList) {
-            jobs.length = 0;
-            for (var i = 0; i < spectraList.length; i++) {
-                jobs.push(spectraList[i]);
-            }
-            self.setRunning();
+            self.processorManager.addSpectraListToQueue(spectraList);
         };
         self.addToPriorityQueue = function(spectra, start) {
-            spectra.isMatched = false;
-            priorityJobs.push(spectra);
-            if (start) {
-                self.processJobs();
-            }
-        };
-        self.hasIdleProcessor = function() {
-            return self.getIdleProcessor() != null;
+            self.processorManager.addToPriorityQueue(spectra, start);
         };
         self.shouldProcess = function(spectra) {
-            return !spectra.isProcessing && !spectra.isProcessed;
+            return self.processorManager.shouldProcess(spectra);
         };
         self.shouldMatch = function(spectra) {
-            return spectra.isProcessed && !spectra.isMatching && (!spectra.isMatched || spectra.templateResults == null);
+            return self.processorManager.shouldMatch(spectra);
         };
         self.shouldProcessAndMatch = function(spectra) {
-            return !spectra.isProcessing && !spectra.isProcessed;
-        };
-        self.processJobs = function() {
-            var findingJobs = true;
-            while (findingJobs && self.hasIdleProcessor()) {
-                findingJobs = self.processAJob();
-            }
+            return self.processorManager.shouldProcessAndMatch(spectra);
         };
         self.isPaused = function() {
-            return !processing;
+            return self.processorManager.isPaused();
         };
         self.setPause = function() {
-            processing = false;
+            self.processorManager.setPause();
         };
         self.setRunning = function() {
-            processing = true;
-            self.processJobs();
+            self.processorManager.setRunning();
         };
         self.togglePause = function() {
-            processing = !processing;
-            if (processing) {
-                self.processJobs();
-            }
-        };
-
-        /**
-         * Processes priority jobs processing then matching, and then normal
-         * jobs processing and matching if processing is enabled.
-         */
-        self.processAJob = function() {
-            for (var i = 0; i < priorityJobs.length; i++) {
-                if (self.shouldProcess(priorityJobs[i])) {
-                    priorityJobs[i].isProcessing = true;
-                    self.processSpectra(priorityJobs[i].getProcessMessage());
-                    return true;
-                }
-            }
-            for (i = 0; i < priorityJobs.length; i++) {
-                if (self.shouldMatch(priorityJobs[i])) {
-                    priorityJobs[i].isMatching = true;
-                    self.processSpectra(priorityJobs[i].getMatchMessage());
-                    return true;
-                }
-            }
-            if (processing) {
-                if (processTogether) {
-                    for (i = 0; i < jobs.length; i++) {
-                        if (self.shouldProcessAndMatch(jobs[i])) {
-                            jobs[i].isProcessing = true;
-                            self.processSpectra(jobs[i].getProcessingAndMatchingMessage());
-                            return true;
-                        }
-                    }
-                } else {
-                    for (i = 0; i < jobs.length; i++) {
-                        if (self.shouldProcess(jobs[i])) {
-                            jobs[i].isProcessing = true;
-                            self.processSpectra(jobs[i].getProcessMessage());
-                            return true;
-                        }
-                    }
-                    for (i = 0; i < jobs.length; i++) {
-                        if (self.shouldMatch(jobs[i])) {
-                            jobs[i].isMatching = true;
-                            self.processSpectra(jobs[i].getMatchMessage());
-                            return true;
-                        }
-                    }
-                }
-            }
-            return false;
+            self.processorManager.togglePause();
         };
 
         self.setDefaultNumberOfCores();
