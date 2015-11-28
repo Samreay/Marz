@@ -60,7 +60,7 @@ if (cluster.isMaster) {
   //var jsdom = require('jsdom');
 
   n = require('os').cpus().length - 1;  // There is some slow down, either in JsDOM emulation or process messaging
-                                        // that means CPUs are utilised < 15%. Want to track down why. 
+                                        // that means CPUs are utilised < 15%. Want to track down why.
   workers = [];
   for (var i = 0; i < n; i++) {
     workers.push(cluster.fork());
@@ -98,20 +98,20 @@ if (cluster.isMaster) {
   var global = {data: data};
 
   var p = new ProcessorManager();
-  var s = new SpectraManager(data);
+  var s = new SpectraManager(data, log);
   var t = new TemplateManager();
   var r = new ResultsGenerator(data, t);
   var fl = new FitsFileLoader($q, global, log, p);
   fl.subscribeToInput(s.setSpectra, s);
   fl.subscribeToInput(p.addSpectraListToQueue, p);
   p.setNode();
-  p.setWorkers(workers);
+  p.setWorkers(workers, $q);
 
   fl.loadInFitsFile({'actualName': fname, 'file': filedata});
   debug("File loaded");
   p.setInactiveTemplateCallback(function() { return defaults['tenabled']});
-  p.setProcessedCallback(s.setProcessedResults);
-  p.setMatchedCallback(s.setMatchedResults);
+  p.setProcessedCallback(s.setProcessedResults, s);
+  p.setMatchedCallback(s.setMatchedResults, s);
   s.setFinishedCallback(function() {
     console.log("Getting results");
     console.log(r.getResultsCSV());

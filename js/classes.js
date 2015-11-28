@@ -386,9 +386,11 @@ function FitsFileLoader($q, global, log, processorService) {
     this.global = global;
     this.log = log;
     this.subscribed = [];
+    this.subscribedContexts = [];
 }
 FitsFileLoader.prototype.subscribeToInput = function(fn, context) {
-    this.subscribed.push([fn, context]);
+    this.subscribed.push(fn);
+    this.subscribedContexts.push(context);
 };
 FitsFileLoader.prototype.loadInFitsFile = function(file) {
     var q = this.$q.defer();
@@ -490,7 +492,7 @@ FitsFileLoader.prototype.parseFitsFile = function(q) {
         this.log.debug("Spectra list made");
         this.isLoading = false;
         for (var i = 0; i < this.subscribed.length; i++) {
-            this.subscribed[i][0].apply(this.subscribed[i][1], spectraList);
+            this.subscribed[i].apply(this.subscribedContexts[i], [spectraList]);
         }
         this.log.debug("Returning FITs object");
         q.resolve();
@@ -784,7 +786,9 @@ function ProcessorManager() {
 
     this.getInactiveTemplates = null;
     this.processedCallback = null;
+    this.processedCallbackContext = null;
     this.matchedCallback = null;
+    this.matchedCallbackContext = null;
 
     this.processTogether = true;
 
@@ -806,11 +810,13 @@ ProcessorManager.prototype.setInactiveTemplateCallback = function(fn) {
 ProcessorManager.prototype.toggleProcessing = function() {
     this.processing = !this.processing;
 };
-ProcessorManager.prototype.setProcessedCallback = function(fn) {
+ProcessorManager.prototype.setProcessedCallback = function(fn, context) {
     this.processedCallback = fn;
+    this.processedCallbackContext = context;
 };
-ProcessorManager.prototype.setMatchedCallback = function(fn) {
+ProcessorManager.prototype.setMatchedCallback = function(fn, context) {
     this.matchedCallback = fn;
+    this.matchedCallbackContext = context;
 };
 ProcessorManager.prototype.setNumberProcessors = function(num, $q) {
     if (num < this.processors.length) {
@@ -834,15 +840,14 @@ ProcessorManager.prototype.setWorkers = function(workers, $q) {
     }
 };
 ProcessorManager.prototype.processSpectra = function(spectra) {
-    console.log("PROCESS SPECTRA");
     spectra.inactiveTemplates = this.getInactiveTemplates();
     var processor = this.getIdleProcessor();
     processor.workOnSpectra(spectra, this.node).then(function(result) {
         if (result.data.processing) {
-            this.processedCallback(result.data);
+            this.processedCallback.apply(this.processedCallbackContext, [result.data]);
         }
         if (result.data.matching) {
-            this.matchedCallback(result.data);
+            this.matchedCallback.apply(this.matchedCallbackContext, [result.data]);
         }
         this.processJobs();
     }.bind(this), function(reason) {
@@ -861,7 +866,7 @@ ProcessorManager.prototype.getIdleProcessor = function() {
     return null;
 };
 ProcessorManager.prototype.addSpectraListToQueue = function(spectraList) {
-    console.log("Added spectra list");
+    console.log("Added spectra list to queue");
     this.jobs.length = 0;
     for (var i = 0; i < spectraList.length; i++) {
         this.jobs.push(spectraList[i]);
@@ -888,7 +893,6 @@ ProcessorManager.prototype.shouldProcessAndMatch = function(spectra) {
     return !spectra.isProcessing && !spectra.isProcessed;
 };
 ProcessorManager.prototype.processJobs = function() {
-    console.log("Proccessing jobs");
     var findingJobs = true;
     while (findingJobs && this.hasIdleProcessor()) {
         findingJobs = this.processAJob();
@@ -966,9 +970,10 @@ ProcessorManager.prototype.processAJob = function() {
 
 
 
-function SpectraManager(data) {
+function SpectraManager(data, log) {
     this.data = data;
     this.finishedCallback = null;
+    this.log = log;
 
 }
 SpectraManager.prototype.setFinishedCallback = function(fn) {
@@ -984,6 +989,7 @@ SpectraManager.prototype.setMatchedResults = function(results) {
     spectra.automaticBestResults = results.results.coalesced;
     spectra.isMatching = false;
     spectra.isMatched = true;
+    this.log.debug("Matched " + results.id);
     if (this.isFinishedMatching() && !this.isProcessing()) {
         if (this.finishedCallback) {
             this.finishedCallback();
