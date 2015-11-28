@@ -974,10 +974,13 @@ function SpectraManager(data, log) {
     this.data = data;
     this.finishedCallback = null;
     this.log = log;
-
+    this.autoQOPs = false;
 }
 SpectraManager.prototype.setFinishedCallback = function(fn) {
     this.finishedCallback = fn;
+};
+SpectraManager.prototype.setAssignAutoQOPs = function (autoQOPs) {
+    this.autoQOPs = autoQOPs;
 };
 SpectraManager.prototype.setMatchedResults = function(results) {
     var spectra = this.data.spectraHash[results.id];
@@ -989,6 +992,9 @@ SpectraManager.prototype.setMatchedResults = function(results) {
     spectra.automaticBestResults = results.results.coalesced;
     spectra.isMatching = false;
     spectra.isMatched = true;
+    if (this.autoQOPs == true) {
+        spectra.setQOP(results.results.autoQOP);
+    }
     this.log.debug("Matched " + results.id);
     if (this.isFinishedMatching() && !this.isProcessing()) {
         if (this.finishedCallback) {

@@ -59,7 +59,7 @@ if (cluster.isMaster) {
   debug({'outputFile': outputFile, 'filename': filename, 'fname': fname, 'debug': debugFlag, 'dir': dir});
   //var jsdom = require('jsdom');
 
-  n = require('os').cpus().length - 1;  // There is some slow down, either in JsDOM emulation or process messaging
+  n = Math.max(1, require('os').cpus().length - 1);  // There is some slow down, either in JsDOM emulation or process messaging
                                         // that means CPUs are utilised < 15%. Want to track down why.
   workers = [];
   for (var i = 0; i < n; i++) {
@@ -106,98 +106,29 @@ if (cluster.isMaster) {
   fl.subscribeToInput(p.addSpectraListToQueue, p);
   p.setNode();
   p.setWorkers(workers, $q);
-
+  s.setAssignAutoQOPs(true);
   fl.loadInFitsFile({'actualName': fname, 'file': filedata});
   debug("File loaded");
   p.setInactiveTemplateCallback(function() { return defaults['tenabled']});
   p.setProcessedCallback(s.setProcessedResults, s);
   p.setMatchedCallback(s.setMatchedResults, s);
   s.setFinishedCallback(function() {
-    console.log("Getting results");
-    console.log(r.getResultsCSV());
+    debug("Getting results");
+    var values = r.getResultsCSV()
+    console.log(values);
+    if (outputFile) {
+      fs.writeFile(outputFile, values, function(err) {
+        if(err) {
+          return console.error(err);
+        }
+        console.log("File saved to " + outputFile);
+      });
+    }
     var endTime = new Date();
     debug("File processing took " + (endTime - startTime)/1000 + " seconds");
     cluster.disconnect();
   });
 
-
-
-
-
-
-
-
-
-
-/*
-
-
-  jsdom.env({
-    file: 'index.html',
-    features : {
-          FetchExternalResources : ["script", "frame", "iframe", "link"],
-          ProcessExternalResources : ['script']
-    },
-    created: function(err, window) {
-      debug("Window created");
-      window.require = require;
-      window.File = File;
-      window.FileReader = FileReader;
-      var c = 0;
-
-      window.nodeDebugServer = function(output) {
-        c += 1;
-        if (c % 10 == 0) {
-          global.gc();
-        }
-        debug(output);
-      };
-
-      window.convertBuffer = function(buffer) {
-        return toArrayBuffer(buffer);
-      };
-
-      window.getNodeDefault = function(property) {
-        var val = defaults[property];
-        debug("Asking for property " + property + ", returning " + val);
-        return val;
-      };
-
-      window.onFileMatched = function(values) {
-        console.log(values);
-        if (outputFile) {
-          fs.writeFile(outputFile, values, function(err) {
-            if(err) {
-                return console.error(err);
-            }
-            console.log("File saved to " + outputFile);
-          });
-        }
-        var endTime = new Date();
-        debug("File processing took " + (endTime - startTime)/1000 + " seconds");
-        cluster.disconnect();
-        window.close();
-      };
-
-      window.getWorkers = function(i) {
-        return workers;
-      };
-
-    },
-    done: function (err, window) {
-      if (err != null) {
-        console.log("ERROR: " + err);
-      }
-      debug("Window done");
-      window.onModulesLoaded = function() {
-        debug("Modules loaded");
-        var scope = window.angular.element('#sidebarDrop').scope();
-        scope.commandLineFile({'actualName': fname, 'file': data})
-        scope.$apply();
-      };
-
-    }
-  });*/
 } else {
   debug("Worker spawned");
   require('./js/worker2.js')

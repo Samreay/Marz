@@ -222,17 +222,8 @@ angular.module('servicesZ', ['dialogs.main'])
 
         self.spectraManager = new SpectraManager(data, log);
 
-        self.getAutoQOPDefault = function() {
-            var def = false;
-            if (window.getNodeDefault != null) {
-                var val = window.getNodeDefault(assignAutoQOPsCookie);
-                if (val != null) {
-                    def = val;
-                }
-            }
-            return def;
-        };
-        var assignAutoQOPs = cookieService.registerCookieValue(assignAutoQOPsCookie, self.getAutoQOPDefault());
+        var assignAutoQOPs = cookieService.registerCookieValue(assignAutoQOPsCookie, false);
+        self.spectraManager.setAssignAutoQOPs(assignAutoQOPs);
 
         self.setDownloadAutomaticallyDefault = function() {
             self.setDownloadAutomatically(cookieService.setToDefault(downloadAutomaticallyCookie));
@@ -248,11 +239,11 @@ angular.module('servicesZ', ['dialogs.main'])
             cookieService.setCookie(downloadAutomaticallyCookie, downloadAutomatically);
         };
         self.setAssignAutoQOPs = function(value) {
-            assignAutoQOPs = value;
+            self.spectraManager.setAssignAutoQOPs(value);
             cookieService.setCookie(assignAutoQOPsCookie, assignAutoQOPs);
         };
         self.getAssignAutoQOPs = function() {
-            return assignAutoQOPs;
+            return self.spectraManager.autoQOPs;
         };
         self.getDownloadAutomatically = function() {
             return downloadAutomatically;
@@ -431,10 +422,8 @@ angular.module('servicesZ', ['dialogs.main'])
             var prior = spectra.automaticResults;
             log.debug("Matched " + results.id);
             self.spectraManager.setMatchedResults(results);
-            if (assignAutoQOPs == true) {
+            if (self.spectraManager.autoQOPs) {
                 qualityService.changeSpectra(spectra.qop, spectra.autoQOP);
-                spectra.setQOP(results.results.autoQOP);
-
             }
             if (results.results.fft == null) {
                 spectra.fft = null;
