@@ -4,8 +4,9 @@
   "description":  "Command line interface for Marz",
   "main":         "autoMarz.js",
   "dependencies": {
-    "jsdom": ">=6.3.0",
     "file-api": ">=0.10.4",
-    "minimist": ">=1.2.0"
+    "minimist": ">=1.2.0",
+    "q": ">=1.4.0",
+    "lodash-node": ">=3.9.0"
   }
 }

@@ -331,13 +331,11 @@ angular.module('servicesZ', ['dialogs.main'])
             }
         };
         self.setSpectra = function(spectraList) {
-            data.spectra.length = 0;
-            data.spectraHash = {};
+            self.spectraManager.setSpectra(spectraList);
+
             qualityService.setMax(spectraList.length);
             qualityService.clear();
             for (var i = 0; i < spectraList.length; i++) {
-                data.spectra.push(spectraList[i]);
-                data.spectraHash[spectraList[i].id] = spectraList[i];
                 var result = localStorageService.loadSpectra(spectraList[i]);
                 if (result != null) {
                     self.loadLocalStorage(spectraList[i], result);

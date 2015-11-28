@@ -387,8 +387,8 @@ function FitsFileLoader($q, global, log, processorService) {
     this.log = log;
     this.subscribed = [];
 }
-FitsFileLoader.prototype.subscribeToInput = function(fn) {
-    this.subscribed.push(fn);
+FitsFileLoader.prototype.subscribeToInput = function(fn, context) {
+    this.subscribed.push([fn, context]);
 };
 FitsFileLoader.prototype.loadInFitsFile = function(file) {
     var q = this.$q.defer();
@@ -462,6 +462,7 @@ FitsFileLoader.prototype.parseFitsFile = function(q) {
                 }
             }
         }
+        this.log.debug("Have indexes to remove");
         indexesToRemove.sort();
         indexesToRemove = _.uniq(indexesToRemove, true);
 
@@ -486,9 +487,10 @@ FitsFileLoader.prototype.parseFitsFile = function(q) {
             s.setCompute(int != null && vari != null);
             spectraList.push(s)
         }
+        this.log.debug("Spectra list made");
         this.isLoading = false;
         for (var i = 0; i < this.subscribed.length; i++) {
-            this.subscribed[i](spectraList);
+            this.subscribed[i][0].apply(this.subscribed[i][1], spectraList);
         }
         this.log.debug("Returning FITs object");
         q.resolve();
@@ -585,6 +587,7 @@ FitsFileLoader.prototype.getIntensityData = function() {
             q.resolve(intensity)
         }.bind(this), q);
     } catch (err) {
+        console.warn(err);
         q.resolve(null);
     }
     return q.promise;
@@ -642,8 +645,10 @@ FitsFileLoader.prototype.getSkyData = function() {
             var sky = [];
             for (var i = 0; i < data.length / this.numPoints; i++) {
                 var s = d.slice(i * this.numPoints, (i + 1) * this.numPoints);
-                removeNaNs(s);
-                normaliseViaShift(s, 0, this.global.ui.detailed.skyHeight, null);
+                try {
+                    removeNaNs(s);
+                    normaliseViaShift(s, 0, this.global.ui.detailed.skyHeight, null);
+                } catch (ex) {}
                 sky.push(s);
             }
             q.resolve(sky)
@@ -819,7 +824,17 @@ ProcessorManager.prototype.setNumberProcessors = function(num, $q) {
         }
     }
 };
+ProcessorManager.prototype.setWorkers = function(workers, $q) {
+    while (this.processors.length > 0) {
+        this.processors[0].flagForDeletion();
+        this.processors.splice(0, 1);
+    }
+    for (var i = 0; i < workers.length; i++) {
+        this.processors.push(new Processor($q, true, workers[i]));
+    }
+};
 ProcessorManager.prototype.processSpectra = function(spectra) {
+    console.log("PROCESS SPECTRA");
     spectra.inactiveTemplates = this.getInactiveTemplates();
     var processor = this.getIdleProcessor();
     processor.workOnSpectra(spectra, this.node).then(function(result) {
@@ -846,6 +861,7 @@ ProcessorManager.prototype.getIdleProcessor = function() {
     return null;
 };
 ProcessorManager.prototype.addSpectraListToQueue = function(spectraList) {
+    console.log("Added spectra list");
     this.jobs.length = 0;
     for (var i = 0; i < spectraList.length; i++) {
         this.jobs.push(spectraList[i]);
@@ -872,6 +888,7 @@ ProcessorManager.prototype.shouldProcessAndMatch = function(spectra) {
     return !spectra.isProcessing && !spectra.isProcessed;
 };
 ProcessorManager.prototype.processJobs = function() {
+    console.log("Proccessing jobs");
     var findingJobs = true;
     while (findingJobs && this.hasIdleProcessor()) {
         findingJobs = this.processAJob();
@@ -971,6 +988,14 @@ SpectraManager.prototype.setMatchedResults = function(results) {
         if (this.finishedCallback) {
             this.finishedCallback();
         }
+    }
+};
+SpectraManager.prototype.setSpectra = function(spectraList) {
+    this.data.spectra.length = 0;
+    this.data.spectraHash = {};
+    for (var i = 0; i < spectraList.length; i++) {
+        this.data.spectra.push(spectraList[i]);
+        this.data.spectraHash[spectraList[i].id] = spectraList[i];
     }
 };
 SpectraManager.prototype.setProcessedResults = function(results) {

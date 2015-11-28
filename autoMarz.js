@@ -2,20 +2,6 @@
 
 var argv = require('minimist')(process.argv.slice(2));
 
-var help = function() {
-  console.error("Usage: autoMarz.js <FITSfilename> [--debug] [-o|--outFile <filename>]|[-d|--dir dirname]\n");
-  console.error("Examples:");
-  console.error("Analyse file /tmp/fits.fits and output to stdout:\n\tautoMarz.js /tmp/fits.fits\n");
-  console.error("Analyse file /tmp/fits.fits and output to /tmp/out.mz:\n\tautoMarz.js /tmp/fits.fits -o /tmp/out.mz\n");
-  console.error("Analyse file /tmp/fits.fits and output to directory /tmp/saves:\n\tautoMarz.js /tmp/fits.fits -d /tmp/saves\n");
-  process.exit();
-}
-
-var path = require('path');
-var cluster = require('cluster');
-var fs = require('fs');
-
-var debugFlag = argv['debug'] == true;
 var debug = function(output) {
   if (debugFlag) {
     if (typeof output == "string") {
@@ -25,6 +11,32 @@ var debug = function(output) {
     }
   }
 };
+var help = function() {
+  console.error("Usage: autoMarz.js <FITSfilename> [--debug] [-o|--outFile <filename>]|[-d|--dir dirname]\n");
+  console.error("Examples:");
+  console.error("Analyse file /tmp/fits.fits and output to stdout:\n\tautoMarz.js /tmp/fits.fits\n");
+  console.error("Analyse file /tmp/fits.fits and output to /tmp/out.mz:\n\tautoMarz.js /tmp/fits.fits -o /tmp/out.mz\n");
+  console.error("Analyse file /tmp/fits.fits and output to directory /tmp/saves:\n\tautoMarz.js /tmp/fits.fits -d /tmp/saves\n");
+  process.exit();
+};
+var _ = require('lodash-node');
+var path = require('path');
+var cluster = require('cluster');
+var fs = require('fs');
+var $q = require('q');
+var FileAPI = require('file-api'), File = FileAPI.File, FileList = FileAPI.FileList, FileReader = FileAPI.FileReader;
+debug("Loading dependancies");
+var dependencies = ['./js/config.js', './lib/fits.js', './js/tools.js', './js/methods.js', './lib/regression.js', './js/templates.js', './js/classes.js'];
+for (var i = 0; i < dependencies.length; i++) {
+  eval(fs.readFileSync(dependencies[i]) + '');
+}
+var astro = this.astro;
+
+var debugFlag = argv['debug'] == true;
+
+
+var log = {"debug": function(e) { debug(e); }};
+
 
 if (cluster.isMaster) {
   var filenames = argv['_'];
@@ -44,20 +56,19 @@ if (cluster.isMaster) {
   outputFile = argv['o'] || argv['outFile'] || outputFile;
 
   debug("Parsed Parameters:");
-  debug({'outputFile': outputFile, 'filename': filename, 'fname': fname, 'debug': debugFlag, 'dir': dir})
-  var jsdom = require('jsdom');
+  debug({'outputFile': outputFile, 'filename': filename, 'fname': fname, 'debug': debugFlag, 'dir': dir});
+  //var jsdom = require('jsdom');
 
-  n = require('os').cpus().length * 2;  // There is some slow down, either in JsDOM emulation or process messaging
+  n = require('os').cpus().length - 1;  // There is some slow down, either in JsDOM emulation or process messaging
                                         // that means CPUs are utilised < 15%. Want to track down why. 
   workers = [];
   for (var i = 0; i < n; i++) {
     workers.push(cluster.fork());
   }
-  var FileAPI = require('file-api'), File = FileAPI.File, FileList = FileAPI.FileList, FileReader = FileAPI.FileReader;
 
 
   var f = new File(filename);
-  var data = fs.readFileSync(filename);
+  var filedata = fs.readFileSync(filename);
 
 
   var toArrayBuffer = function(buffer) {
@@ -76,6 +87,51 @@ if (cluster.isMaster) {
   };
   var startTime = new Date();
   debug("Processing file " + filename);
+  var data = {
+    fits: [],
+    types: [],
+    fitsFileName: null,
+    spectra: [],
+    spectraHash: {},
+    history: []
+  };
+  var global = {data: data};
+
+  var p = new ProcessorManager();
+  var s = new SpectraManager(data);
+  var t = new TemplateManager();
+  var r = new ResultsGenerator(data, t);
+  var fl = new FitsFileLoader($q, global, log, p);
+  fl.subscribeToInput(s.setSpectra, s);
+  fl.subscribeToInput(p.addSpectraListToQueue, p);
+  p.setNode();
+  p.setWorkers(workers);
+
+  fl.loadInFitsFile({'actualName': fname, 'file': filedata});
+  debug("File loaded");
+  p.setInactiveTemplateCallback(function() { return defaults['tenabled']});
+  p.setProcessedCallback(s.setProcessedResults);
+  p.setMatchedCallback(s.setMatchedResults);
+  s.setFinishedCallback(function() {
+    console.log("Getting results");
+    console.log(r.getResultsCSV());
+    var endTime = new Date();
+    debug("File processing took " + (endTime - startTime)/1000 + " seconds");
+    cluster.disconnect();
+  });
+
+
+
+
+
+
+
+
+
+
+/*
+
+
   jsdom.env({
     file: 'index.html',
     features : {
@@ -141,7 +197,7 @@ if (cluster.isMaster) {
       };
 
     }
-  });
+  });*/
 } else {
   debug("Worker spawned");
   require('./js/worker2.js')
