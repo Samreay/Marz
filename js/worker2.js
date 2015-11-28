@@ -7,5 +7,5 @@ for (var i = 0; i < dependencies.length; i++) {
 thisIsNode = true;
 process.on('message', function(event) {
     var result = handleEvent(event);
-    process.send({data: result})
+    process.send({data: result});
 });

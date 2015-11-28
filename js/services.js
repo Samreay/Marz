@@ -220,17 +220,10 @@ angular.module('servicesZ', ['dialogs.main'])
         var saveAutomatically = cookieService.registerCookieValue(saveAutomaticallyCookie, true);
         var assignAutoQOPsCookie = "assignAutoQOPs";
 
-        self.getAutoQOPDefault = function() {
-            var def = false;
-            if (window.getNodeDefault != null) {
-                var val = window.getNodeDefault(assignAutoQOPsCookie);
-                if (val != null) {
-                    def = val;
-                }
-            }
-            return def;
-        };
-        var assignAutoQOPs = cookieService.registerCookieValue(assignAutoQOPsCookie, self.getAutoQOPDefault());
+        self.spectraManager = new SpectraManager(data, log);
+
+        var assignAutoQOPs = cookieService.registerCookieValue(assignAutoQOPsCookie, false);
+        self.spectraManager.setAssignAutoQOPs(assignAutoQOPs);
 
         self.setDownloadAutomaticallyDefault = function() {
             self.setDownloadAutomatically(cookieService.setToDefault(downloadAutomaticallyCookie));
@@ -246,11 +239,11 @@ angular.module('servicesZ', ['dialogs.main'])
             cookieService.setCookie(downloadAutomaticallyCookie, downloadAutomatically);
         };
         self.setAssignAutoQOPs = function(value) {
-            assignAutoQOPs = value;
+            self.spectraManager.setAssignAutoQOPs(value);
             cookieService.setCookie(assignAutoQOPsCookie, assignAutoQOPs);
         };
         self.getAssignAutoQOPs = function() {
-            return assignAutoQOPs;
+            return self.spectraManager.autoQOPs;
         };
         self.getDownloadAutomatically = function() {
             return downloadAutomatically;
@@ -267,22 +260,10 @@ angular.module('servicesZ', ['dialogs.main'])
             return data.spectra.length > 0;
         };
         self.getNumberMatched = function() {
-            var num = 0;
-            for (var i = 0; i < data.spectra.length; i++) {
-                if (data.spectra[i].isMatched) {
-                    num++;
-                }
-            }
-            return num;
+            return self.spectraManager.getNumberMatched();
         };
         self.getNumberProcessed = function() {
-            var num = 0;
-            for (var i = 0; i < data.spectra.length; i++) {
-                if (data.spectra[i].isProcessed) {
-                    num++;
-                }
-            }
-            return num;
+            return self.spectraManager.getNumberProcessed();
         };
         self.isFinishedMatching = function() {
             return self.getNumberMatched() == self.getNumberTotal();
@@ -294,7 +275,7 @@ angular.module('servicesZ', ['dialogs.main'])
             return self.getNumberProcessed() < self.getNumberTotal();
         };
         self.getNumberTotal = function() {
-            return data.spectra.length;
+            return self.spectraManager.getNumberTotal();
         };
         self.setNextSpectra = function() {
             if (global.ui.detailed.onlyQOP0) {
@@ -341,13 +322,11 @@ angular.module('servicesZ', ['dialogs.main'])
             }
         };
         self.setSpectra = function(spectraList) {
-            data.spectra.length = 0;
-            data.spectraHash = {};
+            self.spectraManager.setSpectra(spectraList);
+
             qualityService.setMax(spectraList.length);
             qualityService.clear();
             for (var i = 0; i < spectraList.length; i++) {
-                data.spectra.push(spectraList[i]);
-                data.spectraHash[spectraList[i].id] = spectraList[i];
                 var result = localStorageService.loadSpectra(spectraList[i]);
                 if (result != null) {
                     self.loadLocalStorage(spectraList[i], result);
@@ -424,21 +403,15 @@ angular.module('servicesZ', ['dialogs.main'])
             var spectra = data.spectraHash[results.id];
             log.debug("Processed " + results.id);
             if (spectra.name != results.name) return;
-            spectra.processedLambda = results.lambda;
-            spectra.processedIntensity = results.intensity;
-            spectra.processedContinuum = results.continuum;
-            spectra.processedLambdaPlot = results.lambda; //.map(function(x) { return Math.pow(10, x); });
+            self.spectraManager.setProcessedResults(results);
+            spectra.processedLambdaPlot = results.lambda;
             spectra.processedVariance = results.variance;
             spectra.processedVariancePlot = results.variance.slice();
             removeNaNs(spectra.processedVariancePlot);
             normaliseViaShift(spectra.processedVariancePlot, 0, 50, null);
-            spectra.isProcessing = false;
-            spectra.isProcessed = true;
+
 
             if (!self.isProcessing() && self.isFinishedMatching()) {
-                //if (downloadAutomatically) {
-                //    resultsGeneratorService.downloadResults();
-                //}
                 if (global.data.fits.length > 0) {
                     global.data.fits.shift();
                 }
@@ -446,21 +419,11 @@ angular.module('servicesZ', ['dialogs.main'])
         };
         self.setMatchedResults = function(results) {
             var spectra = data.spectraHash[results.id];
-            log.debug("Matched " + results.id);
-            if (spectra == null || spectra.name != results.name) return;
             var prior = spectra.automaticResults;
-            spectra.automaticResults = results.results.coalesced;
-            spectra.templateResults = results.results.templates;
-            spectra.setVersion(marzVersion);
-            spectra.autoQOP = results.results.autoQOP;
-            if (assignAutoQOPs == true) {
+            self.spectraManager.setMatchedResults(results);
+            if (self.spectraManager.autoQOPs) {
                 qualityService.changeSpectra(spectra.qop, spectra.autoQOP);
-                spectra.setQOP(results.results.autoQOP);
-
             }
-            spectra.automaticBestResults = results.results.coalesced; // TODO: REMOVE BEST RESULTS, ONLY HAVE AUTOMATIC RESULTS
-            spectra.isMatching = false;
-            spectra.isMatched = true;
             if (results.results.fft == null) {
                 spectra.fft = null;
             } else {
@@ -483,9 +446,6 @@ angular.module('servicesZ', ['dialogs.main'])
                 if (downloadAutomatically) {
                     console.log("Downloading from matching");
                     resultsGeneratorService.downloadResults();
-                }
-                if (window.onFileMatched != null) {
-                    window.onFileMatched(resultsGeneratorService.getResultsCSV())
                 }
             }
             if (global.ui.active == spectra) {
@@ -613,6 +573,7 @@ angular.module('servicesZ', ['dialogs.main'])
     }])
     .service('resultsGeneratorService', ['global', 'templatesService', 'personalService', 'log', function(global, templatesService, personalService, log) {
         var self = this;
+        self.resultsGenerator = new ResultsGenerator(global.data, templatesService);
         self.downloading = false;
         self.downloadResults = function() {
             if (self.downloading) {
@@ -621,7 +582,7 @@ angular.module('servicesZ', ['dialogs.main'])
             log.debug("Downloading results");
             self.downloading = true;
             personalService.ensureInitials().then(function() {
-                var results = self.getResultsCSV();
+                var results = self.resultsGenerator.getResultsCSV();
                 console.log(results);
                 if (results.length > 0) {
                     var blob = new window.Blob([results], {type: 'text/plain'});
@@ -635,89 +596,12 @@ angular.module('servicesZ', ['dialogs.main'])
         self.getFilename = function() {
             return global.data.fitsFileName + "_" + personalService.getInitials() + ".mz";
         };
-
-        self.getStatistics = function(results) {
-            var totalSpectra = results.length;
-            var uses = _.filter(results, function(d) {
-                return _.some(d, function(dict) {
-                    return dict['name'] == 'QOP' && parseInt(dict['value']) > 2;
-                });
-            });
-            var string = "# Redshift quality > 2 for ";
-            string += uses.length;
-            string += " out of " ;
-            string += totalSpectra;
-            string += " targets, a success rate of  ";
-            string += (100.0 * uses.length / totalSpectra).toFixed(1);
-            string += "%\n";
-            return string;
+        self.getResultFromSpectra = function(spectra) {
+            return self.resultsGenerator.getResultFromSpectra(spectra);
         };
-
         self.getResultsCSV = function() {
             log.debug("Getting result CSV");
-            var results = self.getResultsArray();
-            var string = "# Results generated by " + personalService.getInitials()
-                + " for file [[" + global.data.fitsFileName + "]] at " + new Date().toLocaleString() + " (JSON: " + JSON.stringify(new Date()) + ") at version {{" + marzVersion + "}}\n";
-            string += self.getStatistics(results);
-            string += "#";
-            if (results.length > 0) {
-                var spaces = results[0].map(function(x) { return x.name.length; });
-                for (var i = 0; i < results.length; i++) {
-                    var lengths = results[i];
-                    for (var j = 0; j < lengths.length; j++) {
-                        if (lengths[j].value.length > spaces[j]) {
-                            spaces[j] = lengths[j].value.length;
-                        }
-                    }
-                }
-
-                for (var i = 0; i < results.length; i++) {
-                    var res = results[i];
-                    var first = 0;
-                    if (i == 0) {
-                        for (var k = 0; k < res.length; k++) {
-                            string += ((first++ == 0) ? "" : ",  ") + res[k].name.spacePad(spaces[k]);
-                        }
-                        string += "\n";
-                        first = 0;
-                    }
-                    for (var j = 0; j < res.length; j++) {
-                        string += ((first++ == 0) ? " " : ",  ") + res[j].value.replace(",","").spacePad(spaces[j]);
-                    }
-                    string += "\n";
-                }
-            }
-
-            return string;
-        };
-        self.getResultsArray = function() {
-            var result = [];
-            for (var i = 0; i < global.data.spectra.length; i++) {
-                var spectra = global.data.spectra[i];
-                if (spectra.hasRedshiftToBeSaved()) {
-                    result.push(self.getResultFromSpectra(spectra));
-                }
-            }
-            return result;
-        };
-        self.getResultFromSpectra = function(spectra) {
-            var result = [];
-            result.push({name: "ID", value: ("" + spectra.id).pad(4)});
-            result.push({name: "Name", value: spectra.name});
-            result.push({name: "RA", value: spectra.ra.toFixed(6)});
-            result.push({name: "DEC", value: spectra.dec.toFixed(6)});
-            result.push({name: "Mag", value: spectra.magnitude.toFixed(2)});
-            result.push({name: "Type", value: spectra.type});
-            result.push({name: "AutoTID", value: spectra.getBestAutomaticResult()? spectra.getBestAutomaticResult().templateId : "0"});
-            result.push({name: "AutoTN", value:  templatesService.getNameForTemplate(spectra.getBestAutomaticResult() ? spectra.getBestAutomaticResult().templateId : "0")});
-            result.push({name: "AutoZ", value: spectra.getBestAutomaticResult() ? spectra.getBestAutomaticResult().z.toFixed(5) : "0"});
-            result.push({name: "AutoXCor", value: spectra.getBestAutomaticResult() ? spectra.getBestAutomaticResult().value.toFixed(5) : "0"});
-            result.push({name: "FinTID", value: spectra.getFinalTemplateID() ? spectra.getFinalTemplateID() : "0"});
-            result.push({name: "FinTN", value: templatesService.getNameForTemplate(spectra.getFinalTemplateID())});
-            result.push({name: "FinZ", value: spectra.getFinalRedshift().toFixed(5)});
-            result.push({name: "QOP", value: "" + spectra.qop});
-            result.push({name: "Comment", value: spectra.getComment()});
-            return result;
+            return self.resultsGenerator.getResultsCSV(personalService.getInitials());
         };
         self.convertResultToMimicSpectra = function(result) {
             var spectra = new Spectra(result["ID"], null, null, null, null, result["Name"],
@@ -865,11 +749,12 @@ angular.module('servicesZ', ['dialogs.main'])
     .service('processorService', ['$q', 'spectraService', 'cookieService', 'templatesService', 'log', function($q, spectraService, cookieService, templatesService, log) {
         var self = this;
 
-        var processors = [];
-        var priorityJobs = [];
-        var processing = true;
-        var jobs = [];
-        var node = false;
+        self.processorManager = new ProcessorManager();
+        self.processorManager.setInactiveTemplateCallback(templatesService.getInactiveTemplates);
+        self.processorManager.setProcessedCallback(spectraService.setProcessedResults);
+        self.processorManager.setMatchedCallback(spectraService.setMatchedResults);
+
+
         var coreCookie = "numCores";
         var processTogetherCookie = "processTogether";
 
@@ -894,6 +779,7 @@ angular.module('servicesZ', ['dialogs.main'])
             cookieService.setCookie(processTogetherCookie, processTogether);
         };
         var processTogether = cookieService.registerCookieValue(processTogetherCookie, self.getDefaultProcessType());
+        self.processorManager.setProcessTogether(processTogether);
 
         self.setDefaultNumberOfCores = function() {
             var defaultValue = 3;
@@ -905,18 +791,11 @@ angular.module('servicesZ', ['dialogs.main'])
                 log.warn("Could not fetch navigator.hardwareConcurrency");
             }
             var c = cookieService.registerCookieValue(coreCookie, defaultValue);
-            try {
-                c = window.require('os').cpus().length;
-                node = true;
-                log.debug("Node/iojs detected");
-            } catch (err) {
-                log.debug("No Node/iojs");
-            }
             self.setNumberProcessors(c);
         };
 
         self.getNumberProcessors = function() {
-            return processors.length;
+            return self.processorManager.getNumberProcessors();
         };
         self.setNumberProcessors = function(num) {
             if (num < 1) {
@@ -925,142 +804,40 @@ angular.module('servicesZ', ['dialogs.main'])
                 num = 32;
             }
             cookieService.setCookie(coreCookie, num);
-            if (num < processors.length) {
-                while (processors.length > num) {
-                    processors[0].flagForDeletion();
-                    processors.splice(0, 1);
-                }
-            } else if (num > processors.length) {
-                if (node) {
-                    processors = getProcessors($q, num, true);
-                } else {
-                    while (processors.length < num) {
-                        processors.push(new Processor($q));
-                    }
-                }
-            }
+            self.processorManager.setNumberProcessors(num, $q);
         };
         self.toggleProcessing = function() {
-            processing = !processing;
+            self.processorManager.toggleProcessing();
         };
         self.processSpectra = function(spectra) {
-            spectra.inactiveTemplates = templatesService.getInactiveTemplates();
-            var processor = self.getIdleProcessor();
-            processor.workOnSpectra(spectra, node).then(function(result) {
-                if (result.data.processing) {
-                    spectraService.setProcessedResults(result.data);
-                }
-                if (result.data.matching) {
-                    spectraService.setMatchedResults(result.data);
-                }
-                self.processJobs();
-            }, function(reason) {
-                console.warn(reason);
-            });
-        };
-        self.getIdleProcessor = function() {
-            for (var i = 0; i < processors.length; i++) {
-                if (processors[i].isIdle()) {
-                    return processors[i];
-                }
-            }
-            return null;
+            self.processorManager.processSpectra(spectra);
         };
         self.addSpectraListToQueue = function(spectraList) {
-            jobs.length = 0;
-            for (var i = 0; i < spectraList.length; i++) {
-                jobs.push(spectraList[i]);
-            }
-            self.setRunning();
+            self.processorManager.addSpectraListToQueue(spectraList);
         };
         self.addToPriorityQueue = function(spectra, start) {
-            spectra.isMatched = false;
-            priorityJobs.push(spectra);
-            if (start) {
-                self.processJobs();
-            }
-        };
-        self.hasIdleProcessor = function() {
-            return self.getIdleProcessor() != null;
+            self.processorManager.addToPriorityQueue(spectra, start);
         };
         self.shouldProcess = function(spectra) {
-            return !spectra.isProcessing && !spectra.isProcessed;
+            return self.processorManager.shouldProcess(spectra);
         };
         self.shouldMatch = function(spectra) {
-            return spectra.isProcessed && !spectra.isMatching && (!spectra.isMatched || spectra.templateResults == null);
+            return self.processorManager.shouldMatch(spectra);
         };
         self.shouldProcessAndMatch = function(spectra) {
-            return !spectra.isProcessing && !spectra.isProcessed;
-        };
-        self.processJobs = function() {
-            var findingJobs = true;
-            while (findingJobs && self.hasIdleProcessor()) {
-                findingJobs = self.processAJob();
-            }
+            return self.processorManager.shouldProcessAndMatch(spectra);
         };
         self.isPaused = function() {
-            return !processing;
+            return self.processorManager.isPaused();
         };
         self.setPause = function() {
-            processing = false;
+            self.processorManager.setPause();
         };
         self.setRunning = function() {
-            processing = true;
-            self.processJobs();
+            self.processorManager.setRunning();
         };
         self.togglePause = function() {
-            processing = !processing;
-            if (processing) {
-                self.processJobs();
-            }
-        };
-
-        /**
-         * Processes priority jobs processing then matching, and then normal
-         * jobs processing and matching if processing is enabled.
-         */
-        self.processAJob = function() {
-            for (var i = 0; i < priorityJobs.length; i++) {
-                if (self.shouldProcess(priorityJobs[i])) {
-                    priorityJobs[i].isProcessing = true;
-                    self.processSpectra(priorityJobs[i].getProcessMessage());
-                    return true;
-                }
-            }
-            for (i = 0; i < priorityJobs.length; i++) {
-                if (self.shouldMatch(priorityJobs[i])) {
-                    priorityJobs[i].isMatching = true;
-                    self.processSpectra(priorityJobs[i].getMatchMessage());
-                    return true;
-                }
-            }
-            if (processing) {
-                if (processTogether) {
-                    for (i = 0; i < jobs.length; i++) {
-                        if (self.shouldProcessAndMatch(jobs[i])) {
-                            jobs[i].isProcessing = true;
-                            self.processSpectra(jobs[i].getProcessingAndMatchingMessage());
-                            return true;
-                        }
-                    }
-                } else {
-                    for (i = 0; i < jobs.length; i++) {
-                        if (self.shouldProcess(jobs[i])) {
-                            jobs[i].isProcessing = true;
-                            self.processSpectra(jobs[i].getProcessMessage());
-                            return true;
-                        }
-                    }
-                    for (i = 0; i < jobs.length; i++) {
-                        if (self.shouldMatch(jobs[i])) {
-                            jobs[i].isMatching = true;
-                            self.processSpectra(jobs[i].getMatchMessage());
-                            return true;
-                        }
-                    }
-                }
-            }
-            return false;
+            self.processorManager.togglePause();
         };
 
         self.setDefaultNumberOfCores();
@@ -1084,12 +861,7 @@ angular.module('servicesZ', ['dialogs.main'])
             templates.updateActiveTemplates();
         };
         self.getNameForTemplate = function(templateId) {
-            if (templates.templatesHash[templateId]) {
-                return templates.templatesHash[templateId].name;
-            } else {
-                return "Unspecified";
-            }
-
+            return templates.getNameForTemplate(templateId);
         };
         self.getTemplates = function() {
             return templates.templates;
@@ -1106,402 +878,22 @@ angular.module('servicesZ', ['dialogs.main'])
     }])
     .service('fitsFile', ['$q', 'global', 'spectraService', 'processorService', 'log', function($q, global, spectraService, processorService, log) {
         var self = this;
-
-        var hasFitsFile = false;
-        var isLoading = false;
-        var originalFilename = null;
-        var filename = null;
-        var MJD = null;
-        var date = null;
-        var header0 = null;
-
-        var spectra = null;
-        var primaryIndex = 0;
-        var numPoints = null;
+        self.fitsFileLoader = new FitsFileLoader($q, global, log, processorService);
+        self.fitsFileLoader.subscribeToInput(spectraService.setSpectra);
+        self.fitsFileLoader.subscribeToInput(processorService.addSpectraListToQueue);
 
         self.getFilename = function() {
-            return filename;
+            return self.fitsFileLoader.filename;
         };
         self.getOriginalFilename = function() {
-            return originalFilename;
+            return self.fitsFileLoader.originalFilename;
         };
         self.isLoading = function() {
-            return isLoading;
+            return self.fitsFileLoader.isLoading;
         };
         self.loadInFitsFile = function(file) {
-            var q = $q.defer();
-            isLoading = true;
-            hasFitsFile = true;
-            var pass = file;
-            if (file.actualName != null) {
-                originalFilename = file.actualName.replace(/\.[^/.]+$/, "");
-                pass = file.file;
-            } else {
-                originalFilename = file.name.replace(/\.[^/.]+$/, "");
-            }
-            global.data.fitsFileName = originalFilename;
-            filename = originalFilename.replace(/_/g, " ");
-            log.debug("Loading FITs file");
-            self.fits = new astro.FITS(pass, function() {
-                log.debug("Loaded FITS file");
-                parseFitsFile(q);
-                processorService.setPause();
-            });
-            return q.promise;
-
+            return self.fitsFileLoader.loadInFitsFile(file);
         };
-        var getHDUFromName = function(name) {
-            var n = name.toUpperCase();
-            for (var i = 0; i < self.fits.hdus.length; i++) {
-                var h = self.fits.getHeader(i).cards['EXTNAME'];
-                if (h != null && h.value.toUpperCase() == n) {
-                    log.debug(name + " index found at " + i);
-                    return i;
-                }
-            }
-            return null;
-        };
-        /**
-         * This function takes a promise object and resolves it on successful loading of a FITs file.
-         *
-         * The function will construct the wavelength array from header values, and then attempt to extract
-         * intensity, variance, sky and fibre data.
-         *
-         * @param q
-         */
-        var parseFitsFile = function(q) {
-            log.debug("Getting headers");
-            header0 = self.fits.getHDU(0).header;
-            MJD = header0.get('UTMJD');
-            date = MJDtoYMD(MJD);
-
-            numPoints = self.fits.getHDU(0).data.width;
-
-            $q.all([getWavelengths(), getIntensityData(),getVarianceData(), getSkyData(), getDetailsData()]).then(function(data) {
-                log.debug("Load promises complete");
-                var lambda = data[0];
-                var intensity = data[1];
-                var variance = data[2];
-                var sky = data[3];
-                var details = data[4];
-                var indexesToRemove = [];
-                if (details != null) {
-                    if (details['FIBRE'] != null) {
-                        for (var i = 0; i < details['FIBRE'].length; i++) {
-                            if (details['FIBRE'][i] != 'P') {
-                                indexesToRemove.push(i);
-                            }
-                        }
-                    }
-                    if (details['TYPE'] != null) {
-                        for (var i = 0; i < details['TYPE']; i++) {
-                            if (details['TYPE'][i].toUpperCase() == 'PARKED') {
-                                indexesToRemove.push(i)
-                            }
-                        }
-                    }
-                }
-                indexesToRemove.sort();
-                indexesToRemove = _.uniq(indexesToRemove, true);
-
-                var spectraList = [];
-                for (var i = 0; i < intensity.length; i++) {
-                    if (indexesToRemove.indexOf(i) != -1 || !useSpectra(intensity[i])) {
-                        continue;
-                    }
-                    var id = i + 1;
-                    var llambda = (lambda.length == 1) ? lambda[0].slice(0) : lambda[i];
-                    var int = intensity[i];
-                    var vari = variance == null ? null : variance[i];
-                    var skyy = sky == null ? null : (sky.length == 1) ? sky[0] : sky[i];
-                    var name = details == null ? "Unknown spectra " + id : details['NAME'][i];
-                    var ra = details == null ? null : details['RA'][i];
-                    var dec = details == null ? null : details['DEC'][i];
-                    var mag = details == null ? null : details['MAGNITUDE'][i];
-                    var type = details == null ? null : details['TYPE'][i];
-
-
-                    var s = new Spectra(id, llambda, int, vari, skyy, name, ra, dec, mag, type, originalFilename);
-                    s.setCompute(int != null && vari != null);
-                    spectraList.push(s)
-                }
-                isLoading = false;
-                spectraService.setSpectra(spectraList);
-                processorService.addSpectraListToQueue(spectraList);
-                log.debug("Returning FITs object");
-                q.resolve();
-
-            })
-
-        };
-
-        var getWavelengths = function() {
-            var q = $q.defer();
-            getRawWavelengths().then(function(lambdas) {
-                var needToShift = header0.get('VACUUM') == null || header0.get('VACUUM') == 0;
-                var logLinear = header0.get('LOGSCALE') != null && header0.get('LOGSCALE') != 0;
-
-                if (logLinear) {
-                    log.debug("Log linear wavelength detected");
-                    for (var i = 0; i < lambdas.length; i++) {
-                        for (var j = 0; j < lambdas[i].length; j++) {
-                            lambdas[i][j] = Math.pow(10, lambdas[i][j]);
-                        }
-                    }
-                }
-                if (needToShift) {
-                    log.debug("Shifting air wavelengths into vacuum");
-                    for (var i = 0; i < lambdas.length; i++) {
-                        convertVacuumFromAir(lambdas[i]);
-                    }
-                }
-
-                q.resolve(lambdas);
-            }, function(err) {
-                log.error(err);
-                q.reject(err);
-            });
-
-            return q.promise;
-        };
-
-
-        var getRawWavelengths = function() {
-            log.debug("Getting spectra wavelengths");
-            var q = $q.defer();
-            var index = getHDUFromName("wavelength");
-            if (index == null) {
-                log.debug("Wavelength extension not found. Checking headings");
-                var CRVAL1 = header0.get('CRVAL1');
-                var CRPIX1 = header0.get('CRPIX1');
-                var CDELT1 = header0.get('CDELT1');
-                if (CDELT1 == null) {
-                    CDELT1 = header0.get('CD1_1');
-                }
-                if (CRVAL1 == null || CRPIX1 == null || CDELT1 == null) {
-                    q.reject("Wavelength header values incorrect: CRVAL1=" + CRVAL1 + ", CRPIX1=" + CRPIX1 + ", CDELT1=" + CDELT1 + ".");
-                }
-                var lambdas = [];
-                var lambda = [];
-                for (var i = 0; i < numPoints; i++) {
-                    lambda.push(((i + 1 - CRPIX1) * CDELT1) + CRVAL1);
-                }
-                lambdas.push(lambda);
-                q.resolve(lambdas);
-
-            } else {
-                self.fits.getDataUnit(index).getFrame(0, function (data, q) {
-                    var d = Array.prototype.slice.call(data);
-                    var lambdas = [];
-                    for (var i = 0; i < data.length / numPoints; i++) {
-                        var s = d.slice(i * numPoints, (i + 1) * numPoints);
-                        lambdas.push(s);
-                    }
-                    log.debug(lambdas.length + " wavelength rows found");
-                    q.resolve(lambdas);
-                }, q);
-            }
-            return q.promise;
-        };
-        /**
-         * Attempts to extract the spectrum intensity data from the right extension.
-         * On failure, will return null and not reject the deferred promise.
-         *
-         * @returns {deferred.promise}
-         */
-        var getIntensityData = function() {
-            log.debug("Getting spectra intensity");
-
-            var index = getHDUFromName("intensity");
-            if (index == null) {
-                index = primaryIndex;
-            }
-            var q = $q.defer();
-            try {
-                self.fits.getDataUnit(index).getFrame(0, function (data, q) {
-                    var d = Array.prototype.slice.call(data);
-                    var intensity = [];
-                    for (var i = 0; i < data.length / numPoints; i++) {
-                        intensity.push(d.slice(i * numPoints, (i + 1) * numPoints));
-                    }
-                    q.resolve(intensity)
-                }, q);
-            } catch (err) {
-                q.resolve(null);
-            }
-            return q.promise;
-        };
-        /**
-         * Attempts to extract the spectrum variance data from the right extension.
-         * On failure, will return null and not reject the deferred promise.
-         *
-         * @returns {deferred.promise}
-         */
-        var getVarianceData = function() {
-            log.debug("Getting spectra variance");
-            var index = getHDUFromName("variance");
-            var q = $q.defer();
-            if (index == null) {
-                q.resolve(null);
-                return q.promise;
-            }
-            try {
-                self.fits.getDataUnit(index).getFrame(0, function (data, q) {
-                    var d = Array.prototype.slice.call(data);
-                    var variance = [];
-                    for (var i = 0; i < data.length / numPoints; i++) {
-                        variance.push(d.slice(i * numPoints, (i + 1) * numPoints));
-                    }
-                    q.resolve(variance)
-                }, q);
-            } catch (err) {
-                q.resolve(null);
-            }
-            return q.promise;
-        };
-        /**
-         * Attempts to extract the sky spectrum  from the right extension.
-         * Does basic filtering on the sky (remove Nans and normalise to the right pixel height).
-         *
-         * Will return an array of sky data if data is found, which may contain one element or as many
-         * elements as there are spectra.
-         *
-         * On failure, will return null and not reject the deferred promise.
-         *
-         * @returns {deferred.promise}
-         */
-        var getSkyData = function() {
-            log.debug("Getting sky");
-            var index = getHDUFromName("sky");
-            var q = $q.defer();
-            if (index == null) {
-                q.resolve(null);
-                return q.promise;
-            }
-            try {
-                self.fits.getDataUnit(index).getFrame(0, function (data, q) {
-                    var d = Array.prototype.slice.call(data);
-                    var sky = [];
-                    for (var i = 0; i < data.length / numPoints; i++) {
-                        var s = d.slice(i * numPoints, (i + 1) * numPoints);
-                        removeNaNs(s);
-                        normaliseViaShift(s, 0, global.ui.detailed.skyHeight, null);
-                        sky.push(s);
-                    }
-                    q.resolve(sky)
-                }, q);
-            } catch (err) {
-                q.resolve(null);
-            }
-            return q.promise;
-        };
-
-        /**
-         * Searches for tabular data in the fibres extension, and attempts to extract the fibre type, name, magnitude,
-         * right ascension, declination and comment.
-         *
-         * On failure, will return null and not reject the deferred promise.
-         *
-         * @returns {deferred.promise}
-         */
-        var getDetailsData = function() {
-            log.debug("Getting details");
-            var index = getHDUFromName("fibres");
-            var q = $q.defer();
-            if (index == null) {
-                q.resolve(null);
-                return q.promise;
-            }
-            try {
-                getFibres(q, index, {});
-            } catch (err) {
-                q.resolve(null);
-            }
-            return q.promise;
-        };
-        var getFibres = function(q, index, cumulative) {
-            log.debug("Getting fibres");
-            self.fits.getDataUnit(index).getColumn("TYPE", function(data) {
-                cumulative['FIBRE'] = data;
-                getNames(q, index, cumulative);
-            });
-        };
-        var getNames = function(q, index, cumulative) {
-            log.debug("Getting names");
-            self.fits.getDataUnit(index).getColumn("NAME", function(data) {
-                var names = [];
-                for (var i = 0; i < data.length; i++) {
-                    names.push(data[i].replace(/\s+/g, '').replace(/\u0000/g, ""));
-                }
-                cumulative['NAME'] = names;
-                getRA(q, index, cumulative);
-            });
-        };
-        var getRA = function(q, index, cumulative) {
-            log.debug("Getting RA");
-            self.fits.getDataUnit(index).getColumn("RA", function(data) {
-                cumulative['RA'] = data;
-                getDec(q, index, cumulative);
-            });
-        };
-        var getDec = function(q, index, cumulative) {
-            log.debug("Getting DEC");
-            self.fits.getDataUnit(index).getColumn("DEC", function(data) {
-                cumulative['DEC'] = data;
-                getMagnitudes(q, index, cumulative);
-            });
-        };
-
-        var getMagnitudes = function(q, index, cumulative) {
-            log.debug("Getting magnitude");
-            self.fits.getDataUnit(index).getColumn("MAGNITUDE", function(data) {
-                cumulative['MAGNITUDE'] = data;
-                getComments(q, index, cumulative);
-            });
-        };
-        var getComments = function(q, index, cumulative) {
-            log.debug("Getting comment");
-            self.fits.getDataUnit(index).getColumn("COMMENT", function(data) {
-                global.data.types.length = 0;
-                var ts = [];
-                for (var i = 0; i < data.length; i++) {
-                    var t = data[i].split(' ')[0];
-                    t = t.trim().replace(/\W/g, '');
-                    ts.push(t);
-                    if (t != 'Parked' && global.data.types.indexOf(t) == -1) {
-                        global.data.types.push(t);
-                    }
-                }
-                cumulative['TYPE'] = ts;
-                q.resolve(cumulative);
-            });
-        };
-
-        /**
-         * Issues with some spectra containing almost all NaN values means I now check
-         * each spectra before redshifting. This is a simple check at the moment,
-         * but it can be extended if needed.
-         *
-         * Currently, if 90% or more of spectra values are NaN, throw it out. Realistically,
-         * I could make this limit much lower.
-         *
-         * @param intensity
-         * @returns {boolean}
-         */
-        var useSpectra = function(intensity) {
-            var c = 0;
-            for (var i = 0; i < intensity.length; i++) {
-                if (isNaN(intensity[i])) {
-                    c += 1;
-                }
-            }
-            if (c > 0.9 * intensity.length) {
-                return false;
-            }
-            return true;
-        };
-
-
     }])
     .service('drawingService', ['global', 'templatesService', function(global, templatesService) {
         var self = this;
