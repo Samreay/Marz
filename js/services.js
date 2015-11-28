@@ -447,9 +447,6 @@ angular.module('servicesZ', ['dialogs.main'])
                     console.log("Downloading from matching");
                     resultsGeneratorService.downloadResults();
                 }
-                if (window.onFileMatched != null) {
-                    window.onFileMatched(resultsGeneratorService.getResultsCSV())
-                }
             }
             if (global.ui.active == spectra) {
                 global.ui.detailed.templateId = spectra.getFinalTemplateID();

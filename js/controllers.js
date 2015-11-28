@@ -47,11 +47,6 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             }
         });
 
-        $rootScope.commandLineFile = function(path) {
-            global.data.fits.push(path);
-            return path;
-        };
-
         $scope.getQOPLabel = function(qop) {
             var string = "label label-";
             if (qop == null) {
