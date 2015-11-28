@@ -420,7 +420,6 @@ angular.module('servicesZ', ['dialogs.main'])
         self.setMatchedResults = function(results) {
             var spectra = data.spectraHash[results.id];
             var prior = spectra.automaticResults;
-            log.debug("Matched " + results.id);
             self.spectraManager.setMatchedResults(results);
             if (self.spectraManager.autoQOPs) {
                 qualityService.changeSpectra(spectra.qop, spectra.autoQOP);
