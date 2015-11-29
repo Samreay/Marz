@@ -19,12 +19,10 @@ var help = function() {
   console.error("Analyse file /tmp/fits.fits and output to directory /tmp/saves:\n\tautoMarz.js /tmp/fits.fits -d /tmp/saves\n");
   process.exit();
 };
-var _ = require('lodash-node');
 var path = require('path');
 var cluster = require('cluster');
 var fs = require('fs');
 var $q = require('q');
-var FileAPI = require('file-api'), File = FileAPI.File, FileList = FileAPI.FileList, FileReader = FileAPI.FileReader;
 debug("Loading dependancies");
 var dependencies = ['./js/config.js', './lib/fits.js', './js/tools.js', './js/methods.js', './lib/regression.js', './js/templates.js', './js/classes.js'];
 for (var i = 0; i < dependencies.length; i++) {
@@ -67,7 +65,6 @@ if (cluster.isMaster) {
   }
 
 
-  var f = new File(filename);
   var filedata = fs.readFileSync(filename);
 
 
@@ -107,14 +104,12 @@ if (cluster.isMaster) {
   p.setNode();
   p.setWorkers(workers, $q);
   s.setAssignAutoQOPs(true);
-  fl.loadInFitsFile({'actualName': fname, 'file': filedata});
-  debug("File loaded");
   p.setInactiveTemplateCallback(function() { return defaults['tenabled']});
   p.setProcessedCallback(s.setProcessedResults, s);
   p.setMatchedCallback(s.setMatchedResults, s);
   s.setFinishedCallback(function() {
     debug("Getting results");
-    var values = r.getResultsCSV()
+    var values = r.getResultsCSV();
     console.log(values);
     if (outputFile) {
       fs.writeFile(outputFile, values, function(err) {
@@ -128,6 +123,8 @@ if (cluster.isMaster) {
     debug("File processing took " + (endTime - startTime)/1000 + " seconds");
     cluster.disconnect();
   });
+  fl.loadInFitsFile({'actualName': fname, 'file': filedata});
+  debug("File loaded");
 
 } else {
   debug("Worker spawned");

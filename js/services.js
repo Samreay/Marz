@@ -79,15 +79,12 @@ angular.module('servicesZ', ['dialogs.main'])
         var self = this;
         self.debug = function(message) {
             $log.debug(message);
-            nodeDebug(message);
         };
         self.warn = function(message) {
             $log.warn(message);
-            nodeDebug(message);
         };
         self.error = function(message) {
             $log.error(message);
-            nodeDebug(message);
         }
     }])
     .service('personalService', ['global', 'cookieService', 'dialogs', '$q', function(global, cookieService, dialogs, $q) {
@@ -184,6 +181,7 @@ angular.module('servicesZ', ['dialogs.main'])
             quality.barHash = {};
         };
         self.changeSpectra = function(oldQop, newQop) {
+            console.log("Changing from " + oldQop + " to " + newQop);
             if (oldQop == newQop) {
                 return;
             }
@@ -419,10 +417,12 @@ angular.module('servicesZ', ['dialogs.main'])
         };
         self.setMatchedResults = function(results) {
             var spectra = data.spectraHash[results.id];
+            var oldqop = spectra.qop;
             var prior = spectra.automaticResults;
             self.spectraManager.setMatchedResults(results);
-            if (self.spectraManager.autoQOPs) {
-                qualityService.changeSpectra(spectra.qop, spectra.autoQOP);
+            if (self.spectraManager.autoQOPs && oldqop == 0) {
+                console.log(oldqop)
+                qualityService.changeSpectra(oldqop, spectra.autoQOP);
             }
             if (results.results.fft == null) {
                 spectra.fft = null;
@@ -759,14 +759,7 @@ angular.module('servicesZ', ['dialogs.main'])
         var processTogetherCookie = "processTogether";
 
         self.getDefaultProcessType = function() {
-            var def = false;
-            if (window.getNodeDefault != null) {
-                var v = window.getNodeDefault(processTogetherCookie);
-                if (v != null) {
-                    def = v;
-                }
-            }
-            return def;
+            return false;
         };
         self.getProcessTogether = function() {
             return processTogether;

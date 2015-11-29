@@ -466,7 +466,7 @@ FitsFileLoader.prototype.parseFitsFile = function(q) {
         }
         this.log.debug("Have indexes to remove");
         indexesToRemove.sort();
-        indexesToRemove = _.uniq(indexesToRemove, true);
+        indexesToRemove = indexesToRemove.unique();
 
         var spectraList = [];
         for (var i = 0; i < intensity.length; i++) {
@@ -992,7 +992,7 @@ SpectraManager.prototype.setMatchedResults = function(results) {
     spectra.automaticBestResults = results.results.coalesced;
     spectra.isMatching = false;
     spectra.isMatched = true;
-    if (this.autoQOPs == true) {
+    if (this.autoQOPs == true && spectra.qop == 0) {
         spectra.setQOP(results.results.autoQOP);
     }
     this.log.debug("Matched " + results.id);
@@ -1060,11 +1060,19 @@ function ResultsGenerator(data, templates) {
 }
 ResultsGenerator.prototype.getStatistics = function(results) {
     var totalSpectra = results.length;
-    var uses = _.filter(results, function(d) {
-        return _.some(d, function(dict) {
-            return dict['name'] == 'QOP' && parseInt(dict['value']) > 2;
-        });
-    });
+    var uses = [];
+    for (var i = 0; i < results.length; i++) {
+        var d = results[i];
+        var use = false;
+        for (var j = 0; j < d.length; j++) {
+            if (d[j]['name'] == 'QOP' && parseInt(d[j]['value']) > 2) {
+                use = true;
+            }
+        }
+        if (use) {
+            uses.push(d);
+        }
+    }
     var string = "# Redshift quality > 2 for ";
     string += uses.length;
     string += " out of " ;

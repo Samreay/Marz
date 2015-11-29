@@ -155,7 +155,6 @@ self.matchTemplates = function(lambda, intensity, variance, type) {
  * @returns {{coalesced: Array, templates: null, intensity: Array}}
  */
 self.coalesceResults = function(templateResults, type, intensity, fft, quasarFFT) {
-    var node = isNode();
     // Adjust for optional weighting
     var coalesced = [];
     for (var i = 0; i < templateResults.length; i++) {
