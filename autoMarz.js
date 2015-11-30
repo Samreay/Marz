@@ -116,7 +116,7 @@ if (cluster.isMaster) {
         if(err) {
           return console.error(err);
         }
-        console.log("File saved to " + outputFile);
+        debug("File saved to " + outputFile);
       });
     }
     var endTime = new Date();
