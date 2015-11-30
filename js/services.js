@@ -571,10 +571,23 @@ angular.module('servicesZ', ['dialogs.main'])
             return dropped;
         };
     }])
-    .service('resultsGeneratorService', ['global', 'templatesService', 'personalService', 'log', function(global, templatesService, personalService, log) {
+    .service('resultsGeneratorService', ['global', 'templatesService', 'personalService', 'log', 'cookieService', function(global, templatesService, personalService, log, cookieService) {
         var self = this;
         self.resultsGenerator = new ResultsGenerator(global.data, templatesService);
         self.downloading = false;
+
+        var numAutomaticCookie = "numAutomatic";
+        self.setNumAutomatic = function(num) {
+            if (num <= 5) {
+                self.resultsGenerator.setNumAutomatic(num);
+                cookieService.setCookie(numAutomaticCookie, num);
+            }
+        };
+        self.getNumAutomatic = function() {
+            return self.resultsGenerator.numAutomatic;
+        };
+        self.setNumAutomatic(cookieService.registerCookieValue(numAutomaticCookie, 1));
+
         self.downloadResults = function() {
             if (self.downloading) {
                 return;

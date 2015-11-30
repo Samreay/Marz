@@ -673,8 +673,8 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             templatesService.updateActiveTemplates();
         }
     }])
-    .controller('SettingsController', ['$scope', 'processorService', 'spectraService', 'localStorageService', 'global', 'dialogs',
-        function($scope, processorService, spectraService, localStorageService, global, dialogs) {
+    .controller('SettingsController', ['$scope', 'processorService', 'spectraService', 'localStorageService', 'resultsGeneratorService', 'global', 'dialogs',
+        function($scope, processorService, spectraService, localStorageService, resultsGeneratorService, global, dialogs) {
 
         $scope.getValues = function() {
             $scope.downloadAutomatically = spectraService.getDownloadAutomatically();
@@ -682,6 +682,7 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             $scope.saveAutomatically = spectraService.getSaveAutomatically();
             $scope.assignAutoQOPs  = spectraService.getAssignAutoQOPs();
             $scope.processTogether  = processorService.getProcessTogether();
+            $scope.numberAutomatic = resultsGeneratorService.getNumAutomatic();
         };
         $scope.getValues();
         $scope.updateAssignAutoQOPs = function() {
@@ -694,6 +695,9 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
         $scope.updateSaveAutomatically = function() {
             spectraService.setSaveAutomatically($scope.saveAutomatically);
         };
+        $scope.updateNumAutomatic = function() {
+            resultsGeneratorService.setNumAutomatic($scope.numberAutomatic);
+        }
         $scope.updateNumberProcessors = function() {
             if (isInt($scope.numberOfCores)) {
                 processorService.setNumberProcessors($scope.numberOfCores);

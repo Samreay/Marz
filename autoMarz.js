@@ -77,11 +77,7 @@ if (cluster.isMaster) {
     return ab;
   };
 
-  var defaults = {
-    "assignAutoQOPs": true,       // Whether or not assign autoQops
-    "tenabled": [],               // List of template IDs to disable in matching, eg to disable only quasars set to ['12']
-    "processTogether": true
-  };
+  var defaults = require('./autoConfig.js');
   var startTime = new Date();
   debug("Processing file " + filename);
   var data = {
@@ -104,9 +100,11 @@ if (cluster.isMaster) {
   p.setNode();
   p.setWorkers(workers, $q);
   s.setAssignAutoQOPs(true);
+  r.setNumAutomatic(defaults["numAutomatic"]);
   p.setInactiveTemplateCallback(function() { return defaults['tenabled']});
   p.setProcessedCallback(s.setProcessedResults, s);
   p.setMatchedCallback(s.setMatchedResults, s);
+
   s.setFinishedCallback(function() {
     debug("Getting results");
     var values = r.getResultsCSV();

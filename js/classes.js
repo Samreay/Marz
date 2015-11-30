@@ -152,6 +152,9 @@ Spectra.prototype.getIntensitySubtracted = function() {
 Spectra.prototype.hasRedshift = function() {
     return this.automaticBestResults != null || this.manualRedshift != null;
 };
+Spectra.prototype.getAutomaticResults = function() {
+    return this.automaticBestResults;
+};
 Spectra.prototype.getBestAutomaticResult = function() {
     if (this.automaticBestResults != null) {
         return this.automaticBestResults[0];
@@ -1056,7 +1059,11 @@ SpectraManager.prototype.getNumberTotal = function() {
 function ResultsGenerator(data, templates) {
     this.data = data;
     this.templates = templates;
+    this.numAutomatic = 1;
 }
+ResultsGenerator.prototype.setNumAutomatic = function(num) {
+    this.numAutomatic = num;
+};
 ResultsGenerator.prototype.getStatistics = function(results) {
     var totalSpectra = results.length;
     var uses = [];
@@ -1137,10 +1144,17 @@ ResultsGenerator.prototype.getResultFromSpectra = function(spectra) {
     result.push({name: "DEC", value: spectra.dec.toFixed(6)});
     result.push({name: "Mag", value: spectra.magnitude.toFixed(2)});
     result.push({name: "Type", value: spectra.type});
-    result.push({name: "AutoTID", value: spectra.getBestAutomaticResult()? spectra.getBestAutomaticResult().templateId : "0"});
-    result.push({name: "AutoTN", value:  this.templates.getNameForTemplate(spectra.getBestAutomaticResult() ? spectra.getBestAutomaticResult().templateId : "0")});
-    result.push({name: "AutoZ", value: spectra.getBestAutomaticResult() ? spectra.getBestAutomaticResult().z.toFixed(5) : "0"});
-    result.push({name: "AutoXCor", value: spectra.getBestAutomaticResult() ? spectra.getBestAutomaticResult().value.toFixed(5) : "0"});
+    var automatics = spectra.getAutomaticResults();
+    if (automatics != null) {
+        for (var i = 0; i < this.numAutomatic; i++) {
+            var suffix = (i == 0 ? "" : ""+(i+1));
+            if (i >= automatics.length) break;
+            result.push({name: "AutoTID"+suffix, value: automatics[i].templateId});
+            result.push({name: "AutoTN"+suffix, value:  this.templates.getNameForTemplate(automatics[i].templateId)});
+            result.push({name: "AutoZ"+suffix, value: automatics[i].z.toFixed(5)});
+            result.push({name: "AutoXCor"+suffix, value: automatics[i].value.toFixed(5)});
+        }
+    }
     result.push({name: "FinTID", value: spectra.getFinalTemplateID() ? spectra.getFinalTemplateID() : "0"});
     result.push({name: "FinTN", value: this.templates.getNameForTemplate(spectra.getFinalTemplateID())});
     result.push({name: "FinZ", value: spectra.getFinalRedshift().toFixed(5)});

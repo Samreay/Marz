@@ -58,6 +58,14 @@
                     <p style="display: inline; vertical-align: top; line-height: 35px; padding-left: 20px">Unless you have VERY good reasons, do NOT disable this.</p>
                 </div>
             </div>
+            <div class="form-group">
+                <label for="cores" class="col-sm-3 control-label">Number of automatic results to output in <code>.mz</code> files</label>
+                <div class="col-sm-9">
+                    <input type="number" style="width: 100px; display: inline;" class="form-control" id="numAuto" ng-model="numberAutomatic" min="0"
+                           max="5" required="true" ng-change="updateNumAutomatic()">
+                    <p style="display: inline; vertical-align: top; line-height: 35px; padding-left: 20px">Must not exceed 5. Setting to zero means no automatic results are output.</p>
+                </div>
+            </div>
         </form>
         <button class="btn btn-primary" ng-click="resetToDefaults()">Reset settings to defaults</button>
     </div>
