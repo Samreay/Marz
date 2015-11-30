@@ -866,7 +866,6 @@ ProcessorManager.prototype.getIdleProcessor = function() {
     return null;
 };
 ProcessorManager.prototype.addSpectraListToQueue = function(spectraList) {
-    console.log("Added spectra list to queue");
     this.jobs.length = 0;
     for (var i = 0; i < spectraList.length; i++) {
         this.jobs.push(spectraList[i]);
