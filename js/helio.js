@@ -289,7 +289,7 @@ function getBarycentricCorrection(dje, deq, ra, dec) {
  *
  * @param equinox1
  * @param equinox2
- * @param fk4 - If this keyword is set, the FK4 (B1950.0) system precession
+ * @param fk4 - [default: true] If this keyword is set, the FK4 (B1950.0) system precession
  ;               angles are used to compute the precession matrix.   The
  ;               default is to use FK5 (J2000.0) precession angles
  */
