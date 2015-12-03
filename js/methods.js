@@ -1085,8 +1085,9 @@ function getPeaksFromNormalised(final) {
 }
 
 
-function getFit(template, xcor, val) {
+function getFit(template, xcor, val, helio) {
     var startIndex = binarySearch(template.zs, val)[0] - Math.floor(fitWindow/2);
+    console.log(startIndex);
     var bestPeak = -9e9;
     var bestIndex = -1;
     for (var i = 0; i < fitWindow; i++) {
@@ -1098,7 +1099,7 @@ function getFit(template, xcor, val) {
             }
         }
     }
-    return getRedshiftForNonIntegerIndex(template, fitAroundIndex(xcor, bestIndex));
+    return adjustRedshift(getRedshiftForNonIntegerIndex(template, fitAroundIndex(xcor, bestIndex)), helio);
 }
 
 
@@ -1154,7 +1155,11 @@ function fitAroundIndex(data, index) {
             window++;
         }
     }
-    return index + (-e[1]/(2*e[2]));
+    var offset = (-e[1]/(2*e[2]));
+    if (offset > 1) {
+        offset = 0;
+    }
+    return index + offset;
 }
 /**
  * Calculates a redshift based from a given index
@@ -1164,9 +1169,12 @@ function fitAroundIndex(data, index) {
  * @returns {number} the redshift of the index
  */
 function getRedshiftForNonIntegerIndex(t, index) {
-    //TODO: When implementing heliocentric corrections, unify this function with line309 in templates.js: code duplication
     var gap =  (t.lambda[t.lambda.length - 1] - t.lambda[0]) / (t.lambda.length - 1);
     var num = t.lambda.length / 2;
     var z = (Math.pow(10, (index + t.startZIndex - num) * gap) * (1 + t.redshift)) - 1;
     return z;
+}
+
+function round(num, dec) {
+    return Math.round(num * Math.pow(10, dec)) / Math.pow(10, dec);
 }

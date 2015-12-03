@@ -93,7 +93,7 @@
         <pre class="prettyprint lang-python">import numpy
 def loadMarzResults(filepath):
     types = [('fibre', 'int'),('name','a30'),('ra','float'),('dec','float'),('mag','float'),('type', 'a30'), ('autoTID', 'int'), ('autoTN', 'a50'),
-    ('autoZ', 'float'), ('autoXCor', 'float'), ('templateId', 'int'), ('templateName', 'a50'), ('z','float'),('qop','int'),('comment', 'a99')]
+    ('autoZ', 'float'), ('autoXCor', 'float'), ('templateId', 'int'), ('templateName', 'a50'), ('z','float'),('qop','int'),('comment', 'a99'), ('heliocor', 'float')]
     return numpy.loadtxt(filepath, dtype=types, delimiter=",")</pre>
         <p>The result is a typed <code>numpy</code> array and can undergo normal array operations:</p>
         <pre class="prettyprint lang-python">res = loadMarzResults(pathToResultsFile)

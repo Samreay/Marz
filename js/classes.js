@@ -16,8 +16,9 @@
  * @param drawingService - bad code style, but the angularjs drawing service is passed in to simplify logic in other locations
  * @constructor
  */
-function Spectra(id, lambda, intensity, variance, sky, name, ra, dec, magnitude, type, filename) {
+function Spectra(id, lambda, intensity, variance, sky, name, ra, dec, magnitude, type, filename, helio) {
     this.version = marzVersion;
+    this.helio = defaultFor(helio, null);
     this.id = id;
     this.name = name;
     this.ra = ra;
@@ -207,7 +208,8 @@ Spectra.prototype.getProcessingAndMatchingMessage = function() {
         lambda: this.lambda,
         type: this.type,
         intensity: this.intensity,
-        variance: this.variance
+        variance: this.variance,
+        helio: this.helio
     }
 };
 Spectra.prototype.getProcessMessage = function() {
@@ -217,7 +219,8 @@ Spectra.prototype.getProcessMessage = function() {
         name: this.name,
         lambda: this.lambda,
         intensity: this.intensity,
-        variance: this.variance
+        variance: this.variance,
+        helio: this.helio
     };
 };
 Spectra.prototype.getMatchMessage = function() {
@@ -228,7 +231,8 @@ Spectra.prototype.getMatchMessage = function() {
         type: this.type,
         lambda: this.processedLambda,
         intensity: this.processedIntensity,
-        variance: this.processedVariance
+        variance: this.processedVariance,
+        helio: this.helio
     };
 };
 
@@ -379,6 +383,11 @@ function FitsFileLoader($q, global, log, processorService) {
     this.MJD = null;
     this.date = null;
     this.header0 = null;
+    this.epoch = null;
+    this.JD = null;
+    this.longitude = null;
+    this.latitude = null;
+    this.altitude = null;
 
     this.spectra = null;
     this.primaryIndex = 0;
@@ -439,8 +448,13 @@ FitsFileLoader.prototype.parseFitsFile = function(q) {
     this.log.debug("Getting headers");
     this.header0 = this.fits.getHDU(0).header;
     this.MJD = this.header0.get('UTMJD');
-    date = MJDtoYMD(this.MJD);
 
+    this.JD = this.MJD + 2400000.5;
+    this.longitude = this.header0.get('LONG_OBS');
+    this.latitude  = this.header0.get('LAT_OBS');
+    this.altitude  = this.header0.get('ALT_OBS');
+    this.epoch = this.header0.get('EPOCH');
+    this.date = MJDtoYMD(this.MJD);
     this.numPoints = this.fits.getHDU(0).data.width;
 
     this.$q.all([this.getWavelengths(), this.getIntensityData(), this.getVarianceData(), this.getSkyData(), this.getDetailsData()]).then(function(data) {
@@ -471,6 +485,8 @@ FitsFileLoader.prototype.parseFitsFile = function(q) {
         indexesToRemove.sort();
         indexesToRemove = indexesToRemove.unique();
 
+        var shouldPerformHelio = this.shouldPerformHelio();
+
         var spectraList = [];
         for (var i = 0; i < intensity.length; i++) {
             if (indexesToRemove.indexOf(i) != -1 || !this.useSpectra(intensity[i])) {
@@ -487,8 +503,11 @@ FitsFileLoader.prototype.parseFitsFile = function(q) {
             var mag = details == null ? null : details['MAGNITUDE'][i];
             var type = details == null ? null : details['TYPE'][i];
 
-
-            var s = new Spectra(id, llambda, int, vari, skyy, name, ra, dec, mag, type, this.originalFilename);
+            var helio = null;
+            if (shouldPerformHelio) {
+                helio = getHeliocentricVelocityCorrection(ra, dec, this.JD, this.longitude, this.latitude, this.altitude, this.epoch);
+            }
+            var s = new Spectra(id, llambda, int, vari, skyy, name, ra, dec, mag, type, this.originalFilename, helio);
             s.setCompute(int != null && vari != null);
             spectraList.push(s)
         }
@@ -501,6 +520,16 @@ FitsFileLoader.prototype.parseFitsFile = function(q) {
         q.resolve();
 
     }.bind(this))
+};
+FitsFileLoader.prototype.shouldPerformHelio = function() {
+    var flag = this.header0.get('DO_HELIO');
+    if (flag != null && flag == true) { //TODO: FORCE TRUE FOR TESTING
+        this.log.debug("Performing heliocentric correction");
+        return true;
+    } else {
+        this.log.debug("No heliocentric correction");
+        return false;
+    }
 };
 FitsFileLoader.prototype.getWavelengths = function() {
     var q = this.$q.defer();
@@ -1160,5 +1189,6 @@ ResultsGenerator.prototype.getResultFromSpectra = function(spectra) {
     result.push({name: "FinZ", value: spectra.getFinalRedshift().toFixed(5)});
     result.push({name: "QOP", value: "" + spectra.qop});
     result.push({name: "Comment", value: spectra.getComment()});
+    result.push({name: "HelioCor", value: "" + (spectra.helio == null ? 0 : round(spectra.helio, 7))});
     return result;
 };

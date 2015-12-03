@@ -39,7 +39,7 @@ function handleEvent(data) {
         result['matching'] = true;
         result['id'] = data.id;
         result['name'] = data.name;
-        result['results'] = self.matchTemplates(data.lambda, data.intensity, data.variance, data.type);
+        result['results'] = self.matchTemplates(data.lambda, data.intensity, data.variance, data.type, data.helio);
     }
     return result;
 }
@@ -93,7 +93,7 @@ self.processData = function(lambda, intensity, variance) {
  * @returns a data structure of results, containing both the fit at each redshift for each template, and an
  * ordered list of best results.
  */
-self.matchTemplates = function(lambda, intensity, variance, type) {
+self.matchTemplates = function(lambda, intensity, variance, type, helio) {
 
     var quasarIntensity = intensity.slice();
     var quasarVariance = variance.slice();
@@ -137,7 +137,7 @@ self.matchTemplates = function(lambda, intensity, variance, type) {
             return matchTemplate(template, fft);
         }
     });
-    var coalesced = self.coalesceResults(templateResults, type, subtracted, fft, quasarFFT);
+    var coalesced = self.coalesceResults(templateResults, type, subtracted, fft, quasarFFT, helio);
 
     return coalesced;
 };
@@ -154,7 +154,7 @@ self.matchTemplates = function(lambda, intensity, variance, type) {
  * @param type
  * @returns {{coalesced: Array, templates: null, intensity: Array}}
  */
-self.coalesceResults = function(templateResults, type, intensity, fft, quasarFFT) {
+self.coalesceResults = function(templateResults, type, intensity, fft, quasarFFT, helio) {
     // Adjust for optional weighting
     var coalesced = [];
     for (var i = 0; i < templateResults.length; i++) {
@@ -173,7 +173,7 @@ self.coalesceResults = function(templateResults, type, intensity, fft, quasarFFT
 
         for (var j = 0; j < tr.peaks.length; j++) {
             tr.peaks[j].value = tr.peaks[j].value / w;
-            tr.peaks[j].z = tr.zs[tr.peaks[j].index];
+            tr.peaks[j].z = adjustRedshift(tr.zs[tr.peaks[j].index], helio);
             tr.peaks[j].templateId = tr.id;
             tr.peaks[j].xcor = tr.xcor;
             coalesced.push(tr.peaks[j]);
@@ -204,7 +204,7 @@ self.coalesceResults = function(templateResults, type, intensity, fft, quasarFFT
     for (var k = 0; k < topTen.length; k++) {
         // Javascript only rounds to integer, so this should get four decimal places
         var index = fitAroundIndex(topTen[k].xcor, topTen[k].index);
-        var res = getRedshiftForNonIntegerIndex(templateManager.getTemplateFromId(topTen[k].templateId), index);
+        var res = adjustRedshift(getRedshiftForNonIntegerIndex(templateManager.getTemplateFromId(topTen[k].templateId), index), helio);
         topTen[k] = {
             z:  Math.round(res * 1e5) / 1e5,
             index: index,

@@ -49,8 +49,7 @@ function getHeliocentricVelocityCorrection(ra, dec, jd, longitude, latitude, alt
 
 
     var vTotal = vrotate + vBarycentric;
-    console.log("RA: " + ra + " DEC:" + dec + " HELIO: " + vTotal);
-    throw "die";
+    //console.log("RA: " + ra + " DEC:" + dec + " HELIO: " + vTotal);
     return vTotal;
 }
 
@@ -70,7 +69,7 @@ function ct2lst(longitude, jd) {
     var t = t0 / 36525;
 
     // Compute GST in seconds.
-    var theta = c[0] + (c[1] * t0) + t ^ 2 * (c[2] - t / c[3] );
+    var theta = c[0] + (c[1] * t0) + t * t * (c[2] - t / c[3] );
 
     // Compute LST in hours.
     var lst = (( theta + longitude) / 15.0 + 24) % 24;
@@ -285,22 +284,35 @@ function getBarycentricCorrection(dje, deq, ra, dec) {
 }
 
 /**
- * Javascript translation of the /FK4 verson of the IDL premat function
+ * Javascript translation of the IDL premat function
  * found at http://idlastro.gsfc.nasa.gov/ftp/pro/astro/premat.pro
  *
  * @param equinox1
  * @param equinox2
+ * @param fk4 - If this keyword is set, the FK4 (B1950.0) system precession
+ ;               angles are used to compute the precession matrix.   The
+ ;               default is to use FK5 (J2000.0) precession angles
  */
-function premat(equinox1, equinox2) {
+function premat(equinox1, equinox2, fk4) {
+    fk4 = defaultFor(fk4, true);
     var deg_to_rad = Math.PI / 180.0;
     var sec_to_rad = deg_to_rad / 3600.0;
 
     var t = 0.001 * (equinox2 - equinox1);
-    var st = 0.001 * (equinox1 - 2000.0);
 
-    var a = sec_to_rad * t * (23062.181 + st*(139.656 +0.0139*st) + t*(30.188 - 0.344*st+17.998*t));
-    var b = sec_to_rad * t * t * (79.280 + 0.410*st + 0.205*t) + a;
-    var c = sec_to_rad * t * (20043.109 - st*(85.33 + 0.217*st) + t*(-42.665 - 0.217*st -41.833*t))
+    var st, a, b, c;
+    if (!fk4) {
+        st = 0.001 * (equinox1 - 2000.0);
+        a = sec_to_rad * t * (23062.181 + st*(139.656 +0.0139*st) + t*(30.188 - 0.344*st+17.998*t));
+        b = sec_to_rad * t * t * (79.280 + 0.410*st + 0.205*t) + a;
+        c = sec_to_rad * t * (20043.109 - st*(85.33 + 0.217*st) + t*(-42.665 - 0.217*st -41.833*t));
+    } else {
+        st = 0.001 * (equinox1 - 1900.0);
+        a = sec_to_rad * t * (23042.53 + st * (139.75 +0.06 * st) + t * (30.23 - 0.27 * st + 18.0 * t));
+        b = sec_to_rad * t * t * (79.27 + 0.66 * st + 0.32 * t) + a;
+        c = sec_to_rad * t * (20046.85 - st * (85.33 + 0.37 * st) + t * (-42.67 - 0.37 * st - 41.8 * t));
+    }
+
 
     var sina = math.sin(a);
     var sinb = math.sin(b);
@@ -309,7 +321,6 @@ function premat(equinox1, equinox2) {
     var cosb = math.cos(b);
     var cosc = math.cos(c);
 
-    // TODO Check with Tam what this code is supposed to do
     var r = math.matrix(
         [[ cosa*cosb*cosc-sina*sinb, sina*cosb+cosa*sinb*cosc,  cosa*sinc],
         [-cosa*sinb-sina*cosb*cosc, cosa*cosb-sina*sinb*cosc, -sina*sinc],
@@ -319,17 +330,31 @@ function premat(equinox1, equinox2) {
 }
 
 /**
+ * Adjusts (returns) a redshift with heliocentric velocity to include the heliocentric correction
+ * @param z - uncorrected redshift
+ * @param helio - km/s heliocentric velocity
+ * @returns {number}
+ */
+function adjustRedshift(z, helio) {
+    if (helio == null) {
+        return z;
+    }
+    return (1 + z) * (1 + helio / (299792.458)) - 1;
+}
+
+
+/**
  * Call this function to perform a unit test on the helio functions
  */
 function testAllHelio() {
-    testPremat();
+    testHelio(20, 20, 2457356.5, 254.17958, 32.780361, 2788, 2000, -20.051029);
 }
-function testPremat() {
-    var e1 = null;
-    var e2 = null;
-    var expected = null;
-    var output = premat(e1, e2);
-    if (output != expected) {
-        throw "Error, expected " + JSON.stringify(expected) + " but got " + JSON.stringify(output);
+function testHelio(ra, dec, jd, long, lat, alt, epoch, expected) {
+    var threshold = 1e-6;
+    var output = getHeliocentricVelocityCorrection(ra, dec, jd, long, lat, alt, epoch);
+    if (Math.abs(output - expected) > threshold) {
+        throw "Error, expected " + JSON.stringify(expected) + " but got " + JSON.stringify(output) + " from running getHeliocentricVelocityCorrection(" + ra + ", " + dec + ", " + jd + ", " + long + ", " + lat + ", " + alt + ", " + epoch + ")";
+    } else {
+        console.info("Passed: Expected " + expected + ", got " + round(output,8) + " from running getHeliocentricVelocityCorrection(" + ra + ", " + dec + ", " + jd + ", " + long + ", " + lat + ", " + alt + ", " + epoch + ")");
     }
 }

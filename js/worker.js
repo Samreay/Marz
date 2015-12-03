@@ -1,4 +1,4 @@
-importScripts('../lib/regression.js', 'tools.js',  'spectralLines.js', 'methods.js', 'templates.js', 'classes.js', '../lib/dsp.js', 'config.js', 'workerMethods.js');
+importScripts('../lib/regression.js', '../lib/math.js', 'tools.js', 'spectralLines.js', 'methods.js', 'helio.js', 'templates.js', 'classes.js', '../lib/dsp.js', 'config.js', 'workerMethods.js');
 
 node = false;
 

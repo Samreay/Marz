@@ -181,7 +181,6 @@ angular.module('servicesZ', ['dialogs.main'])
             quality.barHash = {};
         };
         self.changeSpectra = function(oldQop, newQop) {
-            console.log("Changing from " + oldQop + " to " + newQop);
             if (oldQop == newQop) {
                 return;
             }
@@ -364,6 +363,8 @@ angular.module('servicesZ', ['dialogs.main'])
                     spectra.manualRedshift = parseFloat(vals[i].value);
                 } else if (vals[i].name == "Comment") {
                     spectra.setComment(vals[i].value);
+                } else if (vals[i].name == "HelioCor") {
+                    spectra.helio = parseFloat(vals[i].value);
                 }
             }
 
@@ -421,7 +422,6 @@ angular.module('servicesZ', ['dialogs.main'])
             var prior = spectra.automaticResults;
             self.spectraManager.setMatchedResults(results);
             if (self.spectraManager.autoQOPs && oldqop == 0) {
-                console.log(oldqop)
                 qualityService.changeSpectra(oldqop, spectra.autoQOP);
             }
             if (results.results.fft == null) {
@@ -617,8 +617,9 @@ angular.module('servicesZ', ['dialogs.main'])
             return self.resultsGenerator.getResultsCSV(personalService.getInitials());
         };
         self.convertResultToMimicSpectra = function(result) {
+            var helio = result["HelioCor"] == null ? null : result["HelioCor"];
             var spectra = new Spectra(result["ID"], null, null, null, null, result["Name"],
-                result["RA"], result["DEC"],result["Mag"], result["Type"], result.filename);
+                result["RA"], result["DEC"],result["Mag"], result["Type"], result.filename, helio);
             spectra.automaticBestResults = [{templateId: result["AutoTID"], z: result["AutoZ"], value: result["AutoXCor"]}];
             spectra.setComment(result["Comment"]);
             spectra.setQOP(parseInt(result["QOP"]));
