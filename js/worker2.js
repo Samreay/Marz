@@ -3,9 +3,9 @@ var dependencies = [ 'js/config.js', 'lib/regression.js', 'js/tools.js',  'js/sp
 for (var i = 0; i < dependencies.length; i++) {
     eval(fs.readFileSync(dependencies[i]) + '');
 }
-
+node = true;
 thisIsNode = true;
 process.on('message', function(event) {
     var result = handleEvent(event);
-    process.send({data: result})
+    process.send({data: result});
 });

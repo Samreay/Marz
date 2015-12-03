@@ -10,6 +10,13 @@ String.prototype.pad = function(width) {
 String.prototype.spacePad = function(width) {
     return this.length >= width ? this : this + new Array(width - this.length + 1).join(' ');
 };
+Array.prototype.unique = function() {
+    var a = [];
+    for (var i=0, l=this.length; i<l; i++)
+        if (a.indexOf(this[i]) === -1)
+            a.push(this[i]);
+    return a;
+};
 function defaultFor(arg, val) {
     return typeof arg !== 'undefined' ? arg : val;
 }
@@ -24,15 +31,6 @@ function range(start, stop, step) {
     return result;
 }
 
-function nodeDebug(output) {
-    if (window.nodeDebugServer != null) {
-        window.nodeDebugServer(output);
-    }
-}
-
-function isNode() {
-    return thisIsNode;
-}
 
 function getMax(array, lower, upper) {
     if (typeof lower === "undefined") lower = 0;

@@ -1,4 +1,7 @@
-
+/******************************************************************
+ * ANY CHANGES OF THIS FILE MUST BE CONVEYED IN A VERSION INCREMENT
+ * OF marzVersion IN config.js!
+ ******************************************************************/
 
 var templateManager = new TemplateManager();
 var shifted_temp = false;
@@ -14,6 +17,13 @@ if (!shifted_temp) {
     shifted_temp = true;
 }
 
+/**
+ * Handles all worker related events, including data processing and spectra matching.
+ *
+ * ANY CHANGES IN THIS FUNCTION OR CHILD FUNCTIONS MUST BE CONVEYED IN A VERSION INCREMENT
+ * OF marzVersion IN config.js!
+ *
+ */
 function handleEvent(data) {
     templateManager.setInactiveTemplates(data.inactiveTemplates);
     var result = null;
@@ -145,7 +155,6 @@ self.matchTemplates = function(lambda, intensity, variance, type) {
  * @returns {{coalesced: Array, templates: null, intensity: Array}}
  */
 self.coalesceResults = function(templateResults, type, intensity, fft, quasarFFT) {
-    var node = isNode();
     // Adjust for optional weighting
     var coalesced = [];
     for (var i = 0; i < templateResults.length; i++) {

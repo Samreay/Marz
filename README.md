@@ -1,7 +1,7 @@
 # Marz Redshifting Program
 
 
-This project aims to take spectra from the AAOmega spectrograph and redshift them via an online application, for application in cosmology.
+This project aims to take spectra from the AAOmega spectrograph and redshift them via an online application, for application in cosmology. It has since been generalised to take spectra from any spectrograph, given it follows a well defined input format.
 
 Instructions for use can be found in the application itself, which you can access at http://samreay.github.io/Marz.
 
@@ -11,12 +11,12 @@ A publicly available server is running via Github-pages at http://samreay.github
 
 # Command Line Interface
 
-Whilst the application was primarily designed around human interaction, it is possible to execute the matching algorithm via the command line. Doing so requires [io.js](https://iojs.org) to be installed.
+Whilst the application was primarily designed around human interaction, it is possible to execute the matching algorithm via the command line. Doing so requires [io.js](https://iojs.org) or [node.js](https://nodejs.org) to be installed.
 
-1. Install [io.js](https://iojs.org)
-2. Run `install.sh` found in the top level directory to install `npm` dependencies
+1. Install [io.js](https://iojs.org) or [node.js](https://nodejs.org)
+2. Run `install.sh` found in the top level directory to install `npm` dependencies (which simply runs `npm install`)
 
-After doing this, you can analyse a FITS file by running `autoMarz.sh <FITSFilePath>`, which will direct output to `stdout`. Command line parameters, including how to save to file, are detailed upon running `autoMarz.sh` without parameters.
+After doing this, you can analyse a FITS file by running `./autoMarz.sh <FITSFilePath>`, which will direct output to `stdout`. Command line parameters, including how to save to file, are detailed upon running `autoMarz.sh` without parameters.
 
 # Licensing
 

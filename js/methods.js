@@ -1133,6 +1133,15 @@ function matchTemplate(template, fft) {
     };
 }
 
+/**
+ * Performs a quadratic fit around a given index, and returns the
+ * non-integer index of the quadratic maximum. Pixel window size starts at 3,
+ * and increases if the quadratic does not give a maximum.
+ *
+ * @param data - the data to fit around (y values)
+ * @param index - the index to place the pixel window
+ * @returns {number} a double representing the non-integer maximal index
+ */
 function fitAroundIndex(data, index) {
     var window = 3;
     var e = null;
@@ -1147,8 +1156,15 @@ function fitAroundIndex(data, index) {
     }
     return index + (-e[1]/(2*e[2]));
 }
-
+/**
+ * Calculates a redshift based from a given index
+ *
+ * @param t - the template to use
+ * @param index - the index to calculate the redshift for
+ * @returns {number} the redshift of the index
+ */
 function getRedshiftForNonIntegerIndex(t, index) {
+    //TODO: When implementing heliocentric corrections, unify this function with line309 in templates.js: code duplication
     var gap =  (t.lambda[t.lambda.length - 1] - t.lambda[0]) / (t.lambda.length - 1);
     var num = t.lambda.length / 2;
     var z = (Math.pow(10, (index + t.startZIndex - num) * gap) * (1 + t.redshift)) - 1;
