@@ -13,9 +13,9 @@
  */
 function getHeliocentricVelocityCorrection(ra, dec, jd, longitude, latitude, altitude, epoch) {
     epoch = defaultFor(epoch, 2000);
-    longitude = defaultFor(longitude, 360-105.820417);
-    latitude = defaultFor(latitude, 32.780361);
-    altitude = defaultFor(altitude, 2788);
+    longitude = defaultFor(longitude, 149.0661);
+    latitude = defaultFor(latitude, -31.27704);
+    altitude = defaultFor(altitude, 1164);
 
     // Compute baryocentric velocity
     var vBarycentric = getBarycentricCorrection(jd, epoch, ra, dec);
@@ -275,7 +275,6 @@ function getBarycentricCorrection(dje, deq, ra, dec) {
         var prema = premat(deqdat,deq);
         dvelh = math.dotMultiply(AU, math.multiply(prema, math.matrix([dxhd, dyahd, dzahd])));
         dvelb = math.dotMultiply(AU, math.multiply(prema, math.matrix([dxbd, dyabd, dzabd])));
-        console.log("dxbd: " + dxbd + " dyabd: " + dyabd + " dzabd: " + dzabd);
 
     }
 
