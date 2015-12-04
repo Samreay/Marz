@@ -348,12 +348,20 @@ function adjustRedshift(z, helio) {
  */
 function testAllHelio() {
     testHelio(20, 20, 2457356.5, 254.17958, 32.780361, 2788, 2000, -20.051029);
+    testHelio(0, 0, 2457400, 100, -40, 4000, 2000, -28.023990);
+    testHelio(0, 0, 2457400, 100, -40, 4000, 1900, -28.284173);
+    testHelio(-30, -30, 2457400, 100, -40, 4000, 2000, -14.316080);
+    testHelio(-30, -30, 2457400, 100, -40, 8000, 2000, -14.315910);
+    testHelio(0, 0, 2457401.5, 254.179583, 32.780361, 4000, 2000, -27.856910);
+    testHelio(80, -50, 2457400, 254.179583, -50, 2000, 2000, -6.0071908);
+    testHelio(0, 0, 2457400, 254.179583, 32.780361, 4000, 2000,  -28.248393);
+
 }
 function testHelio(ra, dec, jd, long, lat, alt, epoch, expected) {
     var threshold = 1e-6;
     var output = getHeliocentricVelocityCorrection(ra, dec, jd, long, lat, alt, epoch);
     if (Math.abs(output - expected) > threshold) {
-        throw "Error, expected " + JSON.stringify(expected) + " but got " + JSON.stringify(output) + " from running getHeliocentricVelocityCorrection(" + ra + ", " + dec + ", " + jd + ", " + long + ", " + lat + ", " + alt + ", " + epoch + ")";
+        console.error("Error, expected " + JSON.stringify(expected) + " but got " + JSON.stringify(output) + " from running getHeliocentricVelocityCorrection(" + ra + ", " + dec + ", " + jd + ", " + long + ", " + lat + ", " + alt + ", " + epoch + ")");
     } else {
         console.info("Passed: Expected " + expected + ", got " + round(output,8) + " from running getHeliocentricVelocityCorrection(" + ra + ", " + dec + ", " + jd + ", " + long + ", " + lat + ", " + alt + ", " + epoch + ")");
     }

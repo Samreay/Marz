@@ -1086,8 +1086,7 @@ function getPeaksFromNormalised(final) {
 
 
 function getFit(template, xcor, val, helio) {
-    var startIndex = binarySearch(template.zs, val)[0] - Math.floor(fitWindow/2);
-    console.log(startIndex);
+    var startIndex = binarySearch(template.zs, adjustRedshift(val, -helio))[0] - Math.floor(fitWindow/2);
     var bestPeak = -9e9;
     var bestIndex = -1;
     for (var i = 0; i < fitWindow; i++) {

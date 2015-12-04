@@ -1218,7 +1218,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                             h = $scope.ui.active.helio;
                         }
                         var r = templatesService.getTemplateAtRedshift($scope.detailed.templateId,
-                            adjustRedshift(parseFloat($scope.detailed.redshift), h), $scope.detailed.continuum);
+                            adjustRedshift(parseFloat($scope.detailed.redshift), -h), $scope.detailed.continuum);
                         data.push({id: "template", colour: global.ui.colours.matched, x: r[0],y: r[1]});
                     }
                     data.sort(function(a,b) {

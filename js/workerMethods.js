@@ -222,7 +222,7 @@ self.coalesceResults = function(templateResults, type, intensity, fft, quasarFFT
         var c2 = 0;
         if (tr.zs.length > 1) {
             for (var j = 0; j < tr.zs.length; j++) {
-                c1 += tr.zs[j];
+                c1 += adjustRedshift(tr.zs[j], helio);
                 c2 += tr.xcor[j];
                 if ((j + 1) % numCondense == 0) {
                     zs.push(c1 / numCondense);
