@@ -5,17 +5,17 @@
  *
  * @param ra - right ascension (degrees)
  * @param dec - declination (degrees)
- * @param epoch - epoch of observation of RA, DEC; defaults to 2000.
  * @param jd - decimal julian data.
  * @param longitude - longitude of observatory [default to AAT: 149.0661]
  * @param latitude - latitude of observatory [default to AAT: -31.27704]
  * @param altitude - altitude of observatory (m) [default to AAT: 1164]
+ * @param epoch - epoch of observation [defaults to 2000].
  */
 function getHeliocentricVelocityCorrection(ra, dec, jd, longitude, latitude, altitude, epoch) {
-    epoch = defaultFor(epoch, 2000);
     longitude = defaultFor(longitude, 149.0661);
     latitude = defaultFor(latitude, -31.27704);
     altitude = defaultFor(altitude, 1164);
+    epoch = defaultFor(epoch, 2000);
 
     // Compute baryocentric velocity
     var vBarycentric = getBarycentricCorrection(jd, epoch, ra, dec);
