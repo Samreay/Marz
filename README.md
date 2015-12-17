@@ -1,7 +1,7 @@
 # Marz Redshifting Program
 
 
-This project aims to take spectra from the AAOmega spectrograph and redshift them via an online application, for application in cosmology.
+This project aims to take spectra from the AAOmega spectrograph and redshift them via an online application, for application in cosmology. It has since been generalised to take spectra from any spectrograph, given it follows a well defined input format.
 
 Instructions for use can be found in the application itself, which you can access at http://samreay.github.io/Marz.
 
