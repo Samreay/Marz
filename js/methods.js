@@ -1146,6 +1146,9 @@ function fitAroundIndex(data, index) {
     var window = 3;
     var e = null;
     while (window < 10) {
+        if (index - window < 0 || index + window >= data.length) {
+            return index; // On boundary failure, return index
+        }
         var d = data.slice(index - window, index + window + 1).map(function(v,i) { return [i - window,v]; });
         e = polynomial(d).equation;
         if (e[2] < 0) {

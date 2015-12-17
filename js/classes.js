@@ -460,7 +460,7 @@ FitsFileLoader.prototype.parseFitsFile = function(q) {
                 }
             }
             if (details['TYPE'] != null) {
-                for (var i = 0; i < details['TYPE']; i++) {
+                for (var i = 0; i < details['TYPE'].length; i++) {
                     if (details['TYPE'][i].toUpperCase() == 'PARKED') {
                         indexesToRemove.push(i)
                     }
