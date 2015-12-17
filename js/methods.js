@@ -1170,3 +1170,19 @@ function getRedshiftForNonIntegerIndex(t, index) {
     var z = (Math.pow(10, (index + t.startZIndex - num) * gap) * (1 + t.redshift)) - 1;
     return z;
 }
+
+/**
+ * Clips the input array at the specific std range. Modifies array in place.
+ * @param variance - the array to clip
+ * @param clip - how many std to allow before clipping. Defaults to 3
+ */
+function clipVariance(variance, clip) {
+    clip = defaultFor(clip, 3);
+    var mean = getMean(variance);
+    var std = getRMS(variance);
+    for (var i = 0; i < variance.length; i++) {
+        if (variance[i] - mean > clip * std) {
+            variance[i] = mean + clip * std;
+        }
+    }
+}

@@ -34,7 +34,7 @@ function Spectra(id, lambda, intensity, variance, sky, name, ra, dec, magnitude,
     if (variance != null) {
         this.variancePlot = variance.slice();
         removeNaNs(this.variancePlot);
-        normaliseViaShift(this.variancePlot, 0, 50, null);
+        normaliseViaShift(this.variancePlot, 0, varianceHeight, null);
     }
     this.autoQOP = null;
     this.sky = sky;

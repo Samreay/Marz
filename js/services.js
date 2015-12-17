@@ -181,7 +181,7 @@ angular.module('servicesZ', ['dialogs.main'])
             quality.barHash = {};
         };
         self.changeSpectra = function(oldQop, newQop) {
-            console.log("Changing from " + oldQop + " to " + newQop);
+            //console.log("Changing from " + oldQop + " to " + newQop);
             if (oldQop == newQop) {
                 return;
             }
@@ -404,10 +404,7 @@ angular.module('servicesZ', ['dialogs.main'])
             self.spectraManager.setProcessedResults(results);
             spectra.processedLambdaPlot = results.lambda;
             spectra.processedVariance = results.variance;
-            spectra.processedVariancePlot = results.variance.slice();
-            removeNaNs(spectra.processedVariancePlot);
-            normaliseViaShift(spectra.processedVariancePlot, 0, 50, null);
-
+            spectra.processedVariancePlot = results.processedVariancePlot;
 
             if (!self.isProcessing() && self.isFinishedMatching()) {
                 if (global.data.fits.length > 0) {

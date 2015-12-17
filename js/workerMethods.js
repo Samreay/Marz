@@ -54,6 +54,13 @@ function handleEvent(data) {
  * @returns the input data data structure with a continuum property added
  */
 self.process = function(data) {
+
+    if (!node) {
+        data.processedVariancePlot = data.variance.slice();
+        removeNaNs(data.processedVariancePlot);
+        clipVariance(data.processedVariancePlot);
+        normaliseViaShift(data.processedVariancePlot, 0, varianceHeight, null);
+    }
     data.continuum = self.processData(data.lambda, data.intensity, data.variance);
     return data;
 };
