@@ -1101,7 +1101,7 @@ ResultsGenerator.prototype.getResultsCSV = function(initials) {
         for (var i = 0; i < results.length; i++) {
             var lengths = results[i];
             for (var j = 0; j < lengths.length; j++) {
-                if (lengths[j].value.length > spaces[j]) {
+                if (lengths[j].value != null && lengths[j].value.length > spaces[j]) {
                     spaces[j] = lengths[j].value.length;
                 }
             }
@@ -1118,7 +1118,7 @@ ResultsGenerator.prototype.getResultsCSV = function(initials) {
                 first = 0;
             }
             for (var j = 0; j < res.length; j++) {
-                string += ((first++ == 0) ? " " : ",  ") + res[j].value.replace(",","").spacePad(spaces[j]);
+                string += ((first++ == 0) ? " " : ",  ") + (res[j].value == null ? "" : res[j].value.replace(",","")).spacePad(spaces[j]);
             }
             string += "\n";
         }
@@ -1140,9 +1140,9 @@ ResultsGenerator.prototype.getResultFromSpectra = function(spectra) {
     var result = [];
     result.push({name: "ID", value: ("" + spectra.id).pad(4)});
     result.push({name: "Name", value: spectra.name});
-    result.push({name: "RA", value: spectra.ra.toFixed(6)});
-    result.push({name: "DEC", value: spectra.dec.toFixed(6)});
-    result.push({name: "Mag", value: spectra.magnitude.toFixed(2)});
+    result.push({name: "RA", value: spectra.ra == null ? null : spectra.ra.toFixed(6)});
+    result.push({name: "DEC", value: spectra.dec == null ? null : spectra.dec.toFixed(6)});
+    result.push({name: "Mag", value: spectra.magnitude == null ? null : spectra.magnitude.toFixed(2)});
     result.push({name: "Type", value: spectra.type});
     var automatics = spectra.getAutomaticResults();
     if (automatics != null) {

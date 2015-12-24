@@ -5,6 +5,9 @@ This project aims to take spectra from the AAOmega spectrograph and redshift the
 
 Instructions for use can be found in the application itself, which you can access at http://samreay.github.io/Marz.
 
+***** 
+
+
 # Local servers
 
 A publicly available server is running via Github-pages at http://samreay.github.io/Marz. Local servers can be start by downloading this project, and (depending on your operating system) running `runServer.bat` or `runServer.sh`. Doing so requires an available Python installation on your path.
@@ -17,6 +20,42 @@ Whilst the application was primarily designed around human interaction, it is po
 2. Run `install.sh` found in the top level directory to install `npm` dependencies (which simply runs `npm install`)
 
 After doing this, you can analyse a FITS file by running `./autoMarz.sh <FITSFilePath>`, which will direct output to `stdout`. Command line parameters, including how to save to file, are detailed upon running `autoMarz.sh` without parameters.
+
+
+***** 
+
+# Updates
+
+## 1.0.5
+* Improving LocalStorage detection for Safari's private browsing mode.
+* Removing extraneous console logging.
+* Increasing robustness of spectra serialisation for spectra that may be lacking RA, DEC, MAG or TYPE details.
+
+## 1.0.4
+* Marz now correctly ignored Parked fibres.
+* Catering for boundary failure for fitting a floating point index.
+
+## 1.0.3
+* Refactoring variance plotting height into global config.
+* Clipping variance plot at 3 sigma to make display more useful.
+
+## 1.0.2
+* Refactoring command line execution to use external config file.
+* Adding ability to output more than one automatic match in file output file.
+    * Command ine defaults to 3
+    * Web interface defaults to 1
+    
+## 1.0.1
+* Complete rewrite of command line usage.
+    * Removing command line dependence on jsdom and file-api.
+    * Refactored skeleton into JS classes, not angular services. Services wrap and extend class functionality.
+    
+## 1.0.0
+* Initial implementation of versioning system. See 41cb819.
+
+
+***** 
+
 
 # Licensing
 

@@ -418,7 +418,6 @@ angular.module('servicesZ', ['dialogs.main'])
             var prior = spectra.automaticResults;
             self.spectraManager.setMatchedResults(results);
             if (self.spectraManager.autoQOPs && oldqop == 0) {
-                console.log(oldqop)
                 qualityService.changeSpectra(oldqop, spectra.autoQOP);
             }
             if (results.results.fft == null) {
@@ -655,7 +654,21 @@ angular.module('servicesZ', ['dialogs.main'])
         };
         self.supportsLocalStorage = function() {
             try {
-                return 'localStorage' in window && window['localStorage'] !== null;
+                var value = 'localStorage' in window && window['localStorage'] !== null;
+                if (value) {
+                    try {
+                        localStorage.setItem('localStorage', 1);
+                        localStorage.removeItem('localStorage');
+                        return true;
+                    } catch (e) {
+                        Storage.prototype._setItem = Storage.prototype.setItem;
+                        Storage.prototype.setItem = function() {};
+                        Storage.prototype._getItem = Storage.prototype.getItem;
+                        Storage.prototype.getItem = function() {};
+                        console.warn('Your web browser does not support storing settings locally. In Safari, the most common cause of this is using "Private Browsing Mode". Some settings may not save or some features may not work properly for you.');
+                        return false;
+                    }
+                }
             } catch (e) {
                 console.warn('Local storage is not available.');
                 return false;
@@ -1028,7 +1041,6 @@ angular.module('servicesZ', ['dialogs.main'])
             canvas.style.height = canvas.clientHeight;
             canvas.width = canvas.clientWidth * ratio;
             canvas.height = canvas.clientHeight * ratio;
-            console.log("W:" + canvas.clientWidth);
             var c = canvas.getContext("2d");
             c.scale(ratio, ratio);
             c.save();
