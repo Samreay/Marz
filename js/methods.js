@@ -698,27 +698,11 @@ function getMean(data) {
  * @returns {number}
  */
 function stdDevSubtract(data, subtract) {
-    var subtracted = data.map(function(x, ind) { return x - subtract[ind]; });
-    var mean = getMean(subtracted);
-    var r = 0;
-    for (var i = 0; i < subtracted.length; i++) {
-        r += (subtracted[i] - mean)*(subtracted[i] - mean);
-    }
-    return Math.sqrt(r / subtracted.length);
-}
-function stdDevSubtract2(data, subtract) {
     var subtracted = new Array(data.length), dataLength = data.length;
     for (var i = 0; i < dataLength; i++) {
-        subtracted[i] = data[i] - subtract[i];
+        subtracted[i|0] = data[i|0] - subtract[i|0];
     }
     return getRMS(subtracted);
-}
-function stdDevSubtract3(data, subtract) {
-    var dataLength = data.length;
-    for (var i = 0; i < dataLength; i++) {
-        data[i] = data[i] - subtract[i];
-    }
-    return getRMS(data);
 }
 /**
  * Perform a rejected polynomial fit to the data.

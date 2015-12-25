@@ -6,6 +6,10 @@ var debug = function(output) {
     }
 };
 
+var getTime = function() {
+    var hrTime = process.hrtime();
+    return hrTime[0] * 1000 + hrTime[1] / 1000000;
+};
 debug("Loading dependancies");
 var fs = require('fs');
 var dependencies = ['./js/config.js', './lib/fits.js', './js/tools.js', './js/methods.js', './lib/dsp.js', './lib/regression.js', './js/templates.js', './js/classes.js'];
@@ -43,9 +47,9 @@ var timeFunction = function(name, func, num) {
     num = defaultFor(num, 200);
     var times = [];
     for (var i = 0; i < num; i++) {
-        var t = new Date();
+        var t = getTime();
         func();
-        var e = new Date() - t;
+        var e = getTime() - t;
         times.push(e);
     }
     var mean = getMean(times);
@@ -61,9 +65,9 @@ var compareFunc = function(name, funcs, num) {
     }
     for (var i = 0; i < num; i++) {
         for (var j = 0; j < funcs.length; j++) {
-            var t = new Date();
+            var t = getTime();
             var r = funcs[j]();
-            var e = new Date() - t;
+            var e = getTime() - t;
             times[j].push(e);
             results[j] = r;
         }
@@ -96,8 +100,7 @@ singleTests.getMean = function() { return getMean(large); };
 singleTests.getRMS = function() { return getRMS(medium); };
 singleTests.stdDevSubtract = function() { return stdDevSubtract(medium, medium2); };
 
-doubleTests.comparestdDevSubtract = [function() { return stdDevSubtract(medium, medium2); },
-    function() { return stdDevSubtract2(medium, medium2); }, function() { return stdDevSubtract3(medium, medium2); }];
+//doubleTests.comparestdDevSubtract = [function() { return stdDevSubtract2(medium, medium2); }, function() { return stdDevSubtract(medium, medium2); }];
 
 
 
