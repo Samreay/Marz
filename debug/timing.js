@@ -18,14 +18,25 @@ var node = true;
 
 var inputMessage = require('./input.js');
 var size = 100000;
-var medium = new Array(size);
-var large = new Array(size * 50);
+var mediumInit = new Array(size);
+var medium2Init = new Array(size);
+var largeInit = new Array(size * 50);
+var medium = null;
+var medium2 = null;
+var large = null;
 for (var i = 0; i < size; i++) {
-    medium[i] = 100 * Math.random() + (1.0 * i / 1e5);
+    mediumInit[i] = 100 * Math.random() + (i / 1e5);
+    medium2Init[i] = 70 * Math.random() - (i / 5e4);
 }
 for (var i = 0; i < (50 * size); i++) {
-    large[i] = 100 * Math.random() + (1.0 * i / 1e5);
+    largeInit[i] = 100 * Math.random() + (i / 1e5);
 }
+var initData = function() {
+    medium = mediumInit.slice();
+    medium2 = medium2Init.slice();
+    large = largeInit.slice();
+};
+initData();
 
 inputMessage.matching = false;
 var timeFunction = function(name, func, num) {
@@ -74,10 +85,23 @@ var compareFunc = function(name, funcs, num) {
 var singleTests = {};
 var doubleTests = {};
 
+
+
+
+
+
+/* TEST CASES BELOW */
+
 singleTests.getMean = function() { return getMean(large); };
 singleTests.getRMS = function() { return getRMS(medium); };
+singleTests.stdDevSubtract = function() { return stdDevSubtract(medium, medium2); };
 
-doubleTests.compareMeans = [function() { return getMean(large); }, function() { return getMean2(large); }];
+doubleTests.comparestdDevSubtract = [function() { return stdDevSubtract(medium, medium2); },
+    function() { return stdDevSubtract2(medium, medium2); }, function() { return stdDevSubtract3(medium, medium2); }];
+
+
+
+
 
 
 debug("\nStarting comparison tests");
