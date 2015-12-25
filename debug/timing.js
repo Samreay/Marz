@@ -42,17 +42,26 @@ var timeFunction = function(name, func, num) {
 var compareFunc = function(name, funcs, num) {
     num = defaultFor(num, 200);
     var times = new Array(funcs.length);
+    var results = new Array(funcs.length);
     for (var i = 0; i < times.length; i++) {
         times[i] = [];
     }
     for (var i = 0; i < num; i++) {
         for (var j = 0; j < funcs.length; j++) {
             var t = new Date();
-            funcs[j]();
+            var r = funcs[j]();
             var e = new Date() - t;
             times[j].push(e);
+            results[j] = r;
+        }
+        var first = results[0];
+        for (var j = 1; j < funcs.length; j++) {
+            if (results[j] != first) {
+                throw ("Results are different: " + first + " vs " + results[j])
+            }
         }
     }
+
     for (var j = 0; j < funcs.length; j++) {
         var mean = getMean(times[j]);
         var std = getRMS(times[j]);
@@ -63,9 +72,9 @@ var compareFunc = function(name, funcs, num) {
 var singleTests = {};
 var doubleTests = {};
 
-singleTests.getMean = function() { getMean(randomArray); };
+singleTests.getMean = function() { return getMean(randomArray); };
 
-doubleTests.compareMeans = [function() { getMean(randomArray); }, function() { getMean(randomArray); }];
+doubleTests.compareMeans = [function() { return getMean(randomArray); }, function() { return getMean(randomArray); }];
 
 debug("Starting single tests");
 for (var key in singleTests) {
