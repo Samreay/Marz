@@ -17,7 +17,7 @@ debug("Dependencies loaded\n");
 var node = true;
 
 var inputMessage = require('./input.js');
-var size = 5000000;
+var size = 500000;
 var randomArray = new Array(size);
 var randomFloat = new Float64Array(size);
 for (var i = 0; i < size; i++) {
@@ -37,10 +37,10 @@ var timeFunction = function(name, func, num) {
     }
     var mean = getMean(times);
     var std = getRMS(times);
-    debug(name + " took " + mean.toFixed(0) + " pm " + std.toFixed(0));
+    debug(name + " took " + mean.toFixed(1) + " pm " + std.toFixed(1));
 };
 var compareFunc = function(name, funcs, num) {
-    num = defaultFor(num, 200);
+    num = defaultFor(num, 100);
     var times = new Array(funcs.length);
     var results = new Array(funcs.length);
     for (var i = 0; i < times.length; i++) {
@@ -57,7 +57,7 @@ var compareFunc = function(name, funcs, num) {
         var first = results[0];
         for (var j = 1; j < funcs.length; j++) {
             if (results[j] != first) {
-                throw ("Results are different: " + first + " vs " + results[j])
+                throw ("Results are different: " + first + " vs (" + j + ") " + results[j])
             }
         }
     }
@@ -73,13 +73,10 @@ var singleTests = {};
 var doubleTests = {};
 
 singleTests.getMean = function() { return getMean(randomArray); };
+singleTests.getRMS = function() { return getRMS(randomArray); };
 
-doubleTests.compareMeans = [function() { return getMean(randomArray); }, function() { return getMean(randomArray); }];
+doubleTests.compareMeans = [function() { return getRMS(randomArray); }, function() { return getRMS2(randomArray); }, function() { return getRMS3(randomArray); }];
 
-debug("Starting single tests");
-for (var key in singleTests) {
-    timeFunction(key, singleTests[key]);
-}
 
 debug("\nStarting comparison tests");
 for (var key in doubleTests) {
@@ -87,3 +84,10 @@ for (var key in doubleTests) {
     debug(key);
     compareFunc(key, doubleTests[key]);
 }
+
+
+debug("\nStarting single tests");
+for (var key in singleTests) {
+    timeFunction(key, singleTests[key]);
+}
+
