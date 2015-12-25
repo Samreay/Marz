@@ -685,7 +685,7 @@ function rollingPointMean(intensity, numPoints, falloff) {
 function getMean(data) {
     var r = 0;
     for (var i = 0; i < data.length; i++) {
-        r += data[i];
+        r += data[i|0];
     }
     return r / data.length;
 }

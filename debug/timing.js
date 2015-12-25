@@ -17,12 +17,14 @@ debug("Dependencies loaded\n");
 var node = true;
 
 var inputMessage = require('./input.js');
-var size = 500000;
-var randomArray = new Array(size);
-var randomFloat = new Float64Array(size);
+var size = 100000;
+var medium = new Array(size);
+var large = new Array(size * 50);
 for (var i = 0; i < size; i++) {
-    randomArray[i] = 100 * Math.random();
-    randomFloat[i] = randomArray[i];
+    medium[i] = 100 * Math.random() + (1.0 * i / 1e5);
+}
+for (var i = 0; i < (50 * size); i++) {
+    large[i] = 100 * Math.random() + (1.0 * i / 1e5);
 }
 
 inputMessage.matching = false;
@@ -72,10 +74,10 @@ var compareFunc = function(name, funcs, num) {
 var singleTests = {};
 var doubleTests = {};
 
-singleTests.getMean = function() { return getMean(randomArray); };
-singleTests.getRMS = function() { return getRMS(randomArray); };
+singleTests.getMean = function() { return getMean(large); };
+singleTests.getRMS = function() { return getRMS(medium); };
 
-//doubleTests.compareMeans = [function() { return getRMS(randomArray); }, function() { return getRMS2(randomArray); }, function() { return getRMS3(randomArray); }];
+doubleTests.compareMeans = [function() { return getMean(large); }, function() { return getMean2(large); }];
 
 
 debug("\nStarting comparison tests");
