@@ -1063,6 +1063,26 @@ function getRMS(data) {
     squared /= data.length;
     return Math.sqrt(squared);
 }
+function getRMS2(data) {
+    var mean = getMean(data);
+    var dataLength = data.length;
+    var squared = 0;
+    var temp = 0;
+    for (var i = 0; i < dataLength; i++) {
+        temp = (data[i] - mean);
+        squared += temp * temp;
+    }
+    return Math.sqrt(squared / dataLength);
+}
+function getRMS3(data) {
+    var mean = getMean(data);
+    var dataLength = data.length, squared = 0, temp = 0.0, i = 0;
+    for (i = 0; i < dataLength; i++) {
+        temp = (data[i|0] - mean);
+        squared += temp * temp;
+    }
+    return Math.sqrt(squared / dataLength);
+}
 function rmsNormalisePeaks(final) {
     var peaks = getPeaks(final).value;
     var rms = getRMS(peaks);
