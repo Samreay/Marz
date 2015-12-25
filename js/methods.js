@@ -1051,30 +1051,6 @@ function cullLines(data) {
     }
 }
 function getRMS(data) {
-    var mean = 0;
-    for (var i = 0; i < data.length; i++) {
-        mean += data[i];
-    }
-    mean = mean / data.length;
-    var squared = 0;
-    for (var i = 0; i < data.length; i++) {
-        squared += Math.pow((data[i] - mean), 2);
-    }
-    squared /= data.length;
-    return Math.sqrt(squared);
-}
-function getRMS2(data) {
-    var mean = getMean(data);
-    var dataLength = data.length;
-    var squared = 0;
-    var temp = 0;
-    for (var i = 0; i < dataLength; i++) {
-        temp = (data[i] - mean);
-        squared += temp * temp;
-    }
-    return Math.sqrt(squared / dataLength);
-}
-function getRMS3(data) {
     var mean = getMean(data);
     var dataLength = data.length, squared = 0, temp = 0.0, i = 0;
     for (i = 0; i < dataLength; i++) {

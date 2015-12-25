@@ -74,9 +74,8 @@ var doubleTests = {};
 
 singleTests.getMean = function() { return getMean(randomArray); };
 singleTests.getRMS = function() { return getRMS(randomArray); };
-singleTests.getRMS3 = function() { return getRMS3(randomArray); };
 
-doubleTests.compareMeans = [function() { return getRMS(randomArray); }, function() { return getRMS2(randomArray); }, function() { return getRMS3(randomArray); }];
+//doubleTests.compareMeans = [function() { return getRMS(randomArray); }, function() { return getRMS2(randomArray); }, function() { return getRMS3(randomArray); }];
 
 
 debug("\nStarting comparison tests");
