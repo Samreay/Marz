@@ -57,7 +57,7 @@ var timeFunction = function(name, func, num) {
         times.push(e);
     }
     var mean = getMean(times);
-    var std = getRMS(times);
+    var std = getStdDev(times);
     debug(name + " took " + mean.toFixed(1) + " pm " + std.toFixed(1));
 };
 var compareFunc = function(name, funcs, num) {
@@ -88,7 +88,7 @@ var compareFunc = function(name, funcs, num) {
 
     for (var j = 0; j < funcs.length; j++) {
         var mean = getMean(times[j]);
-        var std = getRMS(times[j]);
+        var std = getStdDev(times[j]);
         debug(name + " " + j + " took " + mean.toFixed(1) + " pm " + std.toFixed(1));
     }
 };
@@ -106,8 +106,8 @@ var doubleTests = {};
 /*
 singleTests.getMean = function() { return getMean(large); };
 singleTests.getMeanMask = function() { return getMeanMask(large, largeMask); };
-singleTests.getRMS = function() { return getRMS(medium); };
-singleTests.getRMSMask = function() { return getRMS(medium, mediumMask); };
+singleTests.getStdDev = function() { return getStdDev(medium); };
+singleTests.getStdDevMask = function() { return getStdDev(medium, mediumMask); };
 singleTests.stdDevSubtract = function() { return stdDevSubtract(medium, medium2); };
 */
 

@@ -712,7 +712,7 @@ function stdDevSubtract(data, subtract) {
     for (var i = 0; i < dataLength; i++) {
         subtracted[i|0] = data[i|0] - subtract[i|0];
     }
-    return getRMS(subtracted);
+    return getStdDev(subtracted);
 }
 function getNewSubtract(data, subtract) {
     var subtracted = new Array(data.length), dataLength = data.length;
@@ -739,7 +739,7 @@ function polyFitReject(lambda, intensity, interactions, threshold, polyDegree) {
     for (i = 0; i < interactions; i++) {
         var fit = polynomial3(lambda, intensity, polyDegree, mask);
         var subtracted = getNewSubtract(intensity, fit.points);
-        stdDev = getRMSMask(subtracted, mask);
+        stdDev = getStdDevMask(subtracted, mask);
         cutoff = stdDev * threshold;
         var c = true;
         for (j = 0; j < intLength; j++) {
@@ -1067,10 +1067,10 @@ function getPeaks(final, both) {
  * @param data
  */
 function cullLines(data) {
-    var rms = getRMS(data);
+    var std = getStdDev(data);
     var mean = getMean(data);
-    var maxV = mean + 30 * rms;
-    var minV = mean - 30 * rms;
+    var maxV = mean + 30 * std;
+    var minV = mean - 30 * std;
     var dataLength = data.length;
     for (var i = 0; i < dataLength; i++) {
         if (data[i|0] > maxV) {
@@ -1085,7 +1085,7 @@ function cullLines(data) {
  * @param data
  * @returns {number}
  */
-function getRMS(data) {
+function getStdDev(data) {
     var mean = getMean(data);
     var dataLength = data.length, squared = 0, temp = 0.0, i = 0;
     for (i = 0; i < dataLength; i++) {
@@ -1099,7 +1099,7 @@ function getRMS(data) {
  * @param data
  * @returns {number}
  */
-function getRMSMask(data, mask) {
+function getStdDevMask(data, mask) {
     var mean = getMeanMask(data, mask);
     var dataLength = data.length, squared = 0, temp = 0.0, i = 0;
     var c = 0;
@@ -1114,7 +1114,7 @@ function getRMSMask(data, mask) {
 }
 function rmsNormalisePeaks(final) {
     var peaks = getPeaks(final).value;
-    var rms = getRMS(peaks);
+    var rms = getStdDev(peaks);
     for (var i = 0; i < final.length; i++) {
         final[i] /= rms;
     }
@@ -1231,7 +1231,7 @@ function getRedshiftForNonIntegerIndex(t, index) {
 function clipVariance(variance, clip) {
     clip = defaultFor(clip, 3);
     var mean = getMean(variance);
-    var std = getRMS(variance);
+    var std = getStdDev(variance);
     for (var i = 0; i < variance.length; i++) {
         if (variance[i] - mean > clip * std) {
             variance[i] = mean + clip * std;
