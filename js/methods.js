@@ -1061,16 +1061,12 @@ function getPeaks(final, both) {
     }
     return {index: is, value: vals};
 }
+/**
+ * In place caps all values in data to within 30 standard deviations of the mean
+ *
+ * @param data
+ */
 function cullLines(data) {
-    var rms = getRMS(data);
-    var mean = getMean(data);
-    var maxV = mean + 30 * rms;
-    var minV = mean - 30 * rms;
-    for (var i = 0; i < data.length; i++) {
-        data[i] = Math.max(minV, Math.min(maxV, data[i]))
-    }
-}
-function cullLines2(data) {
     var rms = getRMS(data);
     var mean = getMean(data);
     var maxV = mean + 30 * rms;
@@ -1084,20 +1080,11 @@ function cullLines2(data) {
         }
     }
 }
-function cullLines3(data) {
-    var rms = getRMS(data);
-    var mean = getMean(data);
-    var maxV = mean + 30 * rms;
-    var minV = mean - 30 * rms;
-    var dataLength = data.length;
-    for (var i = 0; i < dataLength; i++) {
-        if (data[i] > maxV) {
-            data[i] = maxV;
-        } else if (data[i] < minV) {
-            data[i] = minV;
-        }
-    }
-}
+/**
+ * Returns the standard deviation
+ * @param data
+ * @returns {number}
+ */
 function getRMS(data) {
     var mean = getMean(data);
     var dataLength = data.length, squared = 0, temp = 0.0, i = 0;
@@ -1107,6 +1094,11 @@ function getRMS(data) {
     }
     return Math.sqrt(squared / dataLength);
 }
+/**
+ * Returns the standard deviation with an input mask
+ * @param data
+ * @returns {number}
+ */
 function getRMSMask(data, mask) {
     var mean = getMeanMask(data, mask);
     var dataLength = data.length, squared = 0, temp = 0.0, i = 0;

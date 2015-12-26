@@ -111,13 +111,13 @@ singleTests.getRMSMask = function() { return getRMS(medium, mediumMask); };
 singleTests.stdDevSubtract = function() { return stdDevSubtract(medium, medium2); };
 */
 
-
+/*
 doubleTests.cullLines = [
     function() { var inten = im.intensity.slice(); return cullLines(inten); },
     function() { var inten = im.intensity.slice(); return cullLines2(inten); },
     function() { var inten = im.intensity.slice(); return cullLines3(inten); }
 ];
-
+*/
 
 
 
