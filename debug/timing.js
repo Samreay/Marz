@@ -60,8 +60,11 @@ var timeFunction = function(name, func, num) {
     var std = getStdDev(times);
     debug(name + " took " + mean.toFixed(1) + " pm " + std.toFixed(1));
 };
+var replacer = function(key, val) {
+    return val.toFixed ? Number(val.toFixed(5)) : val;
+};
 var compareFunc = function(name, funcs, num) {
-    num = defaultFor(num, 200);
+    num = defaultFor(num, 100);
     var times = new Array(funcs.length);
     var results = new Array(funcs.length);
     for (var i = 0; i < times.length; i++) {
@@ -77,7 +80,7 @@ var compareFunc = function(name, funcs, num) {
         }
         var first = results[0];
         for (var j = 1; j < funcs.length; j++) {
-            if (JSON.stringify(results[j]) != JSON.stringify(first)) {
+            if (JSON.stringify(results[j], replacer) != JSON.stringify(first, replacer)) {
                 console.warn("ERROR: DIFFERENT RESULTS BETWEEN 0 AND " + j);
                 console.dir(first);
                 console.dir(results[j]);
@@ -111,13 +114,14 @@ singleTests.getStdDevMask = function() { return getStdDev(medium, mediumMask); }
 singleTests.stdDevSubtract = function() { return stdDevSubtract(medium, medium2); };
 */
 
-/*
-doubleTests.cullLines = [
-    function() { var inten = im.intensity.slice(); return cullLines(inten); },
-    function() { var inten = im.intensity.slice(); return cullLines2(inten); },
-    function() { var inten = im.intensity.slice(); return cullLines3(inten); }
+//medium = [3,5,4,2,5,3,6,3,9,5,3,2,4,3,5,3,8,7,7,2,4];
+doubleTests.rollingPointMean = [
+    function() { var medium2 = medium.slice(); rollingPointMean(medium2, rollingPointWindow, rollingPointDecay); return medium2; },
+    function() { var medium2 = medium.slice(); return rollingPointMean2(medium2, rollingPointWindow, rollingPointDecay); },
+    function() { var medium2 = medium.slice(); return rollingPointMean3(medium2, rollingPointWindow, rollingPointDecay); },
+    function() { var medium2 = medium.slice(); return rollingPointMean4(medium2, rollingPointWindow, rollingPointDecay); }
 ];
-*/
+
 
 
 
