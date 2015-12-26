@@ -20,10 +20,12 @@ for (var i = 0; i < dependencies.length; i++) {
 debug("Dependencies loaded\n");
 var node = true;
 
-var inputMessage = require('./input.js');
+var im = require('./input.js');
 var size = 100000;
 var mediumInit = new Array(size);
 var medium2Init = new Array(size);
+var mediumMask = new Array(size);
+var largeMask = new Array(size * 50);
 var largeInit = new Array(size * 50);
 var medium = null;
 var medium2 = null;
@@ -31,9 +33,11 @@ var large = null;
 for (var i = 0; i < size; i++) {
     mediumInit[i] = 100 * Math.random() + (i / 1e5);
     medium2Init[i] = 70 * Math.random() - (i / 5e4);
+    mediumMask[i] = Math.random > 0.1 ? 1 : 0;
 }
 for (var i = 0; i < (50 * size); i++) {
     largeInit[i] = 100 * Math.random() + (i / 1e5);
+    largeMask[i] = Math.random > 0.1 ? 1 : 0;
 }
 var initData = function() {
     medium = mediumInit.slice();
@@ -42,7 +46,7 @@ var initData = function() {
 };
 initData();
 
-inputMessage.matching = false;
+im.matching = false;
 var timeFunction = function(name, func, num) {
     num = defaultFor(num, 200);
     var times = [];
@@ -57,7 +61,7 @@ var timeFunction = function(name, func, num) {
     debug(name + " took " + mean.toFixed(1) + " pm " + std.toFixed(1));
 };
 var compareFunc = function(name, funcs, num) {
-    num = defaultFor(num, 100);
+    num = defaultFor(num, 50);
     var times = new Array(funcs.length);
     var results = new Array(funcs.length);
     for (var i = 0; i < times.length; i++) {
@@ -73,8 +77,12 @@ var compareFunc = function(name, funcs, num) {
         }
         var first = results[0];
         for (var j = 1; j < funcs.length; j++) {
-            if (results[j] != first) {
-                throw ("Results are different: " + first + " vs (" + j + ") " + results[j])
+            if (JSON.stringify(results[j]) != JSON.stringify(first)) {
+                throw "Diff"
+                console.warn("ERROR: DIFFERENT RESULTS BETWEEN 0 AND " + j);
+                console.dir(first);
+                console.dir(results[j]);
+                throw ("Results are different: " + (first) + " vs (" + j + ") " + results[j])
             }
         }
     }
@@ -97,10 +105,16 @@ var doubleTests = {};
 /* TEST CASES BELOW */
 
 singleTests.getMean = function() { return getMean(large); };
+singleTests.getMeanMask = function() { return getMeanMask(large, largeMask); };
 singleTests.getRMS = function() { return getRMS(medium); };
+singleTests.getRMSMask = function() { return getRMS(medium, mediumMask); };
 singleTests.stdDevSubtract = function() { return stdDevSubtract(medium, medium2); };
 
-//doubleTests.comparestdDevSubtract = [function() { return stdDevSubtract2(medium, medium2); }, function() { return stdDevSubtract(medium, medium2); }];
+
+doubleTests.comparePolyFitReject = [
+    function() { var inten = im.intensity.slice(); return polyFitReject(im.lambda, inten); },
+    function() { var inten = im.intensity.slice(); return polyFitReject2(im.lambda, inten); }
+];
 
 
 

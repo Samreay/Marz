@@ -682,12 +682,22 @@ function rollingPointMean(intensity, numPoints, falloff) {
         intensity[i] = d[i];
     }
 }
-function getMean(data) {
-    var r = 0;
-    for (var i = 0; i < data.length; i++) {
+function getMean(data, mask) {
+    var r = 0, i = 0;
+    for (i = 0; i < data.length; i++) {
         r += data[i|0];
     }
     return r / data.length;
+}
+function getMeanMask(data, mask) {
+    var c = 0, r = 0, i = 0, dataLength = data.length;
+    for (i = 0; i < dataLength; i++) {
+        if (mask[i|0]) {
+            r += data[i|0];
+            c++;
+        }
+    }
+    return r / c;
 }
 /**
  * Returns the RMS of {{data - subtract}}, without modifying either
@@ -703,6 +713,13 @@ function stdDevSubtract(data, subtract) {
         subtracted[i|0] = data[i|0] - subtract[i|0];
     }
     return getRMS(subtracted);
+}
+function getNewSubtract(data, subtract) {
+    var subtracted = new Array(data.length), dataLength = data.length;
+    for (var i = 0; i < dataLength; i++) {
+        subtracted[i|0] = data[i|0] - subtract[i|0];
+    }
+    return subtracted;
 }
 /**
  * Perform a rejected polynomial fit to the data.
@@ -740,8 +757,38 @@ function polyFitReject(lambda, intensity) {
     for (var i = 0; i < intensity.length; i++) {
         intensity[i] -= final[i];
     }
-
     return final;
+}
+
+function polyFitReject2(lambda, intensity, interactions, threshold, polyDegree) {
+    interactions = defaultFor(interactions, polyFitInteractions);
+    threshold = defaultFor(threshold, polyFitRejectDeviation);
+    polyDegree = defaultFor(polyDegree, polyDeg);
+
+    var intLength = intensity.length, mask = new Array(intLength), i = 0, j = 0, cutoff = 0, stdDev = 0;
+    for (i = 0; i < intLength; i++) {
+        mask[i|0] = 1;
+    }
+    for (i = 0; i < interactions; i++) {
+        var fit = polynomial3(lambda, intensity, polyDegree, mask);
+        var subtracted = getNewSubtract(intensity, fit.points);
+        stdDev = getRMSMask(subtracted, mask);
+        cutoff = stdDev * threshold;
+        var c = true;
+        for (j = 0; j < intLength; j++) {
+            if (mask[j|0] && Math.abs(subtracted[j|0]) > cutoff) {
+                mask[j|0] = 0;
+                c = false;
+            }
+        }
+        if (c) {
+            break;
+        }
+    }
+    for (i = 0; i < intLength; i++) {
+        intensity[i] = subtracted[i];
+    }
+    return fit.points;
 }
 function subtract(data, subtract) {
     for (var i = 0; i < data.length; i++) {
@@ -1064,6 +1111,19 @@ function getRMS(data) {
         squared += temp * temp;
     }
     return Math.sqrt(squared / dataLength);
+}
+function getRMSMask(data, mask) {
+    var mean = getMeanMask(data, mask);
+    var dataLength = data.length, squared = 0, temp = 0.0, i = 0;
+    var c = 0;
+    for (i = 0; i < dataLength; i++) {
+        if (mask[i|0]) {
+            temp = (data[i|0] - mean);
+            squared += temp * temp;
+            c++;
+        }
+    }
+    return Math.sqrt(squared / c);
 }
 function rmsNormalisePeaks(final) {
     var peaks = getPeaks(final).value;
