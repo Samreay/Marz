@@ -1,4 +1,7 @@
-function TemplateManager() {
+function TemplateManager(process) {
+    if (typeof process == "undefined") {
+        process = true;
+    }
     /**
      * The list of templates in the application.
      *
@@ -170,7 +173,9 @@ function TemplateManager() {
     }
     this.templateEnabledCookieKey = 'tenabled';
     this.inactiveArray = this.getInactiveTemplatesCookie();
-    this.processTemplates();
+    if (process) {
+        this.processTemplates();
+    }
 }
 TemplateManager.prototype.updateActiveTemplates = function() {
     this.templates = [];
