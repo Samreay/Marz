@@ -115,13 +115,14 @@ singleTests.stdDevSubtract = function() { return stdDevSubtract(medium, medium2)
 */
 
 //medium = [3,5,4,2,5,3,6,3,9,5,3,2,4,3,5,3,8,7,7,2,4];
+/*
 doubleTests.rollingPointMean = [
     function() { var medium2 = medium.slice(); rollingPointMean(medium2, rollingPointWindow, rollingPointDecay); return medium2; },
     function() { var medium2 = medium.slice(); return rollingPointMean2(medium2, rollingPointWindow, rollingPointDecay); },
     function() { var medium2 = medium.slice(); return rollingPointMean3(medium2, rollingPointWindow, rollingPointDecay); },
     function() { var medium2 = medium.slice(); return rollingPointMean4(medium2, rollingPointWindow, rollingPointDecay); }
 ];
-
+*/
 
 
 

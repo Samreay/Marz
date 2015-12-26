@@ -104,7 +104,7 @@ self.matchTemplates = function(lambda, intensity, variance, type) {
 
     var quasarIntensity = intensity.slice();
     var quasarVariance = variance.slice();
-    rollingPointMean(quasarIntensity, rollingPointWindow, rollingPointDecay);
+    quasarIntensity = rollingPointMean(quasarIntensity, rollingPointWindow, rollingPointDecay);
     taperSpectra(quasarIntensity);
     quasarVariance = medianAndBoxcarSmooth(quasarVariance, quasarVarianceMedian, quasarVarianceBoxcar);
     addMinMultiple(quasarVariance, quasarMinMultiple);

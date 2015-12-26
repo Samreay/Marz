@@ -657,86 +657,18 @@ function removeCosmicRay(intensity, variance) {
     }
 }
 
+/**
+ * Convolves the intensity array with an exponential falloff window
+ * to produce a rolling mean which mostly preserves peak location.
+ *
+ * Does not modify arrays in place.
+ *
+ * @param intensity
+ * @param numPoints
+ * @param falloff
+ * @returns {Array}
+ */
 function rollingPointMean(intensity, numPoints, falloff) {
-    var d = [];
-    var weights = [];
-    var total = 0;
-    for (var i = 0; i < 2*numPoints + 1; i++) {
-        var w = Math.pow(falloff, Math.abs(numPoints - i));
-        weights.push(w);
-        total += w;
-    }
-    for (var i = 0; i < intensity.length; i++) {
-        var c = 0;
-        var r = 0;
-        for (var j = i - numPoints; j <= i + numPoints; j++) {
-            if (j> 0 && j < intensity.length) {
-                r += intensity[j] * weights[c];
-                c++;
-            }
-        }
-        r = r / total;
-        d.push(r);
-    }
-    for (var i = 0; i < intensity.length; i++) {
-        intensity[i] = d[i];
-    }
-}
-function rollingPointMean2(intensity, numPoints, falloff) {
-    var d = [];
-    var weights = [];
-    var total = 0;
-    var i = 0;
-    for (i = 0; i < 2*numPoints + 1; i++) {
-        var w = Math.pow(falloff, Math.abs(numPoints - i));
-        weights.push(w);
-        total += w;
-    }
-    for (i = 0; i < weights.length; i++) {
-        weights[i] /= total;
-    }
-    var intLength = intensity.length, r = 0, c = 0;
-    for (i = 0; i < intLength; i++) {
-        c = 0;
-        r = 0;
-        for (var j = i - numPoints; j <= i + numPoints; j++) {
-            if (j > 0 && j < intLength) {
-                r += intensity[j] * weights[c];
-                c++;
-            }
-        }
-        d.push(r);
-    }
-    return d;
-}
-function rollingPointMean3(intensity, numPoints, falloff) {
-    var d = [];
-    var weights = [];
-    var total = 0;
-    var i = 0;
-    for (i = 0; i < 2*numPoints + 1; i++) {
-        var w = Math.pow(falloff, Math.abs(numPoints - i));
-        weights.push(w);
-        total += w;
-    }
-    for (i = 0; i < weights.length; i++) {
-        weights[i|0] /= total;
-    }
-    var intLength = intensity.length, r = 0, c = 0;
-    for (i = 0; i < intLength; i++) {
-        c = 0;
-        r = 0;
-        for (var j = i - numPoints; j <= i + numPoints; j++) {
-            if (j > 0 && j < intLength) {
-                r += intensity[j|0] * weights[c|0];
-                c++;
-            }
-        }
-        d.push(r);
-    }
-    return d;
-}
-function rollingPointMean4(intensity, numPoints, falloff) {
     var d = new Array(intensity.length);
     var weights = [];
     var total = 0;
