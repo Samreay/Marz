@@ -1070,6 +1070,34 @@ function cullLines(data) {
         data[i] = Math.max(minV, Math.min(maxV, data[i]))
     }
 }
+function cullLines2(data) {
+    var rms = getRMS(data);
+    var mean = getMean(data);
+    var maxV = mean + 30 * rms;
+    var minV = mean - 30 * rms;
+    var dataLength = data.length;
+    for (var i = 0; i < dataLength; i++) {
+        if (data[i|0] > maxV) {
+            data[i|0] = maxV;
+        } else if (data[i|0] < minV) {
+            data[i|0] = minV;
+        }
+    }
+}
+function cullLines3(data) {
+    var rms = getRMS(data);
+    var mean = getMean(data);
+    var maxV = mean + 30 * rms;
+    var minV = mean - 30 * rms;
+    var dataLength = data.length;
+    for (var i = 0; i < dataLength; i++) {
+        if (data[i] > maxV) {
+            data[i] = maxV;
+        } else if (data[i] < minV) {
+            data[i] = minV;
+        }
+    }
+}
 function getRMS(data) {
     var mean = getMean(data);
     var dataLength = data.length, squared = 0, temp = 0.0, i = 0;

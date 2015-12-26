@@ -61,7 +61,7 @@ var timeFunction = function(name, func, num) {
     debug(name + " took " + mean.toFixed(1) + " pm " + std.toFixed(1));
 };
 var compareFunc = function(name, funcs, num) {
-    num = defaultFor(num, 50);
+    num = defaultFor(num, 200);
     var times = new Array(funcs.length);
     var results = new Array(funcs.length);
     for (var i = 0; i < times.length; i++) {
@@ -103,18 +103,21 @@ var doubleTests = {};
 
 /* TEST CASES BELOW */
 
+/*
 singleTests.getMean = function() { return getMean(large); };
 singleTests.getMeanMask = function() { return getMeanMask(large, largeMask); };
 singleTests.getRMS = function() { return getRMS(medium); };
 singleTests.getRMSMask = function() { return getRMS(medium, mediumMask); };
 singleTests.stdDevSubtract = function() { return stdDevSubtract(medium, medium2); };
-
-/*
-doubleTests.comparePolyFitReject = [
-    function() { var inten = im.intensity.slice(); return polyFitReject(im.lambda, inten); },
-    function() { var inten = im.intensity.slice(); return polyFitReject2(im.lambda, inten); }
-];
 */
+
+
+doubleTests.cullLines = [
+    function() { var inten = im.intensity.slice(); return cullLines(inten); },
+    function() { var inten = im.intensity.slice(); return cullLines2(inten); },
+    function() { var inten = im.intensity.slice(); return cullLines3(inten); }
+];
+
 
 
 
