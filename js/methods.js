@@ -722,45 +722,12 @@ function getNewSubtract(data, subtract) {
     return subtracted;
 }
 /**
- * Perform a rejected polynomial fit to the data.
+ * Perform a rejected polynomial fit to the data. In place modified intensity to subtract the
+ * polyfit, and returns the polyfit itself.
  * @param lambda
  * @param intensity
  */
-function polyFitReject(lambda, intensity) {
-    var l = lambda.slice();
-    var int = intensity.slice();
-    for (var i = 0; i < polyFitInteractions; i++) {
-        var fit = polynomial2(l, int, polyDeg);
-        var stdDev = stdDevSubtract(int, fit.points);
-        var c = 0;
-        for (var j = 0; j < int.length; j++) {
-            if (Math.abs((int[j] - fit.points[j]) / stdDev) > polyFitRejectDeviation) {
-                int.splice(j, 1);
-                l.splice(j, 1);
-                fit.points.splice(j, 1);
-                j--;
-                c++;
-            }
-        }
-        if (c == 0) {
-            break;
-        }
-    }
-    var final = lambda.map(function(val) {
-        var r = 0;
-        for (var j = 0; j < fit.equation.length; j++) {
-            r += fit.equation[j] * Math.pow(val, j);
-        }
-        return r;
-    });
-
-    for (var i = 0; i < intensity.length; i++) {
-        intensity[i] -= final[i];
-    }
-    return final;
-}
-
-function polyFitReject2(lambda, intensity, interactions, threshold, polyDegree) {
+function polyFitReject(lambda, intensity, interactions, threshold, polyDegree) {
     interactions = defaultFor(interactions, polyFitInteractions);
     threshold = defaultFor(threshold, polyFitRejectDeviation);
     polyDegree = defaultFor(polyDegree, polyDeg);

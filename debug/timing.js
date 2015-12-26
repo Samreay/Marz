@@ -78,7 +78,6 @@ var compareFunc = function(name, funcs, num) {
         var first = results[0];
         for (var j = 1; j < funcs.length; j++) {
             if (JSON.stringify(results[j]) != JSON.stringify(first)) {
-                throw "Diff"
                 console.warn("ERROR: DIFFERENT RESULTS BETWEEN 0 AND " + j);
                 console.dir(first);
                 console.dir(results[j]);
@@ -110,12 +109,12 @@ singleTests.getRMS = function() { return getRMS(medium); };
 singleTests.getRMSMask = function() { return getRMS(medium, mediumMask); };
 singleTests.stdDevSubtract = function() { return stdDevSubtract(medium, medium2); };
 
-
+/*
 doubleTests.comparePolyFitReject = [
     function() { var inten = im.intensity.slice(); return polyFitReject(im.lambda, inten); },
     function() { var inten = im.intensity.slice(); return polyFitReject2(im.lambda, inten); }
 ];
-
+*/
 
 
 
