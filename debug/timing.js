@@ -113,17 +113,19 @@ singleTests.getMean = function() { return getMean(large); };
 singleTests.getMeanMask = function() { return getMeanMask(large, largeMask); };
 singleTests.getStdDev = function() { return getStdDev(medium); };
 singleTests.getStdDevMask = function() { return getStdDev(medium, mediumMask); };
-singleTests.stdDevSubtract = function() { return stdDevSubtract(medium, medium2); };
+ singleTests.stdDevSubtract = function() { return stdDevSubtract(medium, medium2); };
+ singleTests.absMean = function() { return absMean(medium); };
+ singleTests.absMax = function() { return absMax(medium); };
 */
 
 //medium = [3,5,4,2,5,3,6,3,9,5,3,2,4,3,5,3,8,7,7,2,4];
 
-
+/*
 doubleTests.absMean = [
     function() { return absMean(medium); },
     function() { return absMean2(medium); }
 ];
-
+*/
 
 
 
