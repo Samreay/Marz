@@ -120,12 +120,12 @@ singleTests.getStdDevMask = function() { return getStdDev(medium, mediumMask); }
 
 //medium = [3,5,4,2,5,3,6,3,9,5,3,2,4,3,5,3,8,7,7,2,4];
 
-
+/*
 doubleTests.maxMedianAdjust2 = [
     function() { inten = im.variance.slice(); maxMedianAdjust(inten,  13, 0.7); return inten; },
     function() { inten = im.variance.slice(); maxMedianAdjust2(inten, 13, 0.7); return inten; }
 ];
-
+*/
 
 
 

@@ -950,6 +950,12 @@ function cosineTaper(intensity, zeroPixelWidth, taperWidth) {
 function taperSpectra(intensity) {
     cosineTaper(intensity, zeroPixelWidth, taperWidth);
 }
+/**
+ * In place modifies broadenError so that each value takes on the maximum
+ * of itself, the previous data point, and the next data point.
+ *
+ * @param data
+ */
 function broadenError(data) {
     var result = [];
     var prior = data[0];
@@ -976,58 +982,20 @@ function broadenError(data) {
         data[i|0] = result[i|0];
     }
 }
-function maxMedianAdjust(data, window, errorMedianWeight) {
-    var result = [];
-    var win = [];
-    var num = (window - 1)/2;
-    for (var i = 0; i < data.length; i++) {
-        if (data[i] < max_error) {
-            while (win.length < num + 2) {
-                win.push(data[i]);
-            }
-            break;
-        }
-    }
-    for (var i = 0; i < data.length; i++) {
-        if (win.length < window) {
-            if (data[i] < max_error) {
-                win.push(data[i]);
-            }
-        } else {
-            break;
-        }
-    }
-    for (var i = 0; i < data.length; i++) {
-        if (data[i] < max_error) {
-            var index = i + num;
-            while (index < data.length && data[index] >= max_error) {
-                index++;
-            }
-            if (index >= data.length) {
-                win.push(win[win.length - 1]);
-            } else {
-                win.push(data[index]);
-            }
-            win.splice(0, 1);
-            result.push(errorMedianWeight * win.slice().sort(function(a,b){return a-b;})[num]);
-        } else {
-            result.push(data[i]);
-        }
-    }
-    for (var i = 0; i < result.length; i++) {
-        data[i] = result[i];
-    }
-    for (var i = 0; i < data.length; i++) {
-        if (result[i] > data[i]) {
-            data[i] = result[i];
-        }
-    }
-}
-function maxMedianAdjust2(data, window, errorMedianWeight) {
+
+/**
+ * In place modifies the input array, such that the output values are the
+ * maximum of either the original data point, or {{weight}} times by a median
+ * filter of window size {{window}}.
+ * @param data
+ * @param window
+ * @param weight
+ */
+function maxMedianAdjust(data, window, weight) {
     var medians = medianFilter(data, window);
     var dataLength = data.length, i = 0, val = 0.0;
     for (i = 0; i < dataLength; i++) {
-        val = errorMedianWeight * medians[i|0];
+        val = weight * medians[i|0];
         if (data[i|0] < val) {
             data[i|0] = val;
         }
