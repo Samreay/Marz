@@ -1061,6 +1061,17 @@ function absMean(data) {
     }
     return running / data.length;
 }
+function absMean2(data) {
+    var running = 0, dataLength = data.length, i = 0;
+    for (i = 0; i < dataLength; i++) {
+        if (data[i|0] < 0) {
+            running -= data[i|0];
+        } else {
+            running += data[i|0];
+        }
+    }
+    return running / dataLength;
+}
 function absMax(data) {
     var max = 0, dataLength = data.length;
     for (var i = 0; i < dataLength; i++) {

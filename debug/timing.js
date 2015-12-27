@@ -64,7 +64,7 @@ var replacer = function(key, val) {
     return val.toFixed ? Number(val.toFixed(5)) : val;
 };
 var compareFunc = function(name, funcs, num) {
-    num = defaultFor(num, 100);
+    num = defaultFor(num, 50);
     var times = new Array(funcs.length);
     var results = new Array(funcs.length);
     for (var i = 0; i < times.length; i++) {
@@ -119,10 +119,9 @@ singleTests.stdDevSubtract = function() { return stdDevSubtract(medium, medium2)
 //medium = [3,5,4,2,5,3,6,3,9,5,3,2,4,3,5,3,8,7,7,2,4];
 
 
-doubleTests.absMax = [
-    function() { return absMax(medium); },
-    function() { return absMax2(medium); },
-    function() { return absMax3(medium); }
+doubleTests.absMean = [
+    function() { return absMean(medium); },
+    function() { return absMean2(medium); }
 ];
 
 

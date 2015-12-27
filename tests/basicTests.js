@@ -56,6 +56,16 @@ tests.push({
         return absMax(testArray2)
     },
     expected: 10});
+tests.push({
+    name: "absMean test",
+    fn: function() {
+        return absMean(testArray2)
+    },
+    expected: 4.6818181818181817});
+
+
+
+
 
 /**
  * Basic boxcar smoothing
