@@ -64,7 +64,7 @@ var replacer = function(key, val) {
     return val.toFixed ? Number(val.toFixed(5)) : val;
 };
 var compareFunc = function(name, funcs, num) {
-    num = defaultFor(num, 200);
+    num = defaultFor(num, 100);
     var times = new Array(funcs.length);
     var results = new Array(funcs.length);
     for (var i = 0; i < times.length; i++) {
@@ -78,7 +78,7 @@ var compareFunc = function(name, funcs, num) {
             times[j].push(e);
             results[j] = r;
         }
-        /*
+
         var first = results[0];
         for (var j = 1; j < funcs.length; j++) {
             if (JSON.stringify(results[j], replacer) != JSON.stringify(first, replacer)) {
@@ -88,7 +88,7 @@ var compareFunc = function(name, funcs, num) {
                 throw ("ERR")
             }
         }
-        */
+
     }
 
     for (var j = 0; j < funcs.length; j++) {
@@ -118,13 +118,13 @@ singleTests.stdDevSubtract = function() { return stdDevSubtract(medium, medium2)
 
 //medium = [3,5,4,2,5,3,6,3,9,5,3,2,4,3,5,3,8,7,7,2,4];
 
-/*
-doubleTests.boxcarSmoothing = [
-    function() { return boxCarSmooth(medium, 5); },
-    function() { return boxCarSmooth2(medium, 5); },
-    function() { return boxCarSmooth3(medium, 5); }
+
+doubleTests.absMax = [
+    function() { return absMax(medium); },
+    function() { return absMax2(medium); },
+    function() { return absMax3(medium); }
 ];
-*/
+
 
 
 

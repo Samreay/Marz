@@ -12,6 +12,7 @@ for (var i = 0; i < dependencies.length; i++) {
 console.log("Dependencies loaded\n");
 
 var testArray = [3,5,4,2,5,3,6,3,9,5,3,2,4,3,5,3,8,7,7,2,4];
+var testArray2 = [3,5,4,2,5,-3,6,3,9,5,3,2,4,3,-10,5,3,8,7,7,2,4];
 var tests = [];
 
 /**
@@ -49,7 +50,12 @@ tests.push({
         return getStdDevMask(testArray, mask)
     },
     expected: 1.4142135623730951});
-
+tests.push({
+    name: "absMax test",
+    fn: function() {
+        return absMax3(testArray2)
+    },
+    expected: 10});
 
 /**
  * Basic boxcar smoothing

@@ -1064,6 +1064,26 @@ function absMean(data) {
 function absMax(data) {
     return data.map(function(x) { return Math.abs(x); }).sort(function(a,b){return b-a;})[0];
 }
+function absMax2(data) {
+    var max = 0, dataLength = data.length;
+    for (var i = 0; i < dataLength; i++) {
+        if (Math.abs(data[i|0]) > max) {
+            max = Math.abs(data[i|0]);
+        }
+    }
+    return max;
+}
+function absMax3(data) {
+    var max = 0, dataLength = data.length;
+    for (var i = 0; i < dataLength; i++) {
+        if (data[i|0] < 0 && -data[i|0] > max) {
+            max = -data[i|0];
+        } else if (data[i|0] > 0 && data[i|0] > max) {
+            max = data[i|0];
+        }
+    }
+    return max;
+}
 function normaliseMeanDev(intensity, clipValue) {
     var running = true;
     while (running) {
