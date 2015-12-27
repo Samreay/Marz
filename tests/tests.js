@@ -15,9 +15,9 @@ var node = true;
 var replacer = function(key, val) {
     return val && val.toFixed ? Number(val.toFixed(5)) : val;
 };
-
+var equ = "========================================"
 function runTests(name, tests) {
-    debug("\nStarting " + name + " tests\n=================================");
+    debug("\nStarting " + name + " tests\n" + equ);
     for (var i = 0; i < tests.length; i++) {
         var t = tests[i];
         var failed = 0;
@@ -33,12 +33,12 @@ function runTests(name, tests) {
         }
     }
     if (failed) {
-        throw "Error. " + failed + " tests failed";
+        throw "### Error. " + failed + " tests failed";
     } else {
-        console.log("All " + name + " tests passed\n");
+        console.log(equ + "\nAll " + name + " tests passed\n" + equ + "\n");
     }
 }
 
 
-basicTests = require("./basicTests");
-runTests("basic", basicTests);
+runTests("basic", require("./basicTests"));
+runTests("algorithm", require("./algorithmTests"));

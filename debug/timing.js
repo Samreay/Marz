@@ -61,10 +61,10 @@ var timeFunction = function(name, func, num) {
     debug(name + " took " + mean.toFixed(1) + " pm " + std.toFixed(1));
 };
 var replacer = function(key, val) {
-    return val.toFixed ? Number(val.toFixed(5)) : val;
+    return val && val.toFixed ? Number(val.toFixed(5)) : val;
 };
 var compareFunc = function(name, funcs, num) {
-    num = defaultFor(num, 200);
+    num = defaultFor(num, 100);
     var times = new Array(funcs.length);
     var results = new Array(funcs.length);
     for (var i = 0; i < times.length; i++) {
@@ -81,7 +81,7 @@ var compareFunc = function(name, funcs, num) {
 
         var first = results[0];
         for (var j = 1; j < funcs.length; j++) {
-            if (JSON.stringify(results[j], replacer) != JSON.stringify(first, replacer)) {
+            if (false && JSON.stringify(results[j], replacer) != JSON.stringify(first, replacer)) {
                 console.warn("ERROR: DIFFERENT RESULTS BETWEEN 0 AND " + j);
                 console.dir(first);
                 console.dir(results[j]);
@@ -120,12 +120,12 @@ singleTests.getStdDevMask = function() { return getStdDev(medium, mediumMask); }
 
 //medium = [3,5,4,2,5,3,6,3,9,5,3,2,4,3,5,3,8,7,7,2,4];
 
-/*
-doubleTests.normaliseMeanDev = [
-    function() { inten = medium.slice(); inten[0] = 1000000; normaliseMeanDev(inten, 25);  return inten; },
-    function() { inten = medium.slice(); inten[0] = 1000000; normaliseMeanDev2(inten, 25); return inten; }
+
+doubleTests.broadenError = [
+    function() { inten = im.variance.slice(); broadenError(inten, 3);  return inten; },
+    function() { inten = im.variance.slice(); broadenError2(inten); return inten; }
 ];
-*/
+
 
 
 

@@ -2,7 +2,7 @@
  * Created by Samuel on 26/12/2015.
  */
 
-console.log("Loading dependancies");
+console.log("Loading dependencies for basic");
 var fs = require('fs');
 var dependencies = ['./js/config.js', './js/tools.js', './js/methods.js', './lib/regression.js', './js/classes.js'];
 //dependencies.push('./js/workerMethods.js');

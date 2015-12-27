@@ -923,6 +923,15 @@ function boxCarSmooth(data, window) {
     }
     return result;
 }
+/**
+ * Applies a cosine taper onto both ends of the given data array.
+ *
+ * Modifies the array in place.
+ *
+ * @param intensity
+ * @param zeroPixelWidth
+ * @param taperWidth
+ */
 function cosineTaper(intensity, zeroPixelWidth, taperWidth) {
     for (var i = 0; i < zeroPixelWidth; i++) {
         var inverse = intensity.length - 1 - i;
@@ -984,6 +993,32 @@ function broadenError(data, window) {
         data[i] = result[i];
     }
 }
+function broadenError2(data) {
+    var result = [];
+    var prior = data[0];
+    var current = data[0];
+    var next = data[1];
+    var i = 0, dataLength = data.length;
+    for (i = 0; i < dataLength; i++) {
+        if (i < dataLength - 1) {
+            next = data[(i+1)|0];
+        } else {
+            next = data[(dataLength - 1)|0];
+        }
+        current = data[i|0];
+        if (current < prior) {
+            current = prior;
+        }
+        if (current < next) {
+            current = next;
+        }
+        result.push(current);
+        prior = data[i];
+    }
+    for (i = 0; i < dataLength; i++) {
+        data[i|0] = result[i|0];
+    }
+}
 function maxMedianAdjust(data, window, errorMedianWeight) {
     var result = [];
     var win = [];
@@ -1035,7 +1070,7 @@ function adjustError(variance) {
     for (var i = 0; i < variance.length; i++) {
         variance[i] = Math.sqrt(variance[i]);
     }
-    broadenError(variance, broadenWindow);
+    broadenError2(variance);
     maxMedianAdjust(variance, errorMedianWindow, errorMedianWeight);
     for (i = 0; i < variance.length; i++) {
         variance[i] = variance[i] * variance[i];
