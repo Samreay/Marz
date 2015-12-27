@@ -842,6 +842,87 @@ function medianFilter(data, window) {
     }
     return result;
 }
+function getList(linkedList) {
+    var r = [];
+    linkedList = linkedList[0];
+    do {
+        r.push(linkedList[1]);
+        linkedList = linkedList[0];
+    } while (linkedList != null);
+    return r;
+}
+function addToSorted(head, value) {
+    var current = head;
+    while(current[0] != null && current[0][1] < value) {
+        current = current[0];
+    }
+    current[0] = [current[0], value];
+
+}
+function addAllToSorted(head, values) {
+    for (var i = 0; i < values.length; i++) {
+        addToSorted(head, values[i]);
+    }
+}
+function removeAddAndFindMedian(head, remove, add, median) {
+    var c = 0;
+    var previous = head;
+    var current = head[0];
+    var r = false, m = false, a = false, result = null;
+    while (true) {
+        if (!r && current[1] == remove) {
+            previous[0] = current[0];
+            current = current[0];
+            r = true;
+        }
+        if (!a && current == null) {
+            current = [null, add];
+            previous[0] = current;
+            a = true;
+
+        }
+        if (!a && (current[1] > add)) {
+            var temp = [previous[0], add];
+            previous[0] = temp;
+            current = temp;
+            a = true;
+        }
+        if (!m && c == median) {
+            result = current[1];
+            m = true;
+        }
+        if (a && r && m) {
+            return result;
+        }
+        c++;
+        previous = current;
+        current = current[0];
+    }
+}
+
+
+
+function medianFilter2(data, window) {
+    var result = [], i = 0;
+    var head = [null, null];
+    var n = (window - 1) / 2;
+
+    for (i = 0; i < n + 1; i++) {
+        addToSorted(head, data[0]);
+    }
+    for (i = 0; i < n; i++ ) {
+        addToSorted(head, data[i|0]);
+    }
+    var add = 0;
+    var remove = 0;
+    var dataLength = data.length;
+    for (i = 0; i < dataLength; i++) {
+        remove = i < (n + 1) ? data[0] : data[(i - n - 1)|0];
+        add = i + n >= dataLength ? data[dataLength - 1] : data[(i + n)|0];
+        result.push(removeAddAndFindMedian(head, remove, add, n));
+    }
+    return result;
+}
 
 function boxCarSmooth(data, window) {
     var result = [];
