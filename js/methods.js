@@ -417,36 +417,7 @@ function interpolate(xinterp, xvals, yvals) {
     }
     return result;
 }
-function interpolate2(xinterp, xvals, yvals) {
-    if (xinterp == null || xinterp.length < 2) {
-        console.log("Don't use interpolate on a null, empty or single element array");
-        return null;
-    }
-    var start_x = null;
-    var end_x = null;
-    var xval_start_index = null;
-    var xval_end_index = null;
-    var result = [];
-    for (var i = 0; i < xinterp.length; i++) {
-        start_x = i == 0 ? null : (xinterp[i] + xinterp[i - 1]) / 2;
-        end_x = i == xinterp.length - 1 ? null : (xinterp[i + 1] + xinterp[i]) / 2;
-        if (start_x == null) {
-            start_x = 2 * xinterp[i] - end_x;
-        }
-        if (end_x == null) {
-            end_x = 2 * xinterp[i] - start_x;
-        }
-        // If we have done the previous step, just move to next (touching) block to avg
-        if (xval_end_index != null) {
-            xval_start_index = xval_end_index;
-        } else {
-            xval_start_index = findCorrespondingFloatIndex(xvals, start_x);
-        }
-        xval_end_index = findCorrespondingFloatIndex(xvals, end_x, Math.floor(xval_start_index));
-        result.push(getAvgBetween(yvals, xval_start_index, xval_end_index));
-    }
-    return result;
-}
+
 /**
  * Helper function for the interpolation method, which locates a linearly interpolated
  * floating point index that corresponds to the position of value x inside array xs.

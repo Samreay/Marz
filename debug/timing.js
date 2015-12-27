@@ -64,7 +64,7 @@ var replacer = function(key, val) {
     return val && val.toFixed ? Number(val.toFixed(5)) : val;
 };
 var compareFunc = function(name, funcs, num) {
-    num = defaultFor(num, 100);
+    num = defaultFor(num, 200);
     var times = new Array(funcs.length);
     var results = new Array(funcs.length);
     for (var i = 0; i < times.length; i++) {
@@ -121,9 +121,14 @@ singleTests.getStdDevMask = function() { return getStdDev(medium, mediumMask); }
 //medium = [3,5,4,2,5,3,6,3,9,5,3,2,4,3,5,3,8,7,7,2,4];
 
 /*
-doubleTests.maxMedianAdjust2 = [
-    function() { inten = im.variance.slice(); maxMedianAdjust(inten,  13, 0.7); return inten; },
-    function() { inten = im.variance.slice(); maxMedianAdjust2(inten, 13, 0.7); return inten; }
+doubleTests.convertLambdaToLogLambda = [
+    function() { return convertLambdaToLogLambda(im.lambda, im.intensity, 32768, false); },
+    function() { return convertLambdaToLogLambda(im.lambda, im.intensity, 32768, false); }
+];
+
+doubleTests.linearScale = [
+    function() { return linearScale(3.3, 4.1, 32768); },
+    function() { return linearScale(3.3, 4.1, 32768); }
 ];
 */
 

@@ -64,8 +64,24 @@ tests.push({
     expected: 4.6818181818181817});
 
 
-
-
+/**
+ * Linear tests
+ */
+tests.push({
+    name: "linearScale test",
+    fn: function() {
+        return linearScale(0, 10, 11)
+    },
+    expected: [0,1,2,3,4,5,6,7,8,9,10]});
+tests.push({
+    name: "interpolate test",
+    fn: function() {
+        var x = [0,1,2,3,4,5,6,7,8,9,10,11];
+        var y = [5,2,3,4,7,2,9,4,2,5,5,6];
+        var x2 = [0.1, 1.5, 3.2, 3.3, 4, 5, 7.7, 8.5, 9.5, 10,11];
+        return interpolate(x2, x, y);
+    },
+    expected: [ 4.7,  2.5,  4.6,  4.9,  7. ,  2. ,  2.6,  3.5,  5. ,  5., 6.0 ]});
 
 /**
  * Basic boxcar smoothing
