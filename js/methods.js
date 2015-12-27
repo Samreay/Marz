@@ -1023,6 +1023,19 @@ function maxMedianAdjust(data, window, errorMedianWeight) {
         }
     }
 }
+function maxMedianAdjust2(data, window, errorMedianWeight) {
+    var medians = medianFilter(data, window);
+    var dataLength = data.length, i = 0, val = 0.0;
+    for (i = 0; i < dataLength; i++) {
+        val = errorMedianWeight * medians[i|0];
+        if (data[i|0] < val) {
+            data[i|0] = val;
+        }
+    }
+}
+
+
+
 function adjustError(variance) {
     for (var i = 0; i < variance.length; i++) {
         variance[i] = Math.sqrt(variance[i]);
