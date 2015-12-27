@@ -819,29 +819,6 @@ function applySpectralLineWeighting(lambda, spec) {
     }
 
 }
-
-function medianFilter(data, window) {
-    var result = [];
-    var win = [];
-    var num = (window - 1)/2;
-    for (var i = 0; i < num + 2; i++) {
-        win.push(data[0]);
-    }
-    for (var i = 0; i < num - 1; i++) {
-        win.push(data[i]);
-    }
-    for (var i = 0; i < data.length; i++) {
-        var index = i + num;
-        if (index >= data.length) {
-            win.push(data[data.length - 1]);
-        } else {
-            win.push(data[index]);
-        }
-        win.splice(0, 1);
-        result.push(win.slice().sort(function(a,b){return a-b;})[num]);
-    }
-    return result;
-}
 function getList(linkedList) {
     var r = [];
     linkedList = linkedList[0];
@@ -900,9 +877,7 @@ function removeAddAndFindMedian(head, remove, add, median) {
     }
 }
 
-
-
-function medianFilter2(data, window) {
+function medianFilter(data, window) {
     var result = [], i = 0;
     var head = [null, null];
     var n = (window - 1) / 2;
