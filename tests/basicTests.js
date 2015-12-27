@@ -49,6 +49,36 @@ tests.push({
         return getStdDevMask(testArray, mask)
     },
     expected: 1.4142135623730951});
+
+
+/**
+ * Basic boxcar smoothing
+ */
+tests.push({
+    name: "boxCarSmooth test (1)",
+    fn: function() {
+        return boxCarSmooth3(testArray, 3)
+    },
+    expected: [3.66666667,  4.        ,  3.66666667,  3.66666667,  3.33333333,
+    4.66666667,  4.        ,  6.        ,  5.66666667,  5.66666667,
+    3.33333333,  3.        ,  3.        ,  4.        ,  3.66666667,
+    5.33333333,  6.        ,  7.33333333,  5.33333333,  4.33333333,
+    3.33333333]});
+tests.push({
+    name: "boxCarSmooth test (2)",
+    fn: function() {
+        return boxCarSmooth3(testArray, 5)
+    },
+    expected: [ 3.6,  3.4,  3.8,  3.8,  4. ,  3.8,  5.2,  5.2,  5.2,  4.4,  4.6,  3.4,  3.4,
+        3.4,  4.6,  5.2,  6. ,  5.4,  5.6,  4.8,  4.2]});
+
+
+
+
+
+
+
+
 /**
  *  Tests for the linked lists and median filter
  */

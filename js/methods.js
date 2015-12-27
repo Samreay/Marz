@@ -925,7 +925,57 @@ function boxCarSmooth(data, window) {
     }
     return result;
 }
+function boxCarSmooth2(data, window) {
+    var result = [];
+    var num = (window - 1)/2;
+    var r = 1 / window;
+    var tot = 0, i = 0, i1 = 0, i2 = 0;
+    for (i = 0; i < num + 1; i++) {
+        tot += data[0] * r;
+    }
 
+    for (i = 0; i < num; i++) {
+        tot += data[i] * r;
+    }
+    for (i = 0; i < data.length; i++) {
+        i1 = i - num - 1;
+        i2 = i + num;
+        if (i1 < 0) {
+            i1 = 0;
+        }
+        if (i2 > data.length - 1) {
+            i2 = data.length - 1;
+        }
+        tot += (data[i2] - data[i1]) * r;
+        result.push(tot);
+    }
+    return result;
+}
+function boxCarSmooth3(data, window) {
+    var result = [];
+    var num = (window - 1)/2;
+    var r = 1 / window;
+    var tot = 0, i = 0, i1 = 0, i2 = 0, dataLength = data.length, dlmo = dataLength - 1;;
+    for (i = 0; i < num + 1; i++) {
+        tot += data[0] * r;
+    }
+    for (i = 0; i < num; i++) {
+        tot += data[i] * r;
+    }
+    for (i = 0; i < dataLength; i++) {
+        i1 = i - num - 1;
+        i2 = i + num;
+        if (i1 < 0) {
+            i1 = 0;
+        }
+        if (i2 > dlmo) {
+            i2 = dlmo;
+        }
+        tot += (data[i2|0] - data[i1|0]) * r;
+        result.push(tot);
+    }
+    return result;
+}
 function cosineTaper(intensity, zeroPixelWidth, taperWidth) {
     for (var i = 0; i < zeroPixelWidth; i++) {
         var inverse = intensity.length - 1 - i;

@@ -17,7 +17,7 @@ var replacer = function(key, val) {
 };
 
 function runTests(name, tests) {
-    debug("\nStarting " + name + " tests");
+    debug("\nStarting " + name + " tests\n=================================");
     for (var i = 0; i < tests.length; i++) {
         var t = tests[i];
         var failed = 0;
@@ -34,6 +34,8 @@ function runTests(name, tests) {
     }
     if (failed) {
         throw "Error. " + failed + " tests failed";
+    } else {
+        console.log("All " + name + " tests passed\n");
     }
 }
 
