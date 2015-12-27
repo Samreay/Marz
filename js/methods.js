@@ -1113,7 +1113,7 @@ function normaliseMeanDev2(intensity, clipValue) {
         var meanDeviation = absMean(intensity);
         var clipVal = (clipValue + 0.01) * meanDeviation;
         if (absMax(intensity) > clipVal) {
-            for (i = 0; i < intensity.length; i++) {
+            for (i = 0; i < intLength; i++) {
                 if (intensity[i|0] > clipVal) {
                     intensity[i|0] = clipVal;
                 } else if (intensity[i|0] < -clipVal) {

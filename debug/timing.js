@@ -122,8 +122,8 @@ singleTests.getStdDevMask = function() { return getStdDev(medium, mediumMask); }
 
 
 doubleTests.normaliseMeanDev = [
-    function() { inten = medium.slice(); normaliseMeanDev(inten, 25);  return inten; },
-    function() { inten = medium.slice(); normaliseMeanDev2(inten, 25); return inten; }
+    function() { inten = medium.slice(); inten[0] = 1000000; normaliseMeanDev(inten, 25);  return inten; },
+    function() { inten = medium.slice(); inten[0] = 1000000; normaliseMeanDev2(inten, 25); return inten; }
 ];
 
 
