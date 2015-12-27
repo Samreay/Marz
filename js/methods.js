@@ -1054,6 +1054,11 @@ function findMean(data) {
     }
     return result / data.length;
 }
+/**
+ * Returns the mean of the absolute of the input
+ * @param data
+ * @returns {number}
+ */
 function absMean(data) {
     var running = 0, dataLength = data.length, i = 0;
     for (i = 0; i < dataLength; i++) {
@@ -1065,6 +1070,11 @@ function absMean(data) {
     }
     return running / dataLength;
 }
+/**
+ * Returns the maximum value of the absolute of the input.
+ * @param data
+ * @returns {number}
+ */
 function absMax(data) {
     var max = 0, dataLength = data.length;
     for (var i = 0; i < dataLength; i++) {
@@ -1095,6 +1105,27 @@ function normaliseMeanDev(intensity, clipValue) {
     }
     for (var i = 0; i < intensity.length; i++) {
         intensity[i] /= meanDeviation;
+    }
+}
+function normaliseMeanDev2(intensity, clipValue) {
+    var running = true, intLength = intensity.length, i = 0;
+    while (running) {
+        var meanDeviation = absMean(intensity);
+        var clipVal = (clipValue + 0.01) * meanDeviation;
+        if (absMax(intensity) > clipVal) {
+            for (i = 0; i < intensity.length; i++) {
+                if (intensity[i|0] > clipVal) {
+                    intensity[i|0] = clipVal;
+                } else if (intensity[i|0] < -clipVal) {
+                    intensity[i|0] = -clipVal;
+                }
+            }
+        } else {
+            running = false;
+        }
+    }
+    for (i = 0; i < intLength; i++) {
+        intensity[i|0] /= meanDeviation;
     }
 }
 
