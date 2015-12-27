@@ -876,7 +876,13 @@ function removeAddAndFindMedian(head, remove, add, median) {
         current = current[0];
     }
 }
-
+/**
+ * Returns a median filter of window size {{window}}.
+ *
+ * @param data
+ * @param window
+ * @returns {Array}
+ */
 function medianFilter(data, window) {
     var result = [], i = 0;
     var head = [null, null];
@@ -898,6 +904,12 @@ function medianFilter(data, window) {
     }
     return result;
 }
+/**
+ * Returns a boxcar smoothed array of {{data}}, smothing over {{window}} pixels.
+ * @param data
+ * @param window
+ * @returns {Array}
+ */
 function boxCarSmooth(data, window) {
     var result = [];
     var num = (window - 1)/2;
