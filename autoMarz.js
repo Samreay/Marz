@@ -92,7 +92,7 @@ if (cluster.isMaster) {
 
   var p = new ProcessorManager();
   var s = new SpectraManager(data, log);
-  var t = new TemplateManager();
+  var t = new TemplateManager(false);
   var r = new ResultsGenerator(data, t);
   var fl = new FitsFileLoader($q, global, log, p);
   fl.subscribeToInput(s.setSpectra, s);
