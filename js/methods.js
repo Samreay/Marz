@@ -898,60 +898,7 @@ function medianFilter(data, window) {
     }
     return result;
 }
-
 function boxCarSmooth(data, window) {
-    var result = [];
-    var win = [];
-    var running = 0;
-    var num = (window - 1)/2;
-    for (var i = 0; i < num + 2; i++) {
-        win.push(data[0]);
-        running += win[win.length - 1];
-    }
-    for (var i = 0; i < num - 1; i++) {
-        win.push(data[i]);
-        running += win[win.length - 1];
-    }
-    for (var i = 0; i < data.length; i++) {
-        var index = i + num;
-        if (index >= data.length) {
-            win.push(data[data.length - 1]);
-        } else {
-            win.push(data[index]);
-        }
-        running += win[win.length - 1];
-        running -= win.splice(0,1)[0];
-        result.push(running / window);
-    }
-    return result;
-}
-function boxCarSmooth2(data, window) {
-    var result = [];
-    var num = (window - 1)/2;
-    var r = 1 / window;
-    var tot = 0, i = 0, i1 = 0, i2 = 0;
-    for (i = 0; i < num + 1; i++) {
-        tot += data[0] * r;
-    }
-
-    for (i = 0; i < num; i++) {
-        tot += data[i] * r;
-    }
-    for (i = 0; i < data.length; i++) {
-        i1 = i - num - 1;
-        i2 = i + num;
-        if (i1 < 0) {
-            i1 = 0;
-        }
-        if (i2 > data.length - 1) {
-            i2 = data.length - 1;
-        }
-        tot += (data[i2] - data[i1]) * r;
-        result.push(tot);
-    }
-    return result;
-}
-function boxCarSmooth3(data, window) {
     var result = [];
     var num = (window - 1)/2;
     var r = 1 / window;

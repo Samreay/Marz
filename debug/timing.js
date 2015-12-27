@@ -118,11 +118,13 @@ singleTests.stdDevSubtract = function() { return stdDevSubtract(medium, medium2)
 
 //medium = [3,5,4,2,5,3,6,3,9,5,3,2,4,3,5,3,8,7,7,2,4];
 
+/*
 doubleTests.boxcarSmoothing = [
     function() { return boxCarSmooth(medium, 5); },
     function() { return boxCarSmooth2(medium, 5); },
     function() { return boxCarSmooth3(medium, 5); }
 ];
+*/
 
 
 
