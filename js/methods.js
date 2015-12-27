@@ -666,7 +666,7 @@ function rollingPointMean(intensity, numPoints, falloff) {
     }
     return d;
 }
-function getMean(data, mask) {
+function getMean(data) {
     var r = 0, i = 0;
     for (i = 0; i < data.length; i++) {
         r += data[i|0];
@@ -1003,13 +1003,7 @@ function divideByError(intensity, variance) {
         intensity[i] = intensity[i] / variance[i];
     }
 }
-function findMean(data) {
-    var result = 0;
-    for (var i = 0; i < data.length; i++) {
-        result += data[i];
-    }
-    return result / data.length;
-}
+
 /**
  * Returns the mean of the absolute of the input
  * @param data
@@ -1085,7 +1079,7 @@ function subtractMeanReject(final, trimAmount) {
     var num = Math.floor((trimAmount * final.length)/2);
     var sorted = final.slice().sort(function(a,b) { return a-b });
     sorted = sorted.splice(num, sorted.length - (2*num));
-    var mean = findMean(sorted);
+    var mean = getMean(sorted);
     for (var i = 0; i < final.length; i++) {
         final[i] -= mean;
     }
