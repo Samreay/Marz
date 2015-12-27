@@ -950,50 +950,7 @@ function cosineTaper(intensity, zeroPixelWidth, taperWidth) {
 function taperSpectra(intensity) {
     cosineTaper(intensity, zeroPixelWidth, taperWidth);
 }
-function broadenError(data, window) {
-    var result = [];
-    var win = [];
-    var num = (window - 1)/2;
-
-    for (var i = 0; i < data.length; i++) {
-        if (data[i] < max_error) {
-            while (win.length < num + 2) {
-                win.push(data[i]);
-            }
-            break;
-        }
-    }
-    for (var i = 0; i < data.length; i++) {
-        if (win.length < window) {
-            if (data[i] < max_error) {
-                win.push(data[i]);
-            }
-        } else {
-            break;
-        }
-    }
-    for (var i = 0; i < data.length; i++) {
-        if (data[i] < max_error) {
-            var index = i + num;
-            while (index < data.length && data[index] >= max_error) {
-                index++;
-            }
-            if (index >= data.length) {
-                win.push(win[win.length - 1]);
-            } else {
-                win.push(data[index]);
-            }
-            win.splice(0, 1);
-            result.push(win.slice().sort(function(a,b){return b-a;})[0]);
-        } else {
-            result.push(data[i]);
-        }
-    }
-    for (var i = 0; i < result.length; i++) {
-        data[i] = result[i];
-    }
-}
-function broadenError2(data) {
+function broadenError(data) {
     var result = [];
     var prior = data[0];
     var current = data[0];
@@ -1070,7 +1027,7 @@ function adjustError(variance) {
     for (var i = 0; i < variance.length; i++) {
         variance[i] = Math.sqrt(variance[i]);
     }
-    broadenError2(variance);
+    broadenError(variance);
     maxMedianAdjust(variance, errorMedianWindow, errorMedianWeight);
     for (i = 0; i < variance.length; i++) {
         variance[i] = variance[i] * variance[i];

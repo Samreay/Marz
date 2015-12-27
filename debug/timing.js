@@ -120,13 +120,13 @@ singleTests.getStdDevMask = function() { return getStdDev(medium, mediumMask); }
 
 //medium = [3,5,4,2,5,3,6,3,9,5,3,2,4,3,5,3,8,7,7,2,4];
 
-
+/*
 doubleTests.broadenError = [
     function() { inten = im.variance.slice(); broadenError(inten, 3);  return inten; },
     function() { inten = im.variance.slice(); broadenError2(inten); return inten; }
 ];
 
-
+*/
 
 
 
