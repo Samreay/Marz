@@ -1087,27 +1087,6 @@ function absMax(data) {
     return max;
 }
 function normaliseMeanDev(intensity, clipValue) {
-    var running = true;
-    while (running) {
-        var meanDeviation = absMean(intensity);
-        var clipVal = (clipValue + 0.01) * meanDeviation;
-        if (absMax(intensity) > clipVal) {
-            for (var i = 0; i < intensity.length; i++) {
-                if (intensity[i] > clipVal) {
-                    intensity[i] = clipVal;
-                } else if (intensity[i] < -clipVal) {
-                    intensity[i] = -clipVal;
-                }
-            }
-        } else {
-            running = false;
-        }
-    }
-    for (var i = 0; i < intensity.length; i++) {
-        intensity[i] /= meanDeviation;
-    }
-}
-function normaliseMeanDev2(intensity, clipValue) {
     var running = true, intLength = intensity.length, i = 0;
     while (running) {
         var meanDeviation = absMean(intensity);
