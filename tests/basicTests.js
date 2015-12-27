@@ -53,7 +53,7 @@ tests.push({
 tests.push({
     name: "absMax test",
     fn: function() {
-        return absMax3(testArray2)
+        return absMax(testArray2)
     },
     expected: 10});
 
