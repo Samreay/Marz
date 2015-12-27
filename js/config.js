@@ -57,6 +57,7 @@ var returnedMax = 1024;
 
 // CONFIG FOR XCORR NORMALISATION
 var trimAmount = 0.04;
+var trimStd = 2;
 
 // CONFIG FOR QUASAR WEIGHTING
 // CURRENTLY NOT UTILISED

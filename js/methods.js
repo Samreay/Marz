@@ -1062,11 +1062,12 @@ function normalise(intensity) {
     normaliseMeanDev(intensity, clipValue);
 }
 function circShift(data, num) {
-    var temp = data.slice();
+    var result = new Array(data.length);
     var l = data.length;
     for (var i = 0; i < l; i++) {
-        data[i] = temp[(i + num) % l];
+        result[i|0] = data[((i + num) % l)|0];
     }
+    return result;
 }
 
 function pruneResults(final, template) {
@@ -1082,6 +1083,18 @@ function subtractMeanReject(final, trimAmount) {
     var mean = getMean(sorted);
     for (var i = 0; i < final.length; i++) {
         final[i] -= mean;
+    }
+}
+function subtractMeanReject2(final, stdDev) {
+    var mask = [], finalLength = final.length, i = 0;
+    var cutoff = stdDev * getStdDev(final);
+    var mean = getMean(final);
+    for (i = 0; i < finalLength; i++) {
+        mask.push((final[i|0] - mean) < cutoff && (final[i|0] - mean) > -cutoff);
+    }
+    var maskedMean = getMeanMask(final, mask);
+    for (i = 0; i < finalLength; i++) {
+        final[i|0] -= maskedMean;
     }
 }
 function getPeaks(final, both) {
@@ -1158,7 +1171,7 @@ function rmsNormalisePeaks(final) {
     }
 }
 function normaliseXCorr(final) {
-    subtractMeanReject(final, trimAmount);
+    subtractMeanReject2(final, trimStd);
     rmsNormalisePeaks(final);
     return final;
 }
@@ -1188,21 +1201,8 @@ function getFit(template, xcor, val) {
     return getRedshiftForNonIntegerIndex(template, fitAroundIndex(xcor, bestIndex));
 }
 
-
-/**
- * Determines the cross correlation (and peaks in it) between a spectra and a template
- *
- * @param template A template data structure from the template manager. Will contain a pre-transformed
- * template spectrum (this is why initialising TemplateManager is so slow).
- * @param fft the Fourier transformed spectra
- * @returns {{id: String, zs: Array, xcor: Array, peaks: Array}} a data structure containing the id of the template, the redshifts of the template, the xcor
- * results of the template and a list of peaks in the xcor array.
- */
-function matchTemplate(template, fft) {
-    var fftNew = fft.multiply(template.fft);
-    var final = fftNew.inverse();
-    final = Array.prototype.slice.call(final);
-    circShift(final, final.length/2);
+function extractResults(template, final) {
+    final = circShift(final, final.length/2);
     final = pruneResults(final, template);
     normaliseXCorr(final);
 
@@ -1218,6 +1218,21 @@ function matchTemplate(template, fft) {
         xcor: final,
         peaks: finalPeaks
     };
+}
+/**
+ * Determines the cross correlation (and peaks in it) between a spectra and a template
+ *
+ * @param template A template data structure from the template manager. Will contain a pre-transformed
+ * template spectrum (this is why initialising TemplateManager is so slow).
+ * @param fft the Fourier transformed spectra
+ * @returns {{id: String, zs: Array, xcor: Array, peaks: Array}} a data structure containing the id of the template, the redshifts of the template, the xcor
+ * results of the template and a list of peaks in the xcor array.
+ */
+function matchTemplate(template, fft) {
+    var fftNew = fft.multiply(template.fft);
+    var final = fftNew.inverse();
+
+    return extractResults(template, final)
 }
 
 /**
