@@ -793,6 +793,7 @@ angular.module('servicesZ', ['dialogs.main'])
         self.setProcessTogether = function(value) {
             processTogether = value;
             cookieService.setCookie(processTogetherCookie, processTogether);
+            self.processorManager.setProcessTogether(value);
         };
         var processTogether = cookieService.registerCookieValue(processTogetherCookie, self.getDefaultProcessType());
         self.processorManager.setProcessTogether(processTogether);
