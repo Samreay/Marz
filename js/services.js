@@ -238,7 +238,7 @@ angular.module('servicesZ', ['dialogs.main'])
         };
         self.setAssignAutoQOPs = function(value) {
             self.spectraManager.setAssignAutoQOPs(value);
-            cookieService.setCookie(assignAutoQOPsCookie, assignAutoQOPs);
+            cookieService.setCookie(assignAutoQOPsCookie, value);
         };
         self.getAssignAutoQOPs = function() {
             return self.spectraManager.autoQOPs;
