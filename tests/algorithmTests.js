@@ -1,10 +1,8 @@
 
 console.log("Loading dependencies for algorithms");
-var fs = require('fs');
-var dependencies = ['./js/config.js', './js/tools.js', './js/methods.js', './lib/regression.js', './js/classes.js'];
-//dependencies.push('./js/workerMethods.js');
+var dependencies = ['../js/methods.js'];
 for (var i = 0; i < dependencies.length; i++) {
-    eval(fs.readFileSync("../" + dependencies[i]) + '');
+    require(dependencies[i])();
 }
 console.log("Dependencies loaded\n");
 

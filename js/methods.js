@@ -1220,6 +1220,20 @@ module.exports = function() {
     this.fitAroundIndex = fitAroundIndex;
     this.getRedshiftForNonIntegerIndex = getRedshiftForNonIntegerIndex;
     this.defaultFor = defaultFor;
+    this.getMean = getMean;
+    this.getMeanMask = getMeanMask;
+    this.getStdDev = getStdDev;
+    this.getStdDevMask = getStdDevMask;
+    this.absMean = absMean;
+    this.absMax = absMax;
+    this.boxCarSmooth = boxCarSmooth;
+    this.medianFilter = medianFilter;
+    this.addAllToSorted = addAllToSorted;
+    this.removeAddAndFindMedian = removeAddAndFindMedian;
+    this.getList = getList;
+    this.broadenError = broadenError;
+    this.maxMedianAdjust = maxMedianAdjust;
+    this.broadenError = broadenError;
 };
 
 

@@ -12,11 +12,11 @@ var getTime = function() {
 };
 debug("Loading dependancies");
 var fs = require('fs');
-var dependencies = ['./js/config.js', './lib/fits.js', './js/tools.js', './js/methods.js', './lib/dsp.js', './lib/regression.js', './js/templates.js', './js/classes.js'];
-//dependencies.push('./js/workerMethods.js');
+var dependencies = ['../js/methods.js'];
 for (var i = 0; i < dependencies.length; i++) {
-    eval(fs.readFileSync("../" + dependencies[i]) + '');
+    require(dependencies[i])();
 }
+
 debug("Dependencies loaded\n");
 var node = true;
 
@@ -48,7 +48,7 @@ initData();
 
 im.matching = false;
 var timeFunction = function(name, func, num) {
-    num = defaultFor(num, 200);
+    num = defaultFor(num, 50);
     var times = [];
     for (var i = 0; i < num; i++) {
         var t = getTime();
@@ -108,15 +108,14 @@ var doubleTests = {};
 
 /* TEST CASES BELOW */
 
-/*
+
 singleTests.getMean = function() { return getMean(large); };
 singleTests.getMeanMask = function() { return getMeanMask(large, largeMask); };
-singleTests.getStdDev = function() { return getStdDev(medium); };
-singleTests.getStdDevMask = function() { return getStdDev(medium, mediumMask); };
- singleTests.stdDevSubtract = function() { return stdDevSubtract(medium, medium2); };
- singleTests.absMean = function() { return absMean(medium); };
- singleTests.absMax = function() { return absMax(medium); };
-*/
+singleTests.getStdDev = function() { return getStdDev(large); };
+singleTests.getStdDevMask = function() { return getStdDev(large, largeMask); };
+singleTests.absMean = function() { return absMean(large); };
+singleTests.absMax = function() { return absMax(large); };
+
 
 //medium = [3,5,4,2,5,3,6,3,9,5,3,2,4,3,5,3,8,7,7,2,4];
 
