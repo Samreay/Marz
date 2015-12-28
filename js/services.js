@@ -238,7 +238,7 @@ angular.module('servicesZ', ['dialogs.main'])
         };
         self.setAssignAutoQOPs = function(value) {
             self.spectraManager.setAssignAutoQOPs(value);
-            cookieService.setCookie(assignAutoQOPsCookie, assignAutoQOPs);
+            cookieService.setCookie(assignAutoQOPsCookie, value);
         };
         self.getAssignAutoQOPs = function() {
             return self.spectraManager.autoQOPs;
@@ -793,12 +793,13 @@ angular.module('servicesZ', ['dialogs.main'])
         self.setProcessTogether = function(value) {
             processTogether = value;
             cookieService.setCookie(processTogetherCookie, processTogether);
+            self.processorManager.setProcessTogether(value);
         };
         var processTogether = cookieService.registerCookieValue(processTogetherCookie, self.getDefaultProcessType());
         self.processorManager.setProcessTogether(processTogether);
 
         self.setDefaultNumberOfCores = function() {
-            var defaultValue = 3;
+            var defaultValue = 2;
             try {
                 if (navigator != null && navigator.hardwareConcurrency != null) {
                     defaultValue = navigator.hardwareConcurrency;

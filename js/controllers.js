@@ -697,7 +697,7 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
         };
         $scope.updateNumAutomatic = function() {
             resultsGeneratorService.setNumAutomatic($scope.numberAutomatic);
-        }
+        };
         $scope.updateNumberProcessors = function() {
             if (isInt($scope.numberOfCores)) {
                 processorService.setNumberProcessors($scope.numberOfCores);
