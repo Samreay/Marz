@@ -24,12 +24,11 @@ var cluster = require('cluster');
 var fs = require('fs');
 var $q = require('q');
 debug("Loading dependancies");
-var dependencies = ['./js/config.js', './lib/fits.js', './js/tools.js', './js/methods.js', './lib/regression.js', './js/templates.js', './js/classes.js'];
+var dependencies = [ './js/templates.js', './js/classes.js'];
 for (var i = 0; i < dependencies.length; i++) {
-  eval(fs.readFileSync(dependencies[i]) + '');
+  require(dependencies[i])();
 }
-var astro = this.astro;
-
+eval(fs.readFileSync("./js/extension.js") + '');
 var debugFlag = argv['debug'] == true;
 
 

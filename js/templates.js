@@ -1,3 +1,8 @@
+var deps = ["./methods", "../lib/dsp"];
+for (var i = 0; i < deps.length; i++) {
+    require(deps[i])();
+}
+
 function TemplateManager(process) {
     if (typeof process == "undefined") {
         process = true;
@@ -287,8 +292,8 @@ TemplateManager.prototype.processTemplates = function () {
         }
         // We will create the data to be used for matching only when called for, so the UI does not waste time.
     }
-    this.logLambda = linearScale(startPower, endPower, arraySize);
-    this.logLambdaQ = linearScale(startPowerQ, endPowerQ, arraySize);
+    this.logLambda = linearScale(globalConfig.startPower, globalConfig.endPower, globalConfig.arraySize);
+    this.logLambdaQ = linearScale(globalConfig.startPowerQ, globalConfig.endPowerQ, globalConfig.arraySize);
     this.processed = true;
     this.setInactiveTemplates(this.inactiveArray);
 };
@@ -342,4 +347,8 @@ TemplateManager.prototype.shiftTemplate = function(t) {
         }
     }
     t.zs = t.zs.slice(t.startZIndex, t.endZIndex);
+};
+
+module.exports = function() {
+    this.TemplateManager = TemplateManager;
 };

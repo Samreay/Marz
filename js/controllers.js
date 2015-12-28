@@ -6,7 +6,7 @@
 
 angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
     .controller('NavbarController', ['$scope', '$state', 'personalService', 'global', function($scope, $state, personalService, global) {
-        $scope.marzVersion = marzVersion;
+        $scope.marzVersion = globalConfig.marzVersion;
         $scope.states = [
             {name: 'overview', icon: "th"},
             {name: 'detailed', icon: "signal"},
