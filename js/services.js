@@ -799,7 +799,7 @@ angular.module('servicesZ', ['dialogs.main'])
         self.processorManager.setProcessTogether(processTogether);
 
         self.setDefaultNumberOfCores = function() {
-            var defaultValue = 3;
+            var defaultValue = 2;
             try {
                 if (navigator != null && navigator.hardwareConcurrency != null) {
                     defaultValue = navigator.hardwareConcurrency;
