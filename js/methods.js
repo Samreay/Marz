@@ -619,8 +619,9 @@ function polyFitReject(lambda, intensity, interactions, threshold, polyDegree) {
     for (i = 0; i < intLength; i++) {
         mask[i|0] = 1;
     }
+    var dataPowered = getDataPowered(lambda, polyDegree);
     for (i = 0; i < interactions; i++) {
-        var fit = polynomial3(lambda, intensity, polyDegree, mask);
+        var fit = polynomial3(lambda, intensity, polyDegree, mask, dataPowered);
         var subtracted = getNewSubtract(intensity, fit.points);
         stdDev = getStdDevMask(subtracted, mask);
         cutoff = stdDev * threshold;

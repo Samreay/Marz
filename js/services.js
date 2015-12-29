@@ -782,7 +782,7 @@ angular.module('servicesZ', ['dialogs.main'])
         var processTogetherCookie = "processTogether";
 
         self.getDefaultProcessType = function() {
-            return false;
+            return true;
         };
         self.getProcessTogether = function() {
             return processTogether;

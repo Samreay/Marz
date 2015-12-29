@@ -106,15 +106,23 @@ self.processData = function(lambda, intensity, variance) {
  */
 self.matchTemplates = function(lambda, intensity, variance, type) {
 
-    var quasarIntensity = intensity.slice();
-    var quasarVariance = variance.slice();
-    quasarIntensity = rollingPointMean(quasarIntensity, globalConfig.rollingPointWindow, globalConfig.rollingPointDecay);
-    taperSpectra(quasarIntensity);
-    quasarVariance = medianAndBoxcarSmooth(quasarVariance, globalConfig.quasarVarianceMedian, globalConfig.quasarVarianceBoxcar);
-    addMinMultiple(quasarVariance, globalConfig.quasarMinMultiple);
-    divideByError(quasarIntensity, quasarVariance);
-    taperSpectra(quasarIntensity);
-    normalise(quasarIntensity);
+    var quasarFFT = null;
+    if (templateManager.isQuasarActive()) {
+        var quasarIntensity = intensity.slice();
+        var quasarVariance = variance.slice();
+        quasarIntensity = rollingPointMean(quasarIntensity, globalConfig.rollingPointWindow, globalConfig.rollingPointDecay);
+        taperSpectra(quasarIntensity);
+        quasarVariance = medianAndBoxcarSmooth(quasarVariance, globalConfig.quasarVarianceMedian, globalConfig.quasarVarianceBoxcar);
+        addMinMultiple(quasarVariance, globalConfig.quasarMinMultiple);
+        divideByError(quasarIntensity, quasarVariance);
+        taperSpectra(quasarIntensity);
+        normalise(quasarIntensity);
+        var quasarResult = convertLambdaToLogLambda(lambda, quasarIntensity, globalConfig.arraySize, true);
+        quasarIntensity = quasarResult.intensity;
+        quasarFFT = new FFT(quasarIntensity.length, quasarIntensity.length);
+        quasarFFT.forward(quasarIntensity);
+    }
+
 
     // The intensity variable is what will match every other template
     taperSpectra(intensity);
@@ -130,15 +138,11 @@ self.matchTemplates = function(lambda, intensity, variance, type) {
     // This rebins (oversampling massively) into an equispaced log array. To change the size and range of
     // this array, have a look at the config.js file.
     var result = convertLambdaToLogLambda(lambda, intensity, globalConfig.arraySize, false);
-    var quasarResult = convertLambdaToLogLambda(lambda, quasarIntensity, globalConfig.arraySize, true);
-    quasarIntensity = quasarResult.intensity;
     intensity = result.intensity;
 
     // Fourier transform both the intensity and quasarIntensity variables
     var fft = new FFT(intensity.length, intensity.length);
     fft.forward(intensity);
-    var quasarFFT = new FFT(quasarIntensity.length, quasarIntensity.length);
-    quasarFFT.forward(quasarIntensity);
 
     // For each template, match the appropriate transform
     var templateResults = templateManager.templates.map(function(template) {

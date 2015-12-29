@@ -67,15 +67,21 @@ var path = require('path');
 var cluster = require('cluster');
 var fs = require('fs');
 var $q = require('q');
-eval(fs.readFileSync("./js/extension.js") + '');
+var appPath = __dirname;
+
+eval(fs.readFileSync(path.join(appPath, "./js/extension.js")) + '');
 
 
 
 var args = require('minimist')(process.argv.slice(2));
-var argv = require('./autoConfig.js');
+var argv = require(path.join(appPath, './autoConfig.js'));
 
 for (var att in args) {
-  argv[att] = args[att];
+  if (typeof argv[att] == "string" || att == "_") {
+    argv[att] = args[att];
+  } else {
+    argv[att] = JSON.parse(args[att]);
+  }
 }
 
 var debugFlag = Boolean(argv['debug']);
@@ -88,7 +94,7 @@ if (cluster.isMaster) {
   debug("Loading dependancies");
   var dependencies = [ './js/templates.js', './js/classes.js'];
   for (var i = 0; i < dependencies.length; i++) {
-    require(dependencies[i])();
+    require(path.join(appPath, dependencies[i]))();
   }
 
   var filenames = argv['_'];

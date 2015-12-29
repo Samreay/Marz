@@ -3,12 +3,13 @@
 
 
 try {
+    var path = require('path');
+    var appPath = __dirname;
     var fs = require('fs');
-    eval(fs.readFileSync("./lib/fits.js") + '');
+    eval(fs.readFileSync(path.join(appPath, "../lib/fits.js")) + '');
     var astro = this.astro;
     var $q = require("q");
 } catch (err) {
-
 }
 var deps = ["./config", "./methods"];
 for (var i = 0; i < deps.length; i++) {

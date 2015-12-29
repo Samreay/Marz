@@ -199,16 +199,25 @@ TemplateManager.prototype.getInactiveTemplates = function() {
     return this.inactiveArray;
 };
 TemplateManager.prototype.setInactiveTemplates = function(inactiveList) {
+    for (var i = 0; i < inactiveList; i++) {
+        if (typeof inactiveList[i] == "number") {
+            inactiveList[i] = inactiveList[i].toFixed(0);
+        }
+    }
     this.inactiveArray = inactiveList;
     this.templates = [];
     for (var i = 0; i < this.originalTemplates.length; i++) {
         var t = this.originalTemplates[i];
         if (this.inactiveArray.indexOf(t.id) == -1) {
             this.templates.push(t);
+            t.inactive = false;
         } else {
             t.inactive = true;
         }
     }
+};
+TemplateManager.prototype.isQuasarActive = function() {
+  return this.inactiveArray.indexOf("12") == -1;
 };
 TemplateManager.prototype.getInactiveTemplatesCookie = function() {
     var res = [];
