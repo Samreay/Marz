@@ -2,6 +2,10 @@
  * ANY CHANGES OF THIS FILE MUST BE CONVEYED IN A VERSION INCREMENT
  * OF marzVersion IN config.js!
  ******************************************************************/
+var deps = ["./templates.js"];
+for (var i = 0; i < deps.length; i++) {
+    require(deps[i])();
+}
 
 var templateManager = new TemplateManager();
 var shifted_temp = false;
@@ -54,6 +58,13 @@ function handleEvent(data) {
  * @returns the input data data structure with a continuum property added
  */
 self.process = function(data) {
+
+    if (!node) {
+        data.processedVariancePlot = data.variance.slice();
+        removeNaNs(data.processedVariancePlot);
+        clipVariance(data.processedVariancePlot);
+        normaliseViaShift(data.processedVariancePlot, 0, globalConfig.varianceHeight, null);
+    }
     data.continuum = self.processData(data.lambda, data.intensity, data.variance);
     return data;
 };
@@ -95,15 +106,23 @@ self.processData = function(lambda, intensity, variance) {
  */
 self.matchTemplates = function(lambda, intensity, variance, type, helio) {
 
-    var quasarIntensity = intensity.slice();
-    var quasarVariance = variance.slice();
-    rollingPointMean(quasarIntensity, rollingPointWindow, rollingPointDecay);
-    taperSpectra(quasarIntensity);
-    quasarVariance = medianAndBoxcarSmooth(quasarVariance, quasarVarianceMedian, quasarVarianceBoxcar);
-    addMinMultiple(quasarVariance, quasarMinMultiple);
-    divideByError(quasarIntensity, quasarVariance);
-    taperSpectra(quasarIntensity);
-    normalise(quasarIntensity);
+    var quasarFFT = null;
+    if (templateManager.isQuasarActive()) {
+        var quasarIntensity = intensity.slice();
+        var quasarVariance = variance.slice();
+        quasarIntensity = rollingPointMean(quasarIntensity, globalConfig.rollingPointWindow, globalConfig.rollingPointDecay);
+        taperSpectra(quasarIntensity);
+        quasarVariance = medianAndBoxcarSmooth(quasarVariance, globalConfig.quasarVarianceMedian, globalConfig.quasarVarianceBoxcar);
+        addMinMultiple(quasarVariance, globalConfig.quasarMinMultiple);
+        divideByError(quasarIntensity, quasarVariance);
+        taperSpectra(quasarIntensity);
+        normalise(quasarIntensity);
+        var quasarResult = convertLambdaToLogLambda(lambda, quasarIntensity, globalConfig.arraySize, true);
+        quasarIntensity = quasarResult.intensity;
+        quasarFFT = new FFT(quasarIntensity.length, quasarIntensity.length);
+        quasarFFT.forward(quasarIntensity);
+    }
+
 
     // The intensity variable is what will match every other template
     taperSpectra(intensity);
@@ -118,16 +137,12 @@ self.matchTemplates = function(lambda, intensity, variance, type, helio) {
 
     // This rebins (oversampling massively) into an equispaced log array. To change the size and range of
     // this array, have a look at the config.js file.
-    var result = convertLambdaToLogLambda(lambda, intensity, arraySize, false);
-    var quasarResult = convertLambdaToLogLambda(lambda, quasarIntensity, arraySize, true);
-    quasarIntensity = quasarResult.intensity;
+    var result = convertLambdaToLogLambda(lambda, intensity, globalConfig.arraySize, false);
     intensity = result.intensity;
 
     // Fourier transform both the intensity and quasarIntensity variables
     var fft = new FFT(intensity.length, intensity.length);
     fft.forward(intensity);
-    var quasarFFT = new FFT(quasarIntensity.length, quasarIntensity.length);
-    quasarFFT.forward(quasarIntensity);
 
     // For each template, match the appropriate transform
     var templateResults = templateManager.templates.map(function(template) {
@@ -213,6 +228,7 @@ self.coalesceResults = function(templateResults, type, intensity, fft, quasarFFT
         };
     }
     var templates = {};
+    var returnedMax = globalConfig.returnedMax;
     for (var i = 0; i < templateResults.length; i++) {
         var tr = templateResults[i];
         var numCondense = Math.ceil(tr.zs.length / returnedMax);
@@ -292,3 +308,7 @@ self.getAutoQOP = function(coalesced) {
     }
     return (pqop > 2 && isStar ? 6 : pqop);
 };
+
+module.exports = function() {
+    this.handleEvent = handleEvent;
+}

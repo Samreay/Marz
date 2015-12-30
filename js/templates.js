@@ -1,4 +1,12 @@
-function TemplateManager() {
+var deps = ["./methods", "../lib/dsp"];
+for (var i = 0; i < deps.length; i++) {
+    require(deps[i])();
+}
+
+function TemplateManager(process) {
+    if (typeof process == "undefined") {
+        process = true;
+    }
     /**
      * The list of templates in the application.
      *
@@ -170,7 +178,9 @@ function TemplateManager() {
     }
     this.templateEnabledCookieKey = 'tenabled';
     this.inactiveArray = this.getInactiveTemplatesCookie();
-    this.processTemplates();
+    if (process) {
+        this.processTemplates();
+    }
 }
 TemplateManager.prototype.updateActiveTemplates = function() {
     this.templates = [];
@@ -189,16 +199,25 @@ TemplateManager.prototype.getInactiveTemplates = function() {
     return this.inactiveArray;
 };
 TemplateManager.prototype.setInactiveTemplates = function(inactiveList) {
+    for (var i = 0; i < inactiveList; i++) {
+        if (typeof inactiveList[i] == "number") {
+            inactiveList[i] = inactiveList[i].toFixed(0);
+        }
+    }
     this.inactiveArray = inactiveList;
     this.templates = [];
     for (var i = 0; i < this.originalTemplates.length; i++) {
         var t = this.originalTemplates[i];
         if (this.inactiveArray.indexOf(t.id) == -1) {
             this.templates.push(t);
+            t.inactive = false;
         } else {
             t.inactive = true;
         }
     }
+};
+TemplateManager.prototype.isQuasarActive = function() {
+  return this.inactiveArray.indexOf("12") == -1;
 };
 TemplateManager.prototype.getInactiveTemplatesCookie = function() {
     var res = [];
@@ -282,8 +301,8 @@ TemplateManager.prototype.processTemplates = function () {
         }
         // We will create the data to be used for matching only when called for, so the UI does not waste time.
     }
-    this.logLambda = linearScale(startPower, endPower, arraySize);
-    this.logLambdaQ = linearScale(startPowerQ, endPowerQ, arraySize);
+    this.logLambda = linearScale(globalConfig.startPower, globalConfig.endPower, globalConfig.arraySize);
+    this.logLambdaQ = linearScale(globalConfig.startPowerQ, globalConfig.endPowerQ, globalConfig.arraySize);
     this.processed = true;
     this.setInactiveTemplates(this.inactiveArray);
 };
@@ -337,4 +356,8 @@ TemplateManager.prototype.shiftTemplate = function(t) {
         }
     }
     t.zs = t.zs.slice(t.startZIndex, t.endZIndex);
+};
+
+module.exports = function() {
+    this.TemplateManager = TemplateManager;
 };

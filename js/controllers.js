@@ -6,7 +6,7 @@
 
 angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
     .controller('NavbarController', ['$scope', '$state', 'personalService', 'global', function($scope, $state, personalService, global) {
-        $scope.marzVersion = marzVersion;
+        $scope.marzVersion = globalConfig.marzVersion;
         $scope.states = [
             {name: 'overview', icon: "th"},
             {name: 'detailed', icon: "signal"},
@@ -701,7 +701,7 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
         };
         $scope.updateNumAutomatic = function() {
             resultsGeneratorService.setNumAutomatic($scope.numberAutomatic);
-        }
+        };
         $scope.updateNumberProcessors = function() {
             if (isInt($scope.numberOfCores)) {
                 processorService.setNumberProcessors($scope.numberOfCores);

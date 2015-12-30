@@ -1,6 +1,124 @@
-var normalised_height = 1000;
-var normalised_area = 100000;
+var deps = ["./config", "../lib/regression.js", "../lib/dsp"];
+for (var i = 0; i < deps.length; i++) {
+    require(deps[i])();
+}
 
+
+function binarySearch(data, val) {
+    var highIndex = data.length - 1;
+    var lowIndex = 0;
+    while (highIndex > lowIndex) {
+        var index = Math.floor((highIndex + lowIndex) / 2);
+        var sub = data[index];
+        if (data[lowIndex] == val) {
+            return [lowIndex, lowIndex];
+        } else if (sub == val) {
+            return [index, index];
+        } else if (data[highIndex] == val) {
+            return [highIndex, highIndex];
+        } else if (sub > val) {
+            if (highIndex == index) {
+                return [lowIndex, highIndex];
+            }
+            highIndex = index
+        } else {
+            if (lowIndex == index) {
+                return [lowIndex, highIndex];
+            }
+            lowIndex = index
+        }
+    }
+    return [lowIndex, highIndex];
+}
+
+function getMax(array, lower, upper) {
+    if (typeof lower === "undefined") lower = 0;
+    if (typeof upper === "undefined") upper = array.length;
+    var max = -9e19;
+    for (var i = lower; i < upper; i++) {
+        if (array[i] > max) {
+            max = array[i];
+        }
+    }
+    return max;
+}
+function getMin(array, lower, upper) {
+    if (typeof lower === "undefined") lower = 0;
+    if (typeof upper === "undefined") upper = array.length;
+    var min = 9e19;
+    for (var i = lower; i < upper; i++) {
+        if (array[i] < min) {
+            min = array[i];
+        }
+    }
+    return min;
+}
+
+// SOURCED FROM http://www.csgnetwork.com/julianmodifdateconv.html
+/**
+ *
+ * @param mjd_in the MJD date in
+ * @returns {string} the 'YYYY-MM-dd' date format
+ */
+function MJDtoYMD(mjd_in) {
+    var year;
+    var month;
+    var day;
+    var hour;
+    var jd;
+    var jdi;
+    var jdf;
+    var l;
+    var n;
+
+
+    // Julian day
+    jd = Math.floor(mjd_in) + 2400000.5;
+
+    // Integer Julian day
+    jdi = Math.floor(jd);
+
+    // Fractional part of day
+    jdf = jd - jdi + 0.5;
+
+    if (jdf >= 1.0) {
+        jdi = jdi + 1;
+    }
+    l = jdi + 68569;
+    n = Math.floor(4 * l / 146097);
+
+    l = Math.floor(l) - Math.floor((146097 * n + 3) / 4);
+    year = Math.floor(4000 * (l + 1) / 1461001);
+
+    l = l - (Math.floor(1461 * year / 4)) + 31;
+    month = Math.floor(80 * l / 2447);
+
+    day = l - Math.floor(2447 * month / 80);
+
+    l = Math.floor(month / 11);
+
+    month = Math.floor(month + 2 - 12 * l);
+    year = Math.floor(100 * (n - 49) + year + l);
+
+    if (month < 10)
+        month = "0" + month;
+
+    if (day < 10)
+        day = "0" + day;
+    return year + "-" + month + "-" + day;
+}
+
+function defaultFor(arg, val) {
+    return typeof arg !== 'undefined' ? arg : val;
+}
+
+function range(start, stop, step) {
+    var result = [];
+    for (var i = start; i < stop; i += step) {
+        result.push(i);
+    }
+    return result;
+}
 
 /**
  * Converts a single wavelength in Angstroms from air to vacuum
@@ -76,9 +194,9 @@ function shiftWavelength(lambda, z) {
  * @param intensity
  */
 function convertLambdaToLogLambda(lambda, intensity, numel, quasar) {
-    if (typeof numel === 'undefined') numel = arraySize;
-    var s = quasar ? startPowerQ : startPower;
-    var e = quasar ? endPowerQ : endPower;
+    if (typeof numel === 'undefined') numel = globalConfig.arraySize;
+    var s = quasar ? globalConfig.startPowerQ : globalConfig.startPower;
+    var e = quasar ? globalConfig.endPowerQ : globalConfig.endPower;
     var logLambda = linearScale(s, e, numel);
     var rescale = logLambda.map(function(x) { return Math.pow(10, x);});
     var newIntensity = interpolate(rescale, lambda, intensity);
@@ -127,96 +245,7 @@ function fastSmooth(y, num) {
     return d;
 }
 
-/**
- * Normalises a set of arrays containing x and y coordinates respectively such that the
- * returned result only contains elements between the bounds, and the y bounds are normalised
- * to the input height relative to a minimum value.
- *
- * @param xs
- * @param ys
- * @param xMin
- * @param xMax
- * @param yMin
- * @param height
- * @returns {{xs: Array, ys: Array}}
- */
-function normaliseSection(xs, ys, xMin, xMax, yMin, height) {
-    var xBounds = getXBounds(xs, xMin, xMax);
-    var bounds = findMinAndMaxSubset(ys, xBounds.start, xBounds.end);
-    var r = height/(bounds.max - bounds.min);
-    var xss = xs.slice(xBounds.start, xBounds.end);
-    var yss = ys.slice(xBounds.start, xBounds.end);
-    for (var i = 0; i < yss.length; i++) {
-        yss[i] = yMin + r * (yss[i] - bounds.min);
-    }
-    return {xs: xss, ys: yss};
 
-}
-
-/**
- * Takes an input array of x values and returns indexes corresponding to the first and last index
- * that has the x value within the specific bounds
- *
- * @param xs
- * @param xMin
- * @param xMax
- * @returns {{start: {Number}, end: {Number}}}
- */
-function getXBounds(xs, xMin, xMax) {
-    //TODO: Log time complexity should be easy to do here if ordered
-    var start = null;
-    var end = null;
-    for (var i = 0; i < xs.length; i++) {
-        if (xs[i] > xMin && start == null) {
-            start = i - 1;
-        }
-        if (xs[i] > xMax && end == null) {
-            end = i + 1;
-        }
-    }
-    if (start == null) {
-        start = xs.length - 1;
-    } else if (start < 0) {
-        start = 0;
-    }
-    if (end == null) {
-        end = xs.length;
-    } else if (end < 0) {
-        end = 0;
-    }
-    return {start: start, end: end};
-}
-/**
- * In place normalises the input array (and variance) such that the array
- * is a specific area in size, and returns the calculated normalisation ratio.
- * @param array
- * @param variance
- * @param val
- * @returns {number}
- */
-function normaliseViaArea(array, variance, val) {
-    var a = val == null ? normalised_area : val;
-    var area = getAreaInArray(array, 0, array.length - 1);
-    if (area == 0) return;
-    var r = a / area;
-    for (var j = 0; j < array.length; j++) {
-        array[j] = array[j] * r;
-        if (variance != null) {
-            variance[j] = variance[j] * r;
-        }
-    }
-    return r;
-}
-/**
- * In place scales an array to the scale factor given.
- * @param array
- * @param r
- */
-function scale(array, r) {
-    for (var i = 0; i < array.length; i++) {
-        array[i] *= r;
-    }
-}
 /**
  * In place adds the second array argument onto the first, such that the result of
  * the addition is found in the first array passed in.
@@ -259,46 +288,7 @@ function normaliseViaShift(array, bottom, top, optional) {
         array[j] = newVal;
     }
 }
-/**
- * Loops through an array to find the minimum and maximum values in it
- * @param array
- * @returns {{min: number, max: number}}
- */
-function findMinAndMax(array) {
-    var min = 9e9;
-    var max = -9e9;
-    for (var j = 0; j < array.length; j++) {
-        if (array[j] > max) {
-            max = array[j];
-        }
-        if (array[j] < min) {
-            min = array[j];
-        }
-    }
-    return {min: min, max: max};
-}
-/**
- * Finds the minimum and maximum of an array between two index bounds
- *
- * @param xs
- * @param ys
- * @param start
- * @param end
- * @returns {{min: number, max: number}}
- */
-function findMinAndMaxSubset(ys, start, end) {
-    var min = 9e9;
-    var max = -9e9;
-    for (var j = start; j < end; j++) {
-        if (ys[j] > max) {
-            max = ys[j];
-        }
-        if (ys[j] < min) {
-            min = ys[j];
-        }
-    }
-    return {min: min, max: max};
-}
+
 
 /**
  * Iterates through an array and replaces NaNs with the value immediately prior to the NaN,
@@ -316,51 +306,7 @@ function removeNaNs(y) {
         }
     }
 }
-/**
- * In place crops an array to the maximum value specified.
- * @param array
- * @param maxValue
- */
-function cropSky(array, maxValue) {
-    for (var i = 0; i < array.length; i++) {
-        if (array[i] > maxValue) {
-            array[i] = maxValue;
-        }
-    }
-}
-/**
- * Returns the average value in an array. Requires the array not contain NaNs.
- * @param array
- * @returns {number}
- */
-function getAverage(array) {
-    var sum = 0;
-    for (var i = 0; i < array.length; i++) {
-        sum += array[i];
-    }
-    return sum / array.length;
-}
 
-/**
- * Returns the area in an array subsection
- *
- * @param array to read through
- * @param start start index
- * @param end INCLUSIVE end index
- */
-function getAreaInArray(array, start, end) {
-    var area = 0;
-    if (start == null || start < 0) start = 0;
-    if (end == null) {
-        end = array.length - 1;
-    } else if (end > array.length) {
-        end = array.length - 1;
-    }
-    for (var i = start; i <= end; i++) {
-        area += Math.abs(array[i]);
-    }
-    return area;
-}
 /**
  * Creates a linear scale of num points between and start and an end number
  * @param start
@@ -417,36 +363,7 @@ function interpolate(xinterp, xvals, yvals) {
     }
     return result;
 }
-function interpolate2(xinterp, xvals, yvals) {
-    if (xinterp == null || xinterp.length < 2) {
-        console.log("Don't use interpolate on a null, empty or single element array");
-        return null;
-    }
-    var start_x = null;
-    var end_x = null;
-    var xval_start_index = null;
-    var xval_end_index = null;
-    var result = [];
-    for (var i = 0; i < xinterp.length; i++) {
-        start_x = i == 0 ? null : (xinterp[i] + xinterp[i - 1]) / 2;
-        end_x = i == xinterp.length - 1 ? null : (xinterp[i + 1] + xinterp[i]) / 2;
-        if (start_x == null) {
-            start_x = 2 * xinterp[i] - end_x;
-        }
-        if (end_x == null) {
-            end_x = 2 * xinterp[i] - start_x;
-        }
-        // If we have done the previous step, just move to next (touching) block to avg
-        if (xval_end_index != null) {
-            xval_start_index = xval_end_index;
-        } else {
-            xval_start_index = findCorrespondingFloatIndex(xvals, start_x);
-        }
-        xval_end_index = findCorrespondingFloatIndex(xvals, end_x, Math.floor(xval_start_index));
-        result.push(getAvgBetween(yvals, xval_start_index, xval_end_index));
-    }
-    return result;
-}
+
 /**
  * Helper function for the interpolation method, which locates a linearly interpolated
  * floating point index that corresponds to the position of value x inside array xs.
@@ -469,32 +386,7 @@ function findCorrespondingFloatIndex(xs, x, optionalStartIndex) {
     return xs.length - 1;
 }
 
-/**
- * Returns the average value between a start and end index
- * @param xvals
- * @param start
- * @param end
- * @returns {number}
- */
-function getAvgBetween(xvals, start, end) {
-    var c = 0;
-    var r = 0;
-    for (var i = Math.floor(start); i <= Math.ceil(end); i++) {
-        var weight = 1;
-        if (i == Math.floor(start)) {
-            weight = 1 - (start - Math.floor(i));
-        } else if (i == Math.ceil(end)) {
-            weight = 1 - (Math.ceil(end) - end)
-        }
-        r += weight * xvals[i];
-        c += weight;
-    }
-    if (c == 0) {
-        return 0;
-    } else {
-        return r / c;
-    }
-}
+
 /**
  * In place subtracts a polynomial fit (polynomial degree set in config.js as polyDeg),
  * and returns the array of values that form the polynomial
@@ -518,6 +410,7 @@ function subtractPolyFit(lambda, intensity) {
  */
 function polyFit(lambda, intensity) {
     var data = [];
+    var polyDeg = globalConfig.polyDeg;
     var r = [];
     for (var i = 0; i < intensity.length; i++) {
         data.push([lambda[i], intensity[i]]);
@@ -540,34 +433,13 @@ function polyFit(lambda, intensity) {
  * @param index
  */
 function badIndex(intensity, variance, index) {
+    var maxVal = globalConfig.maxVal;
+    var minVal = globalConfig.minVal;
     var i = intensity[index];
     var v = variance[index];
     return isNaN(i) || isNaN(v) || i == null || v == null || i > maxVal || i < minVal || v <= 0;
 }
 
-/**
- * Inline replaces NaNs with zero values at the start and end of the spectra
- * @param intensity
- */
-function zeroPadStartAndEnd(intensity, variance) {
-
-    for (var i = 0; i < intensity.length; i++) {
-        if (isNaN(intensity[i]) || intensity[i] == null) {
-            intensity[i] = 0;
-            variance[i] = 9e19;
-        } else {
-            break;
-        }
-    }
-    for (var i = intensity.length - 1; i >= 0; i--) {
-        if (isNaN(intensity[i]) || intensity[i] == null) {
-            intensity[i] = 0;
-            variance[i] = 9e19;
-        } else {
-            break;
-        }
-    }
-}
 
 /**
  * Replaces NaNs with an average over numPoints to either side.
@@ -577,6 +449,7 @@ function zeroPadStartAndEnd(intensity, variance) {
  * @param numPoints
  */
 function removeBadPixels(intensity, variance) {
+    var numPoints = globalConfig.numPoints;
     for (var i = 0; i < intensity.length; i++) {
         if (badIndex(intensity, variance, i)) {
             var r = 0;
@@ -610,6 +483,11 @@ function removeBadPixels(intensity, variance) {
  * @param variance
  */
 function removeCosmicRay(intensity, variance) {
+    var numPoints = globalConfig.numPoints;
+    var max_error = globalConfig.max_error;
+    var cosmicIterations = globalConfig.cosmicIterations;
+    var deviationFactor = globalConfig.deviationFactor;
+
     for (var n = 0; n < cosmicIterations; n++) {
         var rms = 0;
         var mean = 0;
@@ -657,85 +535,111 @@ function removeCosmicRay(intensity, variance) {
     }
 }
 
+/**
+ * Convolves the intensity array with an exponential falloff window
+ * to produce a rolling mean which mostly preserves peak location.
+ *
+ * Does not modify arrays in place.
+ *
+ * @param intensity
+ * @param numPoints
+ * @param falloff
+ * @returns {Array}
+ */
 function rollingPointMean(intensity, numPoints, falloff) {
-    var d = [];
+    var d = new Array(intensity.length);
     var weights = [];
     var total = 0;
-    for (var i = 0; i < 2*numPoints + 1; i++) {
+    var i = 0;
+    for (i = 0; i < 2*numPoints + 1; i++) {
         var w = Math.pow(falloff, Math.abs(numPoints - i));
         weights.push(w);
         total += w;
     }
-    for (var i = 0; i < intensity.length; i++) {
-        var c = 0;
-        var r = 0;
+    for (i = 0; i < weights.length; i++) {
+        weights[i|0] /= total;
+    }
+    var intLength = intensity.length, r = 0, c = 0;
+    for (i = 0; i < intLength; i++) {
+        c = 0;
+        r = 0;
         for (var j = i - numPoints; j <= i + numPoints; j++) {
-            if (j> 0 && j < intensity.length) {
-                r += intensity[j] * weights[c];
+            if (j > 0 && j < intLength) {
+                r += intensity[j|0] * weights[c|0];
                 c++;
             }
         }
-        r = r / total;
-        d.push(r);
+        d[i] = r;
     }
-    for (var i = 0; i < intensity.length; i++) {
-        intensity[i] = d[i];
-    }
+    return d;
 }
 function getMean(data) {
-    var r = 0;
-    for (var i = 0; i < data.length; i++) {
-        r += data[i];
+    var r = 0, i = 0;
+    for (i = 0; i < data.length; i++) {
+        r += data[i|0];
     }
     return r / data.length;
 }
-function stdDevSubtract(data, subtract) {
-    var subtracted = data.map(function(x, ind) { return x - subtract[ind]; });
-    var mean = getMean(subtracted);
-    var r = 0;
-    for (var i = 0; i < subtracted.length; i++) {
-        r += (subtracted[i] - mean)*(subtracted[i] - mean);
+function getMeanMask(data, mask) {
+    var c = 0, r = 0, i = 0, dataLength = data.length;
+    for (i = 0; i < dataLength; i++) {
+        if (mask[i|0]) {
+            r += data[i|0];
+            c++;
+        }
     }
-    return Math.sqrt(r / subtracted.length);
+    return r / c;
+}
+
+/**
+ * Returns {{data - subtract}}, as a new array
+ * @param data
+ * @param subtract
+ * @returns {Array}
+ */
+function getNewSubtract(data, subtract) {
+    var subtracted = new Array(data.length), dataLength = data.length;
+    for (var i = 0; i < dataLength; i++) {
+        subtracted[i|0] = data[i|0] - subtract[i|0];
+    }
+    return subtracted;
 }
 /**
- * Perform a rejected polynomial fit to the data.
+ * Perform a rejected polynomial fit to the data. In place modified intensity to subtract the
+ * polyfit, and returns the polyfit itself.
  * @param lambda
  * @param intensity
  */
-function polyFitReject(lambda, intensity) {
-    var l = lambda.slice();
-    var int = intensity.slice();
-    for (var i = 0; i < polyFitInteractions; i++) {
-        var fit = polynomial2(l, int, polyDeg);
-        var stdDev = stdDevSubtract(int, fit.points);
-        var c = 0;
-        for (var j = 0; j < int.length; j++) {
-            if (Math.abs((int[j] - fit.points[j]) / stdDev) > polyFitRejectDeviation) {
-                int.splice(j, 1);
-                l.splice(j, 1);
-                fit.points.splice(j, 1);
-                j--;
-                c++;
+function polyFitReject(lambda, intensity, interactions, threshold, polyDegree) {
+    interactions = defaultFor(interactions, globalConfig.polyFitInteractions);
+    threshold = defaultFor(threshold, globalConfig.polyFitRejectDeviation);
+    polyDegree = defaultFor(polyDegree, globalConfig.polyDeg);
+
+    var intLength = intensity.length, mask = new Array(intLength), i = 0, j = 0, cutoff = 0, stdDev = 0;
+    for (i = 0; i < intLength; i++) {
+        mask[i|0] = 1;
+    }
+    var dataPowered = getDataPowered(lambda, polyDegree);
+    for (i = 0; i < interactions; i++) {
+        var fit = polynomial3(lambda, intensity, polyDegree, mask, dataPowered);
+        var subtracted = getNewSubtract(intensity, fit.points);
+        stdDev = getStdDevMask(subtracted, mask);
+        cutoff = stdDev * threshold;
+        var c = true;
+        for (j = 0; j < intLength; j++) {
+            if (mask[j|0] && Math.abs(subtracted[j|0]) > cutoff) {
+                mask[j|0] = 0;
+                c = false;
             }
         }
-        if (c == 0) {
+        if (c) {
             break;
         }
     }
-    var final = lambda.map(function(val) {
-        var r = 0;
-        for (var j = 0; j < fit.equation.length; j++) {
-            r += fit.equation[j] * Math.pow(val, j);
-        }
-        return r;
-    });
-
-    for (var i = 0; i < intensity.length; i++) {
-        intensity[i] -= final[i];
+    for (i = 0; i < intLength; i++) {
+        intensity[i] = subtracted[i];
     }
-
-    return final;
+    return fit.points;
 }
 function subtract(data, subtract) {
     for (var i = 0; i < data.length; i++) {
@@ -763,12 +667,14 @@ function medianAndBoxcarSmooth(array, medianFilterWidth, boxCarWidth) {
     return smoothed;
 }
 function smoothAndSubtract(intensity) {
-    var medians = medianFilter(intensity, medianWidth);
-    var smoothed = boxCarSmooth(medians, smoothWidth);
+    var medians = medianFilter(intensity, globalConfig.medianWidth);
+    var smoothed = boxCarSmooth(medians, globalConfig.smoothWidth);
     subtract(intensity, smoothed);
 }
 
 function applySpectralLineWeighting(lambda, spec) {
+    var gaussianWidth = globalConfig.gaussianWidth;
+    var baseWeight = globalConfig.baseWeight;
     var spectralLines = new SpectralLines();
     var lines = spectralLines.getAll();
     var weights = [];
@@ -786,57 +692,131 @@ function applySpectralLineWeighting(lambda, spec) {
     }
 
 }
+function getList(linkedList) {
+    var r = [];
+    linkedList = linkedList[0];
+    do {
+        r.push(linkedList[1]);
+        linkedList = linkedList[0];
+    } while (linkedList != null);
+    return r;
+}
+function addToSorted(head, value) {
+    var current = head;
+    while(current[0] != null && current[0][1] < value) {
+        current = current[0];
+    }
+    current[0] = [current[0], value];
 
-function medianFilter(data, window) {
-    var result = [];
-    var win = [];
-    var num = (window - 1)/2;
-    for (var i = 0; i < num + 2; i++) {
-        win.push(data[0]);
+}
+function addAllToSorted(head, values) {
+    for (var i = 0; i < values.length; i++) {
+        addToSorted(head, values[i]);
     }
-    for (var i = 0; i < num - 1; i++) {
-        win.push(data[i]);
-    }
-    for (var i = 0; i < data.length; i++) {
-        var index = i + num;
-        if (index >= data.length) {
-            win.push(data[data.length - 1]);
-        } else {
-            win.push(data[index]);
+}
+function removeAddAndFindMedian(head, remove, add, median) {
+    var c = 0;
+    var previous = head;
+    var current = head[0];
+    var r = false, m = false, a = false, result = null;
+    while (true) {
+        if (!r && current[1] == remove) {
+            previous[0] = current[0];
+            current = current[0];
+            r = true;
         }
-        win.splice(0, 1);
-        result.push(win.slice().sort(function(a,b){return a-b;})[num]);
+        if (!a && current == null) {
+            current = [null, add];
+            previous[0] = current;
+            a = true;
+
+        }
+        if (!a && (current[1] > add)) {
+            var temp = [previous[0], add];
+            previous[0] = temp;
+            current = temp;
+            a = true;
+        }
+        if (!m && c == median) {
+            result = current[1];
+            m = true;
+        }
+        if (a && r && m) {
+            return result;
+        }
+        c++;
+        previous = current;
+        current = current[0];
+    }
+}
+/**
+ * Returns a median filter of window size {{window}}.
+ *
+ * @param data
+ * @param window
+ * @returns {Array}
+ */
+function medianFilter(data, window) {
+    var result = [], i = 0;
+    var head = [null, null];
+    var n = (window - 1) / 2;
+
+    for (i = 0; i < n + 1; i++) {
+        addToSorted(head, data[0]);
+    }
+    for (i = 0; i < n; i++ ) {
+        addToSorted(head, data[i|0]);
+    }
+    var add = 0;
+    var remove = 0;
+    var dataLength = data.length;
+    for (i = 0; i < dataLength; i++) {
+        remove = i < (n + 1) ? data[0] : data[(i - n - 1)|0];
+        add = i + n >= dataLength ? data[dataLength - 1] : data[(i + n)|0];
+        result.push(removeAddAndFindMedian(head, remove, add, n));
     }
     return result;
 }
-
+/**
+ * Returns a boxcar smoothed array of {{data}}, smothing over {{window}} pixels.
+ * @param data
+ * @param window
+ * @returns {Array}
+ */
 function boxCarSmooth(data, window) {
     var result = [];
-    var win = [];
-    var running = 0;
     var num = (window - 1)/2;
-    for (var i = 0; i < num + 2; i++) {
-        win.push(data[0]);
-        running += win[win.length - 1];
+    var r = 1 / window;
+    var tot = 0, i = 0, i1 = 0, i2 = 0, dataLength = data.length, dlmo = dataLength - 1;;
+    for (i = 0; i < num + 1; i++) {
+        tot += data[0] * r;
     }
-    for (var i = 0; i < num - 1; i++) {
-        win.push(data[i]);
-        running += win[win.length - 1];
+    for (i = 0; i < num; i++) {
+        tot += data[i] * r;
     }
-    for (var i = 0; i < data.length; i++) {
-        var index = i + num;
-        if (index >= data.length) {
-            win.push(data[data.length - 1]);
-        } else {
-            win.push(data[index]);
+    for (i = 0; i < dataLength; i++) {
+        i1 = i - num - 1;
+        i2 = i + num;
+        if (i1 < 0) {
+            i1 = 0;
         }
-        running += win[win.length - 1];
-        running -= win.splice(0,1)[0];
-        result.push(running / window);
+        if (i2 > dlmo) {
+            i2 = dlmo;
+        }
+        tot += (data[i2|0] - data[i1|0]) * r;
+        result.push(tot);
     }
     return result;
 }
-
+/**
+ * Applies a cosine taper onto both ends of the given data array.
+ *
+ * Modifies the array in place.
+ *
+ * @param intensity
+ * @param zeroPixelWidth
+ * @param taperWidth
+ */
 function cosineTaper(intensity, zeroPixelWidth, taperWidth) {
     for (var i = 0; i < zeroPixelWidth; i++) {
         var inverse = intensity.length - 1 - i;
@@ -853,104 +833,68 @@ function cosineTaper(intensity, zeroPixelWidth, taperWidth) {
 }
 
 function taperSpectra(intensity) {
-    cosineTaper(intensity, zeroPixelWidth, taperWidth);
+    cosineTaper(intensity, globalConfig.zeroPixelWidth, globalConfig.taperWidth);
 }
-function broadenError(data, window) {
+/**
+ * In place modifies broadenError so that each value takes on the maximum
+ * of itself, the previous data point, and the next data point.
+ *
+ * @param data
+ */
+function broadenError(data) {
     var result = [];
-    var win = [];
-    var num = (window - 1)/2;
+    var prior = data[0];
+    var current = data[0];
+    var next = data[1];
+    var i = 0, dataLength = data.length;
+    for (i = 0; i < dataLength; i++) {
+        if (i < dataLength - 1) {
+            next = data[(i+1)|0];
+        } else {
+            next = data[(dataLength - 1)|0];
+        }
+        current = data[i|0];
+        if (current < prior) {
+            current = prior;
+        }
+        if (current < next) {
+            current = next;
+        }
+        result.push(current);
+        prior = data[i];
+    }
+    for (i = 0; i < dataLength; i++) {
+        data[i|0] = result[i|0];
+    }
+}
 
-    for (var i = 0; i < data.length; i++) {
-        if (data[i] < max_error) {
-            while (win.length < num + 2) {
-                win.push(data[i]);
-            }
-            break;
-        }
-    }
-    for (var i = 0; i < data.length; i++) {
-        if (win.length < window) {
-            if (data[i] < max_error) {
-                win.push(data[i]);
-            }
-        } else {
-            break;
-        }
-    }
-    for (var i = 0; i < data.length; i++) {
-        if (data[i] < max_error) {
-            var index = i + num;
-            while (index < data.length && data[index] >= max_error) {
-                index++;
-            }
-            if (index >= data.length) {
-                win.push(win[win.length - 1]);
-            } else {
-                win.push(data[index]);
-            }
-            win.splice(0, 1);
-            result.push(win.slice().sort(function(a,b){return b-a;})[0]);
-        } else {
-            result.push(data[i]);
-        }
-    }
-    for (var i = 0; i < result.length; i++) {
-        data[i] = result[i];
-    }
-}
-function maxMedianAdjust(data, window, errorMedianWeight) {
-    var result = [];
-    var win = [];
-    var num = (window - 1)/2;
-    for (var i = 0; i < data.length; i++) {
-        if (data[i] < max_error) {
-            while (win.length < num + 2) {
-                win.push(data[i]);
-            }
-            break;
-        }
-    }
-    for (var i = 0; i < data.length; i++) {
-        if (win.length < window) {
-            if (data[i] < max_error) {
-                win.push(data[i]);
-            }
-        } else {
-            break;
-        }
-    }
-    for (var i = 0; i < data.length; i++) {
-        if (data[i] < max_error) {
-            var index = i + num;
-            while (index < data.length && data[index] >= max_error) {
-                index++;
-            }
-            if (index >= data.length) {
-                win.push(win[win.length - 1]);
-            } else {
-                win.push(data[index]);
-            }
-            win.splice(0, 1);
-            result.push(errorMedianWeight * win.slice().sort(function(a,b){return a-b;})[num]);
-        } else {
-            result.push(data[i]);
-        }
-    }
-    for (var i = 0; i < result.length; i++) {
-        data[i] = result[i];
-    }
-    for (var i = 0; i < data.length; i++) {
-        if (result[i] > data[i]) {
-            data[i] = result[i];
+/**
+ * In place modifies the input array, such that the output values are the
+ * maximum of either the original data point, or {{weight}} times by a median
+ * filter of window size {{window}}.
+ * @param data
+ * @param window
+ * @param weight
+ */
+function maxMedianAdjust(data, window, weight) {
+    var medians = medianFilter(data, window);
+    var dataLength = data.length, i = 0, val = 0.0;
+    for (i = 0; i < dataLength; i++) {
+        val = weight * medians[i|0];
+        if (data[i|0] < val) {
+            data[i|0] = val;
         }
     }
 }
+
+
+
 function adjustError(variance) {
     for (var i = 0; i < variance.length; i++) {
         variance[i] = Math.sqrt(variance[i]);
     }
-    broadenError(variance, broadenWindow);
-    maxMedianAdjust(variance, errorMedianWindow, errorMedianWeight);
+    broadenError(variance);
+    maxMedianAdjust(variance, globalConfig.errorMedianWindow, globalConfig.errorMedianWeight);
     for (i = 0; i < variance.length; i++) {
         variance[i] = variance[i] * variance[i];
     }
@@ -961,54 +905,71 @@ function divideByError(intensity, variance) {
         intensity[i] = intensity[i] / variance[i];
     }
 }
-function findMean(data) {
-    var result = 0;
-    for (var i = 0; i < data.length; i++) {
-        result += data[i];
-    }
-    return result / data.length;
-}
+
+/**
+ * Returns the mean of the absolute of the input
+ * @param data
+ * @returns {number}
+ */
 function absMean(data) {
-    var running = 0;
-    for (var i = 0; i < data.length; i++) {
-        running += Math.abs(data[i]);
+    var running = 0, dataLength = data.length, i = 0;
+    for (i = 0; i < dataLength; i++) {
+        if (data[i|0] < 0) {
+            running -= data[i|0];
+        } else {
+            running += data[i|0];
+        }
     }
-    return running / data.length;
+    return running / dataLength;
 }
+/**
+ * Returns the maximum value of the absolute of the input.
+ * @param data
+ * @returns {number}
+ */
 function absMax(data) {
-    return data.map(function(x) { return Math.abs(x); }).sort(function(a,b){return b-a;})[0];
+    var max = 0, dataLength = data.length;
+    for (var i = 0; i < dataLength; i++) {
+        if (data[i|0] < 0 && -data[i|0] > max) {
+            max = -data[i|0];
+        } else if (data[i|0] > 0 && data[i|0] > max) {
+            max = data[i|0];
+        }
+    }
+    return max;
 }
 function normaliseMeanDev(intensity, clipValue) {
-    var running = true;
+    var running = true, intLength = intensity.length, i = 0;
     while (running) {
         var meanDeviation = absMean(intensity);
         var clipVal = (clipValue + 0.01) * meanDeviation;
         if (absMax(intensity) > clipVal) {
-            for (var i = 0; i < intensity.length; i++) {
-                if (intensity[i] > clipVal) {
-                    intensity[i] = clipVal;
-                } else if (intensity[i] < -clipVal) {
-                    intensity[i] = -clipVal;
+            for (i = 0; i < intLength; i++) {
+                if (intensity[i|0] > clipVal) {
+                    intensity[i|0] = clipVal;
+                } else if (intensity[i|0] < -clipVal) {
+                    intensity[i|0] = -clipVal;
                 }
             }
         } else {
             running = false;
         }
     }
-    for (var i = 0; i < intensity.length; i++) {
-        intensity[i] /= meanDeviation;
+    for (i = 0; i < intLength; i++) {
+        intensity[i|0] /= meanDeviation;
     }
 }
 
 function normalise(intensity) {
-    normaliseMeanDev(intensity, clipValue);
+    normaliseMeanDev(intensity, globalConfig.clipValue);
 }
 function circShift(data, num) {
-    var temp = data.slice();
+    var result = new Array(data.length);
     var l = data.length;
     for (var i = 0; i < l; i++) {
-        data[i] = temp[(i + num) % l];
+        result[i|0] = data[((i + num) % l)|0];
     }
+    return result;
 }
 
 function pruneResults(final, template) {
@@ -1021,9 +982,21 @@ function subtractMeanReject(final, trimAmount) {
     var num = Math.floor((trimAmount * final.length)/2);
     var sorted = final.slice().sort(function(a,b) { return a-b });
     sorted = sorted.splice(num, sorted.length - (2*num));
-    var mean = findMean(sorted);
+    var mean = getMean(sorted);
     for (var i = 0; i < final.length; i++) {
         final[i] -= mean;
+    }
+}
+function subtractMeanReject2(final, stdDev) {
+    var mask = [], finalLength = final.length, i = 0;
+    var cutoff = stdDev * getStdDev(final);
+    var mean = getMean(final);
+    for (i = 0; i < finalLength; i++) {
+        mask.push((final[i|0] - mean) < cutoff && (final[i|0] - mean) > -cutoff);
+    }
+    var maskedMean = getMeanMask(final, mask);
+    for (i = 0; i < finalLength; i++) {
+        final[i|0] -= maskedMean;
     }
 }
 function getPeaks(final, both) {
@@ -1041,37 +1014,66 @@ function getPeaks(final, both) {
     }
     return {index: is, value: vals};
 }
+/**
+ * In place caps all values in data to within 30 standard deviations of the mean
+ *
+ * @param data
+ */
 function cullLines(data) {
-    var rms = getRMS(data);
+    var std = getStdDev(data);
     var mean = getMean(data);
-    var maxV = mean + 30 * rms;
-    var minV = mean - 30 * rms;
-    for (var i = 0; i < data.length; i++) {
-        data[i] = Math.max(minV, Math.min(maxV, data[i]))
+    var maxV = mean + 30 * std;
+    var minV = mean - 30 * std;
+    var dataLength = data.length;
+    for (var i = 0; i < dataLength; i++) {
+        if (data[i|0] > maxV) {
+            data[i|0] = maxV;
+        } else if (data[i|0] < minV) {
+            data[i|0] = minV;
+        }
     }
 }
-function getRMS(data) {
-    var mean = 0;
-    for (var i = 0; i < data.length; i++) {
-        mean += data[i];
+/**
+ * Returns the standard deviation
+ * @param data
+ * @returns {number}
+ */
+function getStdDev(data) {
+    var mean = getMean(data);
+    var dataLength = data.length, squared = 0, temp = 0.0, i = 0;
+    for (i = 0; i < dataLength; i++) {
+        temp = (data[i|0] - mean);
+        squared += temp * temp;
     }
-    mean = mean / data.length;
-    var squared = 0;
-    for (var i = 0; i < data.length; i++) {
-        squared += Math.pow((data[i] - mean), 2);
+    return Math.sqrt(squared / dataLength);
+}
+/**
+ * Returns the standard deviation with an input mask
+ * @param data
+ * @returns {number}
+ */
+function getStdDevMask(data, mask) {
+    var mean = getMeanMask(data, mask);
+    var dataLength = data.length, squared = 0, temp = 0.0, i = 0;
+    var c = 0;
+    for (i = 0; i < dataLength; i++) {
+        if (mask[i|0]) {
+            temp = (data[i|0] - mean);
+            squared += temp * temp;
+            c++;
+        }
     }
-    squared /= data.length;
-    return Math.sqrt(squared);
+    return Math.sqrt(squared / c);
 }
 function rmsNormalisePeaks(final) {
     var peaks = getPeaks(final).value;
-    var rms = getRMS(peaks);
+    var rms = getStdDev(peaks);
     for (var i = 0; i < final.length; i++) {
         final[i] /= rms;
     }
 }
 function normaliseXCorr(final) {
-    subtractMeanReject(final, trimAmount);
+    subtractMeanReject2(final, globalConfig.trimStd);
     rmsNormalisePeaks(final);
     return final;
 }
@@ -1085,8 +1087,9 @@ function getPeaksFromNormalised(final) {
 }
 
 
-function getFit(template, xcor, val, helio) {
-    var startIndex = binarySearch(template.zs, adjustRedshift(val, -helio))[0] - Math.floor(fitWindow/2);
+function getFit(template, xcor, val, helio, cmb) {
+    var fitWindow = globalConfig.fitWindow;
+    var startIndex = binarySearch(template.zs, val)[0] - Math.floor(fitWindow/2);
     var bestPeak = -9e9;
     var bestIndex = -1;
     for (var i = 0; i < fitWindow; i++) {
@@ -1098,24 +1101,11 @@ function getFit(template, xcor, val, helio) {
             }
         }
     }
-    return adjustRedshift(getRedshiftForNonIntegerIndex(template, fitAroundIndex(xcor, bestIndex)), helio);
+    return adjustRedshift(getRedshiftForNonIntegerIndex(template, fitAroundIndex(xcor, bestIndex)), helio, cmb);
 }
 
-
-/**
- * Determines the cross correlation (and peaks in it) between a spectra and a template
- *
- * @param template A template data structure from the template manager. Will contain a pre-transformed
- * template spectrum (this is why initialising TemplateManager is so slow).
- * @param fft the Fourier transformed spectra
- * @returns {{id: String, zs: Array, xcor: Array, peaks: Array}} a data structure containing the id of the template, the redshifts of the template, the xcor
- * results of the template and a list of peaks in the xcor array.
- */
-function matchTemplate(template, fft) {
-    var fftNew = fft.multiply(template.fft);
-    var final = fftNew.inverse();
-    final = Array.prototype.slice.call(final);
-    circShift(final, final.length/2);
+function extractResults(template, final) {
+    final = circShift(final, final.length/2);
     final = pruneResults(final, template);
     normaliseXCorr(final);
 
@@ -1132,6 +1122,21 @@ function matchTemplate(template, fft) {
         peaks: finalPeaks
     };
 }
+/**
+ * Determines the cross correlation (and peaks in it) between a spectra and a template
+ *
+ * @param template A template data structure from the template manager. Will contain a pre-transformed
+ * template spectrum (this is why initialising TemplateManager is so slow).
+ * @param fft the Fourier transformed spectra
+ * @returns {{id: String, zs: Array, xcor: Array, peaks: Array}} a data structure containing the id of the template, the redshifts of the template, the xcor
+ * results of the template and a list of peaks in the xcor array.
+ */
+function matchTemplate(template, fft) {
+    var fftNew = fft.multiply(template.fft);
+    var final = fftNew.inverse();
+
+    return extractResults(template, final)
+}
 
 /**
  * Performs a quadratic fit around a given index, and returns the
@@ -1146,6 +1151,9 @@ function fitAroundIndex(data, index) {
     var window = 3;
     var e = null;
     while (window < 10) {
+        if (index - window < 0 || index + window >= data.length) {
+            return index; // On boundary failure, return index
+        }
         var d = data.slice(index - window, index + window + 1).map(function(v,i) { return [i - window,v]; });
         e = polynomial(d).equation;
         if (e[2] < 0) {
@@ -1173,7 +1181,66 @@ function getRedshiftForNonIntegerIndex(t, index) {
     var z = (Math.pow(10, (index + t.startZIndex - num) * gap) * (1 + t.redshift)) - 1;
     return z;
 }
-
 function round(num, dec) {
     return Math.round(num * Math.pow(10, dec)) / Math.pow(10, dec);
 }
+/**
+ * Clips the input array at the specific std range. Modifies array in place.
+ * @param variance - the array to clip
+ * @param clip - how many std to allow before clipping. Defaults to 3
+ */
+function clipVariance(variance, clip) {
+    clip = defaultFor(clip, 3);
+    var mean = getMean(variance);
+    var std = getStdDev(variance);
+    for (var i = 0; i < variance.length; i++) {
+        if (variance[i] - mean > clip * std) {
+            variance[i] = mean + clip * std;
+        }
+    }
+}
+
+module.exports = function() {
+    this.linearScale = linearScale;
+    this.MJDtoYMD = MJDtoYMD;
+    this.convertVacuumFromAir = convertVacuumFromAir;
+    this.subtractPolyFit = subtractPolyFit;
+    this.smoothAndSubtract = smoothAndSubtract;
+    this.convertVacuumFromAirWithLogLambda = convertVacuumFromAirWithLogLambda;
+    this.interpolate = interpolate;
+    this.polyFitReject = polyFitReject;
+    this.taperSpectra = taperSpectra;
+    this.normalise = normalise;
+    this.removeNaNs = removeNaNs;
+    this.normaliseViaShift = normaliseViaShift;
+    this.removeBadPixels = removeBadPixels;
+    this.removeCosmicRay = removeCosmicRay;
+    this.cullLines = cullLines;
+    this.rollingPointMean = rollingPointMean;
+    this.medianAndBoxcarSmooth = medianAndBoxcarSmooth;
+    this.addMinMultiple = addMinMultiple;
+    this.divideByError = divideByError;
+    this.adjustError = adjustError;
+    this.convertLambdaToLogLambda = convertLambdaToLogLambda;
+    this.matchTemplate = matchTemplate;
+    this.fitAroundIndex = fitAroundIndex;
+    this.getRedshiftForNonIntegerIndex = getRedshiftForNonIntegerIndex;
+    this.defaultFor = defaultFor;
+    this.getMean = getMean;
+    this.getMeanMask = getMeanMask;
+    this.getStdDev = getStdDev;
+    this.getStdDevMask = getStdDevMask;
+    this.absMean = absMean;
+    this.absMax = absMax;
+    this.boxCarSmooth = boxCarSmooth;
+    this.medianFilter = medianFilter;
+    this.addAllToSorted = addAllToSorted;
+    this.removeAddAndFindMedian = removeAddAndFindMedian;
+    this.getList = getList;
+    this.broadenError = broadenError;
+    this.maxMedianAdjust = maxMedianAdjust;
+    this.broadenError = broadenError;
+    this.round = round;
+};
+
+

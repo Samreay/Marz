@@ -237,7 +237,7 @@ angular.module('servicesZ', ['dialogs.main'])
         };
         self.setAssignAutoQOPs = function(value) {
             self.spectraManager.setAssignAutoQOPs(value);
-            cookieService.setCookie(assignAutoQOPsCookie, assignAutoQOPs);
+            cookieService.setCookie(assignAutoQOPsCookie, value);
         };
         self.getAssignAutoQOPs = function() {
             return self.spectraManager.autoQOPs;
@@ -405,10 +405,7 @@ angular.module('servicesZ', ['dialogs.main'])
             self.spectraManager.setProcessedResults(results);
             spectra.processedLambdaPlot = results.lambda;
             spectra.processedVariance = results.variance;
-            spectra.processedVariancePlot = results.variance.slice();
-            removeNaNs(spectra.processedVariancePlot);
-            normaliseViaShift(spectra.processedVariancePlot, 0, 50, null);
-
+            spectra.processedVariancePlot = results.processedVariancePlot;
 
             if (!self.isProcessing() && self.isFinishedMatching()) {
                 if (global.data.fits.length > 0) {
@@ -659,7 +656,21 @@ angular.module('servicesZ', ['dialogs.main'])
         };
         self.supportsLocalStorage = function() {
             try {
-                return 'localStorage' in window && window['localStorage'] !== null;
+                var value = 'localStorage' in window && window['localStorage'] !== null;
+                if (value) {
+                    try {
+                        localStorage.setItem('localStorage', 1);
+                        localStorage.removeItem('localStorage');
+                        return true;
+                    } catch (e) {
+                        Storage.prototype._setItem = Storage.prototype.setItem;
+                        Storage.prototype.setItem = function() {};
+                        Storage.prototype._getItem = Storage.prototype.getItem;
+                        Storage.prototype.getItem = function() {};
+                        console.warn('Your web browser does not support storing settings locally. In Safari, the most common cause of this is using "Private Browsing Mode". Some settings may not save or some features may not work properly for you.');
+                        return false;
+                    }
+                }
             } catch (e) {
                 console.warn('Local storage is not available.');
                 return false;
@@ -773,7 +784,7 @@ angular.module('servicesZ', ['dialogs.main'])
         var processTogetherCookie = "processTogether";
 
         self.getDefaultProcessType = function() {
-            return false;
+            return true;
         };
         self.getProcessTogether = function() {
             return processTogether;
@@ -784,12 +795,13 @@ angular.module('servicesZ', ['dialogs.main'])
         self.setProcessTogether = function(value) {
             processTogether = value;
             cookieService.setCookie(processTogetherCookie, processTogether);
+            self.processorManager.setProcessTogether(value);
         };
         var processTogether = cookieService.registerCookieValue(processTogetherCookie, self.getDefaultProcessType());
         self.processorManager.setProcessTogether(processTogether);
 
         self.setDefaultNumberOfCores = function() {
-            var defaultValue = 3;
+            var defaultValue = 2;
             try {
                 if (navigator != null && navigator.hardwareConcurrency != null) {
                     defaultValue = navigator.hardwareConcurrency;
@@ -1032,7 +1044,6 @@ angular.module('servicesZ', ['dialogs.main'])
             canvas.style.height = canvas.clientHeight;
             canvas.width = canvas.clientWidth * ratio;
             canvas.height = canvas.clientHeight * ratio;
-            console.log("W:" + canvas.clientWidth);
             var c = canvas.getContext("2d");
             c.scale(ratio, ratio);
             c.save();
