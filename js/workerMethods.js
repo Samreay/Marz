@@ -2,7 +2,7 @@
  * ANY CHANGES OF THIS FILE MUST BE CONVEYED IN A VERSION INCREMENT
  * OF marzVersion IN config.js!
  ******************************************************************/
-var deps = ["./templates.js"];
+var deps = ["./templates", "./helio"];
 for (var i = 0; i < deps.length; i++) {
     require(deps[i])();
 }
