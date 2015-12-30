@@ -29,8 +29,11 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
         $scope.makeSmall = function() {
             return global.ui.sidebarSmall && $scope.isDetailedView();
         };
+        $scope.shouldDisplayWelcome = function() {
+            return global.data.fitsFileName == null;
+        };
         window.onbeforeunload = function(){
-            return 'Please ensure changes are all saved before leaving.';
+            return 'Please confirm you wish to exit.';
         };
         var called = false;
         var callback = function() {

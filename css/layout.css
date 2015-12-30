@@ -415,3 +415,37 @@ input[type='range']::-moz-range-thumb {
     width: 10px;
 }
 
+.welcomeText {
+    font-size: 80px;
+    font-weight: bold;
+    font-style: italic;
+    text-align: center;
+    padding-top: 20px;
+    border-radius: 20px;
+    margin-top: 50px;
+    color: #888;
+    background-image: linear-gradient(to bottom, #3c3c3c 0%, #222 100%);
+    background-repeat: repeat-x;
+    background-color: #222;
+    border-color: #080808;
+}
+
+.marketing.container .row .introCard {
+    background-color: transparent;
+    border: none;
+
+}
+
+.marketing.container .row .introCard .inner{
+    background-color: rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    margin: 5px;
+    padding: 5px 15px 10px 15px;
+    border-radius: 10px;
+    min-height: 220px;
+}
+
+.marketing.container .row .introCard .inner h2 {
+    text-align: center;
+    font-weight: bold;
+}
