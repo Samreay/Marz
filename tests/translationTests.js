@@ -156,5 +156,30 @@ tests.push({
     expected: [123.9597976503729910, 26.3515569418066349]});
 
 
+tests.push({
+    name: "ct2lst test (1)",
+    fn: function() { return ct2lst(0.0, 0.0); },
+    expected: 16.2228996455669403});
+tests.push({
+    name: "ct2lst test (2)",
+    fn: function() { return ct2lst(0.0, 2400000.5); },
+    expected: 3.7173812857363373});
+tests.push({
+    name: "ct2lst test (3)",
+    fn: function() { return ct2lst(10.0, 0.0); },
+    expected: 16.8895663097500801});
+tests.push({
+    name: "ct2lst test (4)",
+    fn: function() { return ct2lst(45.0, 2412345.5); },
+    expected: 1.9051420227624476});
+tests.push({
+    name: "ct2lst test (5)",
+    fn: function() { return ct2lst(-45.0, 2412345.5); },
+    expected: 19.9051420227624476});
+tests.push({
+    name: "ct2lst test (6)",
+    fn: function() { return ct2lst(445.0, 2412345.7); },
+    expected: 9.3849506585393101});
+
 
 module.exports = tests;

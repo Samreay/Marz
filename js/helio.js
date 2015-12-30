@@ -284,8 +284,10 @@ function ct2lst(longitude, jd) {
     var theta = c[0] + (c[1] * t0) + t * t * (c[2] - t / c[3] );
 
     // Compute LST in hours.
-    var lst = (( theta + longitude) / 15.0 + 24) % 24;
-
+    var lst = (( theta + longitude) / 15.0) % 24;
+    if (lst < 24) {
+        lst += 24;
+    }
     return lst;
 
 }
