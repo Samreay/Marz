@@ -11,19 +11,22 @@
                 <div class="form-group cb">
                     <label for="auto" class="col-sm-3 control-label">Assign AutoQOPs</label>
                     <div class="col-sm-9">
-                        <input type="checkbox" class="form-control" id="auto"
-                               ng-model="assignAutoQOPs"
-                               ng-change="updateAssignAutoQOPs(assignAutoQOPs)"
-                                style="display: inline;">
+                        <toggle-switch class="switch-success" id="auto"
+                                       knob-label=""
+                                       on-label="On"
+                                       off-label="Off"
+                                       ng-change="updateAssignAutoQOPs(assignAutoQOPs)"
+                                       ng-model="assignAutoQOPs"></toggle-switch>
                     </div>
                 </div>
                 <div class="form-group cb">
                     <label for="download" class="col-sm-3 control-label">Download Automatically</label>
                     <div class="col-sm-9">
-                        <input type="checkbox" class="form-control" id="download"
+                        <toggle-switch class="switch-success" id="download"
                                ng-model="downloadAutomatically"
                                ng-change="updateDownloadAutomatically(downloadAutomatically)"
-                               style="display: inline;">
+                               on-label="On"
+                               off-label="Off"></toggle-switch>
                         <p style="display: inline; vertical-align: top; line-height: 35px; padding-left: 20px">Recommended to be checked when Assign AutoQOPs is enabled.</p>
                     </div>
                 </div>
@@ -38,10 +41,11 @@
                 <div class="form-group cb">
                     <label for="together" class="col-sm-3 control-label">Process and Match together</label>
                     <div class="col-sm-9">
-                        <input type="checkbox" class="form-control" id="together"
-                               ng-model="processTogether"
-                               ng-change="updateProcessTogether(processTogether)"
-                               style="display: inline;">
+                        <toggle-switch class="switch-success" id="together"
+                                       ng-model="processTogether"
+                                       ng-change="updateProcessTogether(processTogether)"
+                                       on-label="On"
+                                       off-label="Off"></toggle-switch>
                     </div>
                 </div>
             </div>
@@ -52,9 +56,11 @@
             <div class="form-group cb">
                 <label for="saveauto" class="col-sm-3 control-label">Save results in background</label>
                 <div class="col-sm-9">
-                    <input type="checkbox" class="form-control" id="saveauto"
-                           ng-model="saveAutomatically"
-                           ng-change="updateSaveAutomatically(saveAutomatically)" style="display: inline;">
+                    <toggle-switch class="switch-success" id="saveauto"
+                                   ng-model="saveAutomatically"
+                                   ng-change="updateSaveAutomatically(saveAutomatically)"
+                                   on-label="On"
+                                   off-label="Off"></toggle-switch>
                     <p style="display: inline; vertical-align: top; line-height: 35px; padding-left: 20px">Unless you have VERY good reasons, do NOT disable this.</p>
                 </div>
             </div>
