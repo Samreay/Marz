@@ -63,10 +63,10 @@
   background: #f0f0f0;
 }
 .ats-switch .switch-animate {
-  transition: left 0.5s;
-  -o-transition: left 0.5s;
-  -moz-transition: left 0.5s;
-  -webkit-transition: left 0.5s;
+  transition: left 0.2s;
+  -o-transition: left 0.2s;
+  -moz-transition: left 0.2s;
+  -webkit-transition: left 0.2s;
 }
 .ats-switch {
   display: inline-block;
