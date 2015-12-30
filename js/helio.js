@@ -1,3 +1,12 @@
+var deps = ["./methods"];
+for (var i = 0; i < deps.length; i++) {
+    require(deps[i])();
+}
+try  {
+    math.sin(1);
+} catch (err) {
+    math = require("../lib/math");
+}
 /**
  * Computes the heliocentric velocity (km/s) correction for a given time and location.
  *
@@ -550,27 +559,14 @@ function adjustRedshift(z, helio, cmb) {
 }
 
 
-/**
- * Call this function to perform a unit test on the helio functions
- */
-function testAllHelio() {
-    testHelio(20, 20, 2457356.5, 254.17958, 32.780361, 2788, 2000, -20.051029);
-    testHelio(0, 0, 2457400, 100, -40, 4000, 2000, -28.023990);
-    testHelio(0, 0, 2457400, 100, -40, 4000, 1900, -28.284173);
-    testHelio(-30, -30, 2457400, 100, -40, 4000, 2000, -14.316080);
-    testHelio(-30, -30, 2457400, 100, -40, 8000, 2000, -14.315910);
-    testHelio(0, 0, 2457401.5, 254.179583, 32.780361, 4000, 2000, -27.856910);
-    testHelio(80, -50, 2457400, 254.179583, -50, 2000, 2000, -6.0071908);
-    testHelio(0, 0, 2457400, 254.179583, 32.780361, 4000, 2000,  -28.248393);
-    testHelio(14.2802944, -30.2514324, 2457302.0273, 149.0661, -31.27704, 1164, 2000, -6.1508151);
-
-}
-function testHelio(ra, dec, jd, long, lat, alt, epoch, expected) {
-    var threshold = 1e-6;
-    var output = getHeliocentricVelocityCorrection(ra, dec, jd, long, lat, alt, epoch);
-    if (Math.abs(output - expected) > threshold) {
-        console.error("Error, expected " + JSON.stringify(expected) + " but got " + JSON.stringify(output) + " from running getHeliocentricVelocityCorrection(" + ra + ", " + dec + ", " + jd + ", " + long + ", " + lat + ", " + alt + ", " + epoch + ")");
-    } else {
-        console.info("Passed: Expected " + expected + ", got " + round(output,8) + " from running getHeliocentricVelocityCorrection(" + ra + ", " + dec + ", " + jd + ", " + long + ", " + lat + ", " + alt + ", " + epoch + ")");
-    }
-}
+module.exports = function() {
+    this.getHeliocentricVelocityCorrection = getHeliocentricVelocityCorrection;
+    this.getCMBCorrection = getCMBCorrection;
+    this.adjustRedshift = adjustRedshift;
+    this.precess = precess;
+    this.premat = premat;
+    this.bprecess = bprecess;
+    this.ct2lst = ct2lst;
+    this.celestialToGalactic = celestialToGalactic;
+    this.getBarycentricCorrection = getBarycentricCorrection;
+};

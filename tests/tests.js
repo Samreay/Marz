@@ -42,3 +42,4 @@ function runTests(name, tests) {
 
 runTests("basic", require("./basicTests"));
 runTests("algorithm", require("./algorithmTests"));
+runTests("translation", require("./translationTests"));

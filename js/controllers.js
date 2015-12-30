@@ -439,10 +439,12 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
                 var results = matchTemplate(template, ($scope.fitTID == '12' ? $scope.ui.active.quasarFFT : $scope.ui.active.fft));
                 var currentZ = parseFloat($scope.fitZ);
                 var helio = 0;
+                var cmb = 0;
                 if ($scope.ui.active != null && $scope.ui.active.helio != null) {
                     helio = $scope.ui.active.helio;
+                    cmb = $scope.ui.active.cmb;
                 }
-                var bestZ = getFit(template, results.xcor, currentZ, helio);
+                var bestZ = getFit(template, results.xcor, currentZ, helio, cmb);
                 $scope.ui.detailed.redshift = bestZ.toFixed(5);
             }
             $scope.waitingOnFit = false;

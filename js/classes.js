@@ -11,7 +11,7 @@ try {
     var $q = require("q");
 } catch (err) {
 }
-var deps = ["./config", "./methods"];
+var deps = ["./config", "./methods", "./helio"];
 for (var i = 0; i < deps.length; i++) {
     require(deps[i])();
 }
