@@ -118,9 +118,42 @@ tests.push({
     expected: [9.3511552568280, 9.72563385480417]});
 
 
-
-
-
+tests.push({
+    name: "celestialToGalactic test (1)",
+    fn: function() { return celestialToGalactic(0.0, 0.0, 2000.0, true); },
+    expected: [96.3372141633617, -60.18848302656439]});
+tests.push({
+    name: "celestialToGalactic test (2)",
+    fn: function() { return celestialToGalactic(0.0, 0.0, 2000.0, false); },
+    expected: [96.33788885880096, -60.1886115962646]});
+tests.push({
+    name: "celestialToGalactic test (3)",
+    fn: function() { return celestialToGalactic(0.0, 0.0, 1990.0, true); },
+    expected: [96.6182034830445673, -60.1881654987349748]});
+tests.push({
+    name: "celestialToGalactic test (4)",
+    fn: function() { return celestialToGalactic(0.0, 0.0, 1990.0, false); },
+    expected: [96.6188099695406777, -60.1882924408349567]});
+tests.push({
+    name: "celestialToGalactic test (5)",
+    fn: function() { return celestialToGalactic(0.0, 0.0, 2010.0, true); },
+    expected: [96.0562121269150424, -60.1882008352895284]});
+tests.push({
+    name: "celestialToGalactic test (6)",
+    fn: function() { return celestialToGalactic(0.0, 0.0, 2010.0, false); },
+    expected: [96.0569549886245113, -60.1883313186408202]});
+tests.push({
+    name: "celestialToGalactic test (7)",
+    fn: function() { return celestialToGalactic(10.0, 10.0); },
+    expected: [118.2743723329215300, -52.7682124150604324]});
+tests.push({
+    name: "celestialToGalactic test (8)",
+    fn: function() { return celestialToGalactic(10.0, -10.0); },
+    expected: [113.4435690856713848, -72.6606623285910729]});
+tests.push({
+    name: "celestialToGalactic test (9)",
+    fn: function() { return celestialToGalactic(423.1, 88.80, 2001.0, true); },
+    expected: [123.9597976503729910, 26.3515569418066349]});
 
 
 

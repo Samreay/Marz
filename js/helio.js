@@ -101,12 +101,13 @@ function getCMBCorrection(ra, dec, epoch, fk5) {
  *
  * @param ra - right ascension of target, in degrees
  * @param dec - declination of target, in degrees
- * @param year - equinox of RA and DEC.
- * @param fk5 - true of false boolean value. False for FK4
+ * @param year - equinox of RA and DEC [defaults 2000]
+ * @param fk5 - true of false boolean value. False for FK4 [defaults true]
  * @returns {number[]}
  */
 function celestialToGalactic(ra, dec, year, fk5) {
-
+    year = defaultFor(year, 2000);
+    fk5 = defaultFor(fk5, true);
     var radeg = 180.0/Math.PI;
 
     // Define galactic pole
@@ -119,7 +120,7 @@ function celestialToGalactic(ra, dec, year, fk5) {
     var radhrs = radeg / 15.0;
 
     var decs = dec;
-    var ras = ra * 15.0;
+    var ras = ra;
 
     if (fk5) {
         if (year != 2000) {
@@ -127,7 +128,7 @@ function celestialToGalactic(ra, dec, year, fk5) {
             ras = rrr[0];
             decs = rrr[1];
         }
-        bpr = bprecess(ras, decs);
+        var bpr = bprecess(ras, decs);
         ras = bpr[0];
         decs = bpr[1];
     } else if (year != 1950) {
@@ -149,7 +150,7 @@ function celestialToGalactic(ra, dec, year, fk5) {
         gl += 360.0;
     }
 
-    return [gb, gl];
+    return [gl, gb];
 }
 
 
