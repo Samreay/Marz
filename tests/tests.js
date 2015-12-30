@@ -15,7 +15,7 @@ var node = true;
 var replacer = function(key, val) {
     return val && val.toFixed ? Number(val.toFixed(6)) : val;
 };
-var equ = "========================================"
+var equ = "========================================";
 function runTests(name, tests) {
     debug("\nStarting " + name + " tests\n" + equ);
     var failed = 0;

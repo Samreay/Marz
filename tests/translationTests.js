@@ -182,4 +182,33 @@ tests.push({
     expected: 9.3849506585393101});
 
 
+
+tests.push({
+    name: "premat test (1)",
+    fn: function() { return premat(2000.0, 2000.0, false); },
+    expected: math.matrix([[1.0,0.0,0.0],[0.0,1.0,0.0],[0.0,0.0,1.0]])});
+tests.push({
+    name: "premat test (2)",
+    fn: function() { return premat(2000.0, 2000.0, true); },
+    expected: math.matrix([[1.0,0.0,0.0],[0.0,1.0,0.0],[0.0,0.0,1.0]])});
+tests.push({
+    name: "premat test (3)",
+    fn: function() { return premat(1990.0, 2010.0, false); },
+    expected: math.transpose(math.matrix([[0.9999881106223780,0.0044723266234603,0.0019434269885729],
+        [-0.0044723266237506,0.9999899990878337,-0.0000043456965697],
+        [-0.0019434269879047, -0.0000043459953602, 0.9999981115345443]]))});
+tests.push({
+    name: "premat test (4)",
+    fn: function() { return premat(1990.0, 2010.0, true); },
+    expected: math.transpose(math.matrix([[0.9999881164478237, 0.0044712259919042, 0.0019429619818773],
+        [-0.0044712259921946, 0.9999900040096701, -0.0000043435874016],
+        [-0.0019429619812091, -0.0000043438863308, 0.9999981124381536]]))});
+
+
+
+
+
+
+
+
 module.exports = tests;
