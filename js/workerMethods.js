@@ -137,7 +137,7 @@ self.matchTemplates = function(lambda, intensity, variance, type, helio) {
             return matchTemplate(template, fft);
         }
     });
-    var coalesced = self.coalesceResults(templateResults, type, subtracted, fft, quasarFFT, helio);
+    var coalesced = self.coalesceResults(templateResults, type, subtracted, fft, quasarFFT, helio, cmb);
 
     return coalesced;
 };
@@ -154,7 +154,7 @@ self.matchTemplates = function(lambda, intensity, variance, type, helio) {
  * @param type
  * @returns {{coalesced: Array, templates: null, intensity: Array}}
  */
-self.coalesceResults = function(templateResults, type, intensity, fft, quasarFFT, helio) {
+self.coalesceResults = function(templateResults, type, intensity, fft, quasarFFT, helio, cmb) {
     // Adjust for optional weighting
     var coalesced = [];
     for (var i = 0; i < templateResults.length; i++) {
@@ -173,7 +173,7 @@ self.coalesceResults = function(templateResults, type, intensity, fft, quasarFFT
 
         for (var j = 0; j < tr.peaks.length; j++) {
             tr.peaks[j].value = tr.peaks[j].value / w;
-            tr.peaks[j].z = adjustRedshift(tr.zs[tr.peaks[j].index], helio);
+            tr.peaks[j].z = adjustRedshift(tr.zs[tr.peaks[j].index], helio, cmb);
             tr.peaks[j].templateId = tr.id;
             tr.peaks[j].xcor = tr.xcor;
             coalesced.push(tr.peaks[j]);
@@ -204,7 +204,7 @@ self.coalesceResults = function(templateResults, type, intensity, fft, quasarFFT
     for (var k = 0; k < topTen.length; k++) {
         // Javascript only rounds to integer, so this should get four decimal places
         var index = fitAroundIndex(topTen[k].xcor, topTen[k].index);
-        var res = adjustRedshift(getRedshiftForNonIntegerIndex(templateManager.getTemplateFromId(topTen[k].templateId), index), helio);
+        var res = adjustRedshift(getRedshiftForNonIntegerIndex(templateManager.getTemplateFromId(topTen[k].templateId), index), helio, cmb);
         topTen[k] = {
             z:  Math.round(res * 1e5) / 1e5,
             index: index,
@@ -222,7 +222,7 @@ self.coalesceResults = function(templateResults, type, intensity, fft, quasarFFT
         var c2 = 0;
         if (tr.zs.length > 1) {
             for (var j = 0; j < tr.zs.length; j++) {
-                c1 += adjustRedshift(tr.zs[j], helio);
+                c1 += adjustRedshift(tr.zs[j], helio, cmb);
                 c2 += tr.xcor[j];
                 if ((j + 1) % numCondense == 0) {
                     zs.push(c1 / numCondense);

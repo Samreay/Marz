@@ -9,13 +9,17 @@
  * @param longitude - longitude of observatory [default to AAT: 149.0661]
  * @param latitude - latitude of observatory [default to AAT: -31.27704]
  * @param altitude - altitude of observatory (m) [default to AAT: 1164]
- * @param epoch - epoch of observation [defaults to 2000].
+ * @param epoch - epoch of observation [defaults to 2000]
+ * @param radecsys - the system for RA and DEC. Set to true if FK5, false for FK4 [default to FK5: true]
  */
-function getHeliocentricVelocityCorrection(ra, dec, jd, longitude, latitude, altitude, epoch) {
+function getHeliocentricVelocityCorrection(ra, dec, jd, longitude, latitude, altitude, epoch, fk5, cmb) {
     longitude = defaultFor(longitude, 149.0661);
     latitude = defaultFor(latitude, -31.27704);
     altitude = defaultFor(altitude, 1164);
     epoch = defaultFor(epoch, 2000);
+    fk5 = defaultFor(fk5, true);
+
+
 
     // Compute baryocentric velocity
     var vBarycentric = getBarycentricCorrection(jd, epoch, ra, dec);
@@ -51,6 +55,200 @@ function getHeliocentricVelocityCorrection(ra, dec, jd, longitude, latitude, alt
     var vTotal = vrotate + vBarycentric;
     //console.log("RA: " + ra + " DEC:" + dec + " HELIO: " + vTotal);
     return vTotal;
+}
+
+/**
+ * Returns the velocity correction to shift from celestial frame to CMB frame, via the galactic frame, in km/s
+ *
+ * @param ra - right ascension of target, in degrees
+ * @param dec - declination of target, in degrees
+ * @param epoch - epoch of observation. Normally 2000.
+ * @param fk5 - true or false boolean value. False for FK4
+ * @returns {number}
+ */
+function getCMBCorrection(ra, dec, epoch, fk5) {
+
+    var lb = celestialToGalactic(ra, dec, epoch, fk5);
+    var l = lb[0], b = lb[1];
+
+    var lapex = 264.14;
+    var bapex = 48.26;
+    var vapex = 371.0;
+
+    var degToRad = Math.PI / 180.0;
+
+    var frac = Math.sin(b * degToRad) * Math.sin(bapex * degToRad) + Math.cos(b * degToRad) * Math.cos(bapex * degToRad) * Math.cos((l - lapex) * degToRad);
+
+    var result = frac * vapex;
+    return result;
+}
+
+
+/**
+ * Returns galactic coords [l,b] when given RA, DEC, EPOCH and FK5/FK4 in celestial coords.
+ *
+ * Javascript translation of NASA's IDL function glactc,
+ * found at http://idlastro.gsfc.nasa.gov/ftp/pro/astro/glactc.pro
+ *
+ * @param ra - right ascension of target, in degrees
+ * @param dec - declination of target, in degrees
+ * @param year - equinox of RA and DEC.
+ * @param fk5 - true of false boolean value. False for FK4
+ * @returns {number[]}
+ */
+function celestialToGalactic(ra, dec, year, fk5) {
+
+    var radeg = 180.0/Math.PI;
+
+    // Define galactic pole
+    var rapol = 12.0 + 49.0/60.0;
+    var decpol = 27.4;
+    var dlon = 123.0;
+
+    var sdp = Math.sin(decpol/radeg);
+    var cdp = Math.sqrt(1.0 - sdp*sdp);
+    var radhrs = radeg / 15.0;
+
+    var decs = dec;
+    var ras = ra * 15.0;
+
+    if (fk5) {
+        if (year != 2000) {
+            var rrr = precess(ras,decs, year, 2000);
+            ras = rrr[0];
+            decs = rrr[1];
+        }
+        bpr = bprecess(ras, decs);
+        ras = bpr[0];
+        decs = bpr[1];
+    } else if (year != 1950) {
+        var rrr = precess(ras, decs, year, 1950, true);
+        ras = rrr[0];
+        decs = rrr[1];
+    }
+
+    ras = ras/radeg - rapol/radhrs;
+    var sdec = Math.sin(decs/radeg);
+    var cdec = Math.sqrt(1.0-sdec*sdec);
+    var sgb = sdec*sdp + cdec*cdp* Math.cos(ras);
+    var gb = radeg * Math.asin(sgb);
+    var cgb = Math.sqrt(1.0 - sgb*sgb);
+    var sine = cdec * Math.sin(ras) / cgb;
+    var cose = (sdec-sdp*sgb) / (cdp*cgb);
+    var gl = dlon - radeg*math.atan2(sine,cose);
+    if (gl < 0) {
+        gl += 360.0;
+    }
+
+    return [gb, gl];
+}
+
+
+/**
+ * Precesses the input RA and DEC from equinox1 to equinox2. Returns new [ra,dec]
+ *
+ * Javscript translation of NASA IDL code from http://idlastro.gsfc.nasa.gov/ftp/pro/astro/precess.pro
+ *
+ * Original procedure from
+ *
+ *       Algorithm from Computational Spherical Astronomy by Taff (1983),
+ *       p. 24. (FK4). FK5 constants from "Astronomical Almanac Explanatory
+ *       Supplement 1992, page 104 Table 3.211.1.
+ *
+ * @param ra in degrees
+ * @param dec in degrees
+ * @param equinox1
+ * @param equinox2
+ * @param fk4 - defaults to false (for fk5)
+ * @returns {number[]}
+ */
+function precess(ra, dec, equinox1, equinox2, fk4) {
+    fk4 = defaultFor(fk4, false);
+
+    var deg_to_rad = Math.PI / 180.0;
+
+    var ra_rad = ra*deg_to_rad;
+    var dec_rad = dec*deg_to_rad;
+
+    var a = Math.cos( dec_rad );
+    var x = math.matrix([a*Math.cos(ra_rad), a*Math.sin(ra_rad), Math.sin(dec_rad)]);
+
+    var r = premat(equinox1, equinox2, fk4);
+
+    var x2 = math.multiply(r,x);
+    ra_rad = math.atan2(x2.get([1]),x2.get([0]));
+    dec_rad = math.asin(x2.get([2]));
+    ra = ra_rad/deg_to_rad;
+    ra = ra + (ra < 0.0)?360.0:0;
+    dec = dec_rad/deg_to_rad;
+    return [ra, dec]
+}
+
+/**
+ * Precesses the FK5 epoch 2000 RA and DEC inputs to the epoch 1950 FK4 RA and DEC
+ * @param ra in degrees
+ * @param dec in degrees
+ * @returns {number[]}
+ */
+function bprecess(ra, dec) {
+
+
+    var radeg = 180.0 / Math.PI;
+    var sec_to_radian = 1.0/radeg/3600.0;
+
+     var M =  math.matrix( [ [ +0.9999256795, -0.0111814828, -0.0048590040,  -0.000551,  -0.238560,     +0.435730     ],
+                            [ +0.0111814828, +0.9999374849, -0.0000271557,  +0.238509,  -0.002667,     -0.008541     ],
+                            [ +0.0048590039, -0.0000271771, +0.9999881946 , -0.435614,  +0.012254,     +0.002117     ],
+                            [ -0.00000242389840, +0.00000002710544, +0.00000001177742, +0.99990432,    -0.01118145,    -0.00485852    ],
+                            [ -0.00000002710544, -0.00000242392702, +0.00000000006585, +0.01118145,     +0.99991613,    -0.00002716    ],
+                            [ -0.00000001177742, +0.00000000006585,-0.00000242404995, +0.00485852,   -0.00002717,    +0.99996684] ]);
+
+    var A_dot = math.matrix([1.244e-3, -1.579e-3, -0.660e-3 ]); //           ;in arc seconds per century
+    var ra_rad = ra/radeg;
+    var dec_rad = dec/radeg;
+    var cosra =  Math.cos( ra_rad );
+    var sinra = Math.sin( ra_rad );
+    var cosdec = Math.cos( dec_rad );
+    var sindec = Math.sin( dec_rad );
+
+    var dec_1950 = dec*0.0;
+    var ra_1950 = ra*0.0;
+
+
+    var A = math.matrix([ -1.62557e-6, -0.31919e-6, -0.13843e-6]);
+
+    var R_0 = math.matrix([ cosra*cosdec, sinra*cosdec, sindec, 0.0, 0.0, 0.0 ]);
+    var R_1 = math.multiply(M, R_0);
+
+    var r1 = math.subset(R_1, math.index([0,1,2]));
+    var r1_dot = math.subset(R_1, math.index([3,4,5]));
+
+    var x1 = R_1.get([0]),   y1 = R_1.get([1]),   z1 = R_1.get([2]);
+    var rmag = Math.sqrt( x1*x1 + y1*y1 + z1*z1 );
+
+
+    var s1 = math.divide(r1,rmag), s1_dot = math.divide(r1_dot, rmag);
+
+    var s = s1;
+    for (var j = 0; j < 3; j++) {
+        r = math.subtract(math.add(s1,A), math.multiply(math.sum(math.multiply(s, A)), s));
+        s = math.divide(r, rmag);
+    }
+
+    var x = r.get([0]), y = r.get([1]), z = r.get([2]);
+    var r2 = x*x + y*y + z*z;
+    rmag = Math.sqrt( r2 );
+
+    dec_1950 = math.asin( z / rmag);
+    ra_1950 = math.atan2( y, x);
+
+    if (ra_1950 < 0) {
+        ra_1950 += 2 * Math.PI;
+    }
+
+    ra_1950 = ra_1950 * radeg;
+    dec_1950 = dec_1950 * radeg;
+    return [ra_1950, dec_1950]
 }
 
 /**
@@ -173,7 +371,7 @@ function getBarycentricCorrection(dje, deq, ra, dec) {
 
 
     // Periodic perturbations of the emb (earth-moon barycenter).
-    var ccsecsbusec = math.transpose(math.subset(ccsec, math.index(0,[0,1,2,3]))).resize([4])
+    var ccsecsbusec = math.transpose(math.subset(ccsec, math.index(0,[0,1,2,3]))).resize([4]);
     var pertl = math.sum(math.dotMultiply(ccsecsbusec, sn)) + dt*ccsec3*sn.get([2]);
     var pertld = 0.0;
     var pertr = 0.0;
@@ -333,13 +531,22 @@ function premat(equinox1, equinox2, fk4) {
  * Adjusts (returns) a redshift with heliocentric velocity to include the heliocentric correction
  * @param z - uncorrected redshift
  * @param helio - km/s heliocentric velocity
+ * @param cmb - km/s velocity wrt 3K background
  * @returns {number}
  */
-function adjustRedshift(z, helio) {
-    if (helio == null) {
+function adjustRedshift(z, helio, cmb) {
+    if (helio == null && cmb == null) {
         return z;
     }
-    return (1 + z) * (1 + helio / (299792.458)) - 1;
+    var ckps = 299792.458;
+    var zz = (1 + z);
+    if (helio != null) {
+        zz *= (1 + (helio / ckps));
+    }
+    if (cmb != null) {
+        zz *= (1 - (cmb / ckps));
+    }
+    return zz - 1;
 }
 
 

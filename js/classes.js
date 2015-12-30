@@ -13,12 +13,14 @@
  * @param magnitude - the object's magnitude (extracted from fits file, not band explicit)
  * @param type - the object's type. Used to generate the prior for OzDES matching
  * @param filename - the filename this spectra belonged to. Used for storing data behind the scenes
- * @param drawingService - bad code style, but the angularjs drawing service is passed in to simplify logic in other locations
+ * @param helio - km/s heliocentric velocity correction
+ * @param cmb - km/s 3K background velocity correction
  * @constructor
  */
-function Spectra(id, lambda, intensity, variance, sky, name, ra, dec, magnitude, type, filename, helio) {
+function Spectra(id, lambda, intensity, variance, sky, name, ra, dec, magnitude, type, filename, helio, cmb) {
     this.version = marzVersion;
     this.helio = defaultFor(helio, null);
+    this.cmb = defaultFor(cmb, null);
     this.id = id;
     this.name = name;
     this.ra = ra;
@@ -209,7 +211,8 @@ Spectra.prototype.getProcessingAndMatchingMessage = function() {
         type: this.type,
         intensity: this.intensity,
         variance: this.variance,
-        helio: this.helio
+        helio: this.helio,
+        cmb: this.cmb
     }
 };
 Spectra.prototype.getProcessMessage = function() {
@@ -220,7 +223,8 @@ Spectra.prototype.getProcessMessage = function() {
         lambda: this.lambda,
         intensity: this.intensity,
         variance: this.variance,
-        helio: this.helio
+        helio: this.helio,
+        cmb: this.cmb
     };
 };
 Spectra.prototype.getMatchMessage = function() {
@@ -232,7 +236,8 @@ Spectra.prototype.getMatchMessage = function() {
         lambda: this.processedLambda,
         intensity: this.processedIntensity,
         variance: this.processedVariance,
-        helio: this.helio
+        helio: this.helio,
+        cmb: this.cmb
     };
 };
 
@@ -384,6 +389,7 @@ function FitsFileLoader($q, global, log, processorService) {
     this.date = null;
     this.header0 = null;
     this.epoch = null;
+    this.radecsys = null;
     this.JD = null;
     this.longitude = null;
     this.latitude = null;
@@ -454,6 +460,17 @@ FitsFileLoader.prototype.parseFitsFile = function(q) {
     this.latitude  = this.header0.get('LAT_OBS');
     this.altitude  = this.header0.get('ALT_OBS');
     this.epoch = this.header0.get('EPOCH');
+    this.radecsys = this.header0.get('RADECSYS');
+    if (this.radecsys == "FK5") {
+        this.radecsys = true;
+    } else if (this.radecsys == "FK4") {
+        this.radecsys = false;
+    } else if (this.radecsys == null) {
+        console.warn("Warning, RADECSYS header not set. Defaulting to FK5");
+        this.radecsys = true;
+    } else {
+        throw "RADECSYS type " + this.radecsys + " is not supported. Please choose either FK4 or FK5";
+    }
     this.date = MJDtoYMD(this.MJD);
     this.numPoints = this.fits.getHDU(0).data.width;
 
@@ -504,10 +521,12 @@ FitsFileLoader.prototype.parseFitsFile = function(q) {
             var type = details == null ? null : details['TYPE'][i];
 
             var helio = null;
+            var cmb = null;
             if (shouldPerformHelio) {
-                helio = getHeliocentricVelocityCorrection(ra, dec, this.JD, this.longitude, this.latitude, this.altitude, this.epoch);
+                helio = getHeliocentricVelocityCorrection(ra, dec, this.JD, this.longitude, this.latitude, this.altitude, this.epoch, this.radecsys);
+                cmb = getCMBCorrection(ra, dec, this.epoch, this.radecsys);
             }
-            var s = new Spectra(id, llambda, int, vari, skyy, name, ra, dec, mag, type, this.originalFilename, helio);
+            var s = new Spectra(id, llambda, int, vari, skyy, name, ra, dec, mag, type, this.originalFilename, helio, cmb);
             s.setCompute(int != null && vari != null);
             spectraList.push(s)
         }
