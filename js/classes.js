@@ -1205,6 +1205,7 @@ ResultsGenerator.prototype.getResultFromSpectra = function(spectra) {
     result.push({name: "QOP", value: "" + spectra.qop});
     result.push({name: "Comment", value: spectra.getComment()});
     result.push({name: "HelioCor", value: "" + (spectra.helio == null ? 0 : round(spectra.helio, 7))});
+    result.push({name: "CMBCor", value: "" + (spectra.cmb == null ? 0 : round(spectra.cmb, 7))});
     return result;
 };
 

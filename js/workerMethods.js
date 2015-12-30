@@ -43,7 +43,7 @@ function handleEvent(data) {
         result['matching'] = true;
         result['id'] = data.id;
         result['name'] = data.name;
-        result['results'] = self.matchTemplates(data.lambda, data.intensity, data.variance, data.type, data.helio);
+        result['results'] = self.matchTemplates(data.lambda, data.intensity, data.variance, data.type, data.helio, data.cmb);
     }
     return result;
 }
@@ -104,7 +104,7 @@ self.processData = function(lambda, intensity, variance) {
  * @returns a data structure of results, containing both the fit at each redshift for each template, and an
  * ordered list of best results.
  */
-self.matchTemplates = function(lambda, intensity, variance, type, helio) {
+self.matchTemplates = function(lambda, intensity, variance, type, helio, cmb) {
 
     var quasarFFT = null;
     if (templateManager.isQuasarActive()) {
