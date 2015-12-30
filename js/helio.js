@@ -188,19 +188,20 @@ function precess(ra, dec, equinox1, equinox2, fk4) {
     ra_rad = math.atan2(x2.get([1]),x2.get([0]));
     dec_rad = math.asin(x2.get([2]));
     ra = ra_rad/deg_to_rad;
-    ra = ra + (ra < 0.0)?360.0:0;
+    ra = ra + ((ra < 0.0)?360.0:0);
     dec = dec_rad/deg_to_rad;
     return [ra, dec]
 }
 
 /**
- * Precesses the FK5 epoch 2000 RA and DEC inputs to the epoch 1950 FK4 RA and DEC
+ * Precesses the FK5 RA and DEC inputs to the epoch 1950 FK4 RA and DEC
  * @param ra in degrees
  * @param dec in degrees
+ * @param epoch [defaults to 2000]
  * @returns {number[]}
  */
-function bprecess(ra, dec) {
-
+function bprecess(ra, dec, epoch) {
+    epoch = defaultFor(epoch, 2000);
 
     var radeg = 180.0 / Math.PI;
     var sec_to_radian = 1.0/radeg/3600.0;
@@ -211,7 +212,7 @@ function bprecess(ra, dec) {
                             [ -0.00000242389840, +0.00000002710544, +0.00000001177742, +0.99990432,    -0.01118145,    -0.00485852    ],
                             [ -0.00000002710544, -0.00000242392702, +0.00000000006585, +0.01118145,     +0.99991613,    -0.00002716    ],
                             [ -0.00000001177742, +0.00000000006585,-0.00000242404995, +0.00485852,   -0.00002717,    +0.99996684] ]);
-
+    M = math.transpose(M);
     var A_dot = math.matrix([1.244e-3, -1.579e-3, -0.660e-3 ]); //           ;in arc seconds per century
     var ra_rad = ra/radeg;
     var dec_rad = dec/radeg;
@@ -231,6 +232,9 @@ function bprecess(ra, dec) {
 
     var r1 = math.subset(R_1, math.index([0,1,2]));
     var r1_dot = math.subset(R_1, math.index([3,4,5]));
+
+    r1 = math.add(r1, math.multiply(r1_dot, sec_to_radian*(epoch - 1950.0)/100.0));
+    A = math.add(A,  math.multiply(A_dot, sec_to_radian*(epoch - 1950.0)/100.0));
 
     var x1 = R_1.get([0]),   y1 = R_1.get([1]),   z1 = R_1.get([2]);
     var rmag = Math.sqrt( x1*x1 + y1*y1 + z1*z1 );

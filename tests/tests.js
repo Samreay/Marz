@@ -13,21 +13,21 @@ var getTime = function() {
 
 var node = true;
 var replacer = function(key, val) {
-    return val && val.toFixed ? Number(val.toFixed(5)) : val;
+    return val && val.toFixed ? Number(val.toFixed(6)) : val;
 };
 var equ = "========================================"
 function runTests(name, tests) {
     debug("\nStarting " + name + " tests\n" + equ);
+    var failed = 0;
     for (var i = 0; i < tests.length; i++) {
         var t = tests[i];
-        var failed = 0;
         var actual = t.fn();
         var expected = t.expected;
         var actualString = JSON.stringify(actual, replacer);
         var expectedString = JSON.stringify(expected, replacer);
         if (actualString != expectedString) {
             failed++;
-            console.warn("FAILED:   " + t.name + " failed. Expected:\n\t" + expectedString + "\nReceived:\n\t" + actualString);
+            console.warn("FAILED:   " + t.name + " failed.\n\tExpected:\t" + expectedString + "\n\tReceived:\t" + actualString);
         } else {
             console.log("passed:   " + t.name + " passed");
         }
@@ -43,3 +43,5 @@ function runTests(name, tests) {
 runTests("basic", require("./basicTests"));
 runTests("algorithm", require("./algorithmTests"));
 runTests("translation", require("./translationTests"));
+
+console.log("\n" + equ + "\nAll tests passed\n" + equ);
