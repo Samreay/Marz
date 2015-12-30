@@ -495,6 +495,7 @@ FitsFileLoader.prototype.parseFitsFile = function(q, originalFilename) {
         indexesToRemove = indexesToRemove.unique();
 
         var shouldPerformHelio = this.shouldPerformHelio();
+        var shouldPerformCMB = this.shouldPerformCMB();
 
         var spectraList = [];
         for (var i = 0; i < intensity.length; i++) {
@@ -516,6 +517,8 @@ FitsFileLoader.prototype.parseFitsFile = function(q, originalFilename) {
             var cmb = null;
             if (shouldPerformHelio) {
                 helio = getHeliocentricVelocityCorrection(ra, dec, this.JD, this.longitude, this.latitude, this.altitude, this.epoch, this.radecsys);
+            }
+            if (shouldPerformCMB) {
                 cmb = getCMBCorrection(ra, dec, this.epoch, this.radecsys);
             }
             var s = new Spectra(id, llambda, int, vari, skyy, name, ra, dec, mag, type, this.originalFilename, helio, cmb);
@@ -534,11 +537,21 @@ FitsFileLoader.prototype.parseFitsFile = function(q, originalFilename) {
 };
 FitsFileLoader.prototype.shouldPerformHelio = function() {
     var flag = this.header0.get('DO_HELIO');
-    if (flag != null && flag == true) { //TODO: FORCE TRUE FOR TESTING
+    if ((flag != null && flag == true)) { //TODO: FORCE TRUE FOR TESTING
         this.log.debug("Performing heliocentric correction");
         return true;
     } else {
         this.log.debug("No heliocentric correction");
+        return false;
+    }
+};
+FitsFileLoader.prototype.shouldPerformCMB = function() {
+    var flag = this.header0.get('DO_CMB');
+    if ((flag != null && flag == true)) { //TODO: FORCE TRUE FOR TESTING
+        this.log.debug("Performing CMB correction");
+        return true;
+    } else {
+        this.log.debug("No CMB correction");
         return false;
     }
 };
