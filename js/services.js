@@ -421,20 +421,6 @@ angular.module('servicesZ', ['dialogs.main'])
             if (self.spectraManager.autoQOPs && oldqop == 0) {
                 qualityService.changeSpectra(oldqop, spectra.autoQOP);
             }
-            if (results.results.fft == null) {
-                spectra.fft = null;
-            } else {
-                spectra.fft = new FFT(results.results.fft.real.length, results.results.fft.imag);
-                spectra.fft.real = results.results.fft.real;
-                spectra.fft.imag = results.results.fft.imag;
-            }
-            if (results.results.quasarFFT == null) {
-                spectra.quasarFFT = null;
-            } else {
-                spectra.quasarFFT = new FFT(results.results.quasarFFT.real.length, results.results.quasarFFT.imag);
-                spectra.quasarFFT.real = results.results.quasarFFT.real;
-                spectra.quasarFFT.imag = results.results.quasarFFT.imag;
-            }
             spectra.processedIntensity = results.results.intensity;
             if (saveAutomatically) {
                 localStorageService.saveSpectra(spectra);

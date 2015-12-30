@@ -108,41 +108,11 @@ self.matchTemplates = function(lambda, intensity, variance, type, helio, cmb) {
 
     var quasarFFT = null;
     if (templateManager.isQuasarActive()) {
-        var quasarIntensity = intensity.slice();
-        var quasarVariance = variance.slice();
-        quasarIntensity = rollingPointMean(quasarIntensity, globalConfig.rollingPointWindow, globalConfig.rollingPointDecay);
-        taperSpectra(quasarIntensity);
-        quasarVariance = medianAndBoxcarSmooth(quasarVariance, globalConfig.quasarVarianceMedian, globalConfig.quasarVarianceBoxcar);
-        addMinMultiple(quasarVariance, globalConfig.quasarMinMultiple);
-        divideByError(quasarIntensity, quasarVariance);
-        taperSpectra(quasarIntensity);
-        normalise(quasarIntensity);
-        var quasarResult = convertLambdaToLogLambda(lambda, quasarIntensity, globalConfig.arraySize, true);
-        quasarIntensity = quasarResult.intensity;
-        quasarFFT = new FFT(quasarIntensity.length, quasarIntensity.length);
-        quasarFFT.forward(quasarIntensity);
+        quasarFFT = getQuasarFFT(lambda, intensity, variance);
     }
-
-
-    // The intensity variable is what will match every other template
-    taperSpectra(intensity);
-    smoothAndSubtract(intensity);
-    var subtracted = intensity.slice();
-    adjustError(variance);
-    divideByError(intensity, variance);
-
-    taperSpectra(intensity);
-    normalise(intensity);
-
-
-    // This rebins (oversampling massively) into an equispaced log array. To change the size and range of
-    // this array, have a look at the config.js file.
-    var result = convertLambdaToLogLambda(lambda, intensity, globalConfig.arraySize, false);
-    intensity = result.intensity;
-
-    // Fourier transform both the intensity and quasarIntensity variables
-    var fft = new FFT(intensity.length, intensity.length);
-    fft.forward(intensity);
+    var res = getStandardFFT(lambda, intensity, variance);
+    var fft = res[0];
+    var subtracted = res[1];
 
     // For each template, match the appropriate transform
     var templateResults = templateManager.templates.map(function(template) {
@@ -152,7 +122,7 @@ self.matchTemplates = function(lambda, intensity, variance, type, helio, cmb) {
             return matchTemplate(template, fft);
         }
     });
-    var coalesced = self.coalesceResults(templateResults, type, subtracted, fft, quasarFFT, helio, cmb);
+    var coalesced = self.coalesceResults(templateResults, type, subtracted, helio, cmb);
 
     return coalesced;
 };
@@ -169,7 +139,7 @@ self.matchTemplates = function(lambda, intensity, variance, type, helio, cmb) {
  * @param type
  * @returns {{coalesced: Array, templates: null, intensity: Array}}
  */
-self.coalesceResults = function(templateResults, type, intensity, fft, quasarFFT, helio, cmb) {
+self.coalesceResults = function(templateResults, type, intensity, helio, cmb) {
     // Adjust for optional weighting
     var coalesced = [];
     for (var i = 0; i < templateResults.length; i++) {
@@ -269,19 +239,11 @@ self.coalesceResults = function(templateResults, type, intensity, fft, quasarFFT
 
     }
     var autoQOP = self.getAutoQOP(topTen);
-    if (node) {
-        fft = null;
-        quasarFFT = null;
-        templateResults = null;
-
-    }
     return {
         coalesced: topTen,
         templates: templates,
         intensity: intensity,
-        autoQOP: autoQOP,
-        fft: node ? null : {real: fft.real, imag: fft.imag},
-        quasarFFT: node ? null : {real: quasarFFT.real, imag: quasarFFT.imag}
+        autoQOP: autoQOP
     };
 };
 

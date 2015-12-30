@@ -417,26 +417,33 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             $scope.fitZ = $scope.ui.detailed.redshift;
             $scope.waitingOnFit = true;
             if ($scope.ui.active != null) {
-                if ($scope.ui.active.fft == null) {
+                if ($scope.ui.active.processedIntensity == null) {
                     $scope.reanalyseSpectra(true);
                     return;
                 }
             }
             var tid = $scope.ui.detailed.templateId;
-            if (tid == null || tid === "0" || $scope.ui.active == null || $scope.ui.active.fft == null) {
+            if (tid == null || tid === "0" || $scope.ui.active == null) {
                 $scope.waitingOnFit = false;
             } else {
-
                 $scope.doFit();
             }
         };
         $scope.doFit = function() {
+            var s = $scope.ui.active;
             if ($scope.fitTID == '0') {
                 $scope.fitTID = $scope.ui.detailed.templateId;
             }
             if ($scope.fitTID != '0') {
                 var template = templatesService.getFFTReadyTemplate($scope.fitTID);
-                var results = matchTemplate(template, ($scope.fitTID == '12' ? $scope.ui.active.quasarFFT : $scope.ui.active.fft));
+                var fft = null;
+                if ($scope.fitTID == '12') {
+                    fft = getQuasarFFT(s.processedLambda, s.processedIntensity.slice(), s.processedVariance.slice());
+                } else {
+                    fft = getStandardFFT(s.processedLambda, s.processedIntensity.slice(), s.processedVariance.slice());
+                }
+
+                var results = matchTemplate(template, fft);
                 var currentZ = parseFloat($scope.fitZ);
                 var helio = 0;
                 var cmb = 0;

@@ -1200,6 +1200,46 @@ function clipVariance(variance, clip) {
     }
 }
 
+function getQuasarFFT(lambda, intensity, variance) {
+    var quasarIntensity = intensity.slice();
+    var quasarVariance = variance.slice();
+    quasarIntensity = rollingPointMean(quasarIntensity, globalConfig.rollingPointWindow, globalConfig.rollingPointDecay);
+    taperSpectra(quasarIntensity);
+    quasarVariance = medianAndBoxcarSmooth(quasarVariance, globalConfig.quasarVarianceMedian, globalConfig.quasarVarianceBoxcar);
+    addMinMultiple(quasarVariance, globalConfig.quasarMinMultiple);
+    divideByError(quasarIntensity, quasarVariance);
+    taperSpectra(quasarIntensity);
+    normalise(quasarIntensity);
+    var quasarResult = convertLambdaToLogLambda(lambda, quasarIntensity, globalConfig.arraySize, true);
+    quasarIntensity = quasarResult.intensity;
+    var quasarFFT = new FFT(quasarIntensity.length, quasarIntensity.length);
+    quasarFFT.forward(quasarIntensity);
+    return quasarFFT;
+}
+
+function getStandardFFT(lambda, intensity, variance) {
+    taperSpectra(intensity);
+    smoothAndSubtract(intensity);
+    var subtracted = intensity.slice();
+    adjustError(variance);
+    divideByError(intensity, variance);
+    taperSpectra(intensity);
+    normalise(intensity);
+
+    // This rebins (oversampling massively) into an equispaced log array. To change the size and range of
+    // this array, have a look at the config.js file.
+    var result = convertLambdaToLogLambda(lambda, intensity, globalConfig.arraySize, false);
+    intensity = result.intensity;
+
+    // Fourier transform both the intensity and quasarIntensity variables
+    var fft = new FFT(intensity.length, intensity.length);
+    fft.forward(intensity);
+
+    return [fft, subtracted];
+}
+
+
+
 module.exports = function() {
     this.linearScale = linearScale;
     this.MJDtoYMD = MJDtoYMD;
@@ -1241,6 +1281,8 @@ module.exports = function() {
     this.maxMedianAdjust = maxMedianAdjust;
     this.broadenError = broadenError;
     this.round = round;
+    this.getQuasarFFT = getQuasarFFT;
+    this.getStandardFFT = getStandardFFT;
 };
 
 
