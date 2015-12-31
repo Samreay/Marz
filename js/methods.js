@@ -1218,6 +1218,8 @@ function getQuasarFFT(lambda, intensity, variance) {
 }
 
 function getStandardFFT(lambda, intensity, variance) {
+    intensity = intensity.slice();
+    variance = variance.slice();
     taperSpectra(intensity);
     smoothAndSubtract(intensity);
     var subtracted = intensity.slice();
