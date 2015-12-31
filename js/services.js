@@ -385,7 +385,7 @@ angular.module('servicesZ', ['dialogs.main'])
             spectra.processedLambdaPlot = results.lambda;
             spectra.processedVariance = results.variance;
             spectra.processedVariancePlot = results.processedVariancePlot;
-
+            spectra.processedIntensity = results.intensity;
             if (!self.isProcessing() && self.isFinishedMatching()) {
                 if (global.data.fits.length > 0) {
                     global.data.fits.shift();
@@ -400,7 +400,7 @@ angular.module('servicesZ', ['dialogs.main'])
             if (self.spectraManager.autoQOPs && oldqop == 0) {
                 qualityService.changeSpectra(oldqop, spectra.autoQOP);
             }
-            spectra.processedIntensity = results.results.intensity;
+            spectra.processedIntensity2 = results.results.intensity2;
             if (saveAutomatically) {
                 localStorageService.saveSpectra(spectra);
             }

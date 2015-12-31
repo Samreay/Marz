@@ -242,7 +242,7 @@ self.coalesceResults = function(templateResults, type, intensity, helio, cmb) {
     return {
         coalesced: topTen,
         templates: templates,
-        intensity: intensity,
+        intensity2: intensity,
         autoQOP: autoQOP
     };
 };

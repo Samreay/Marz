@@ -1171,7 +1171,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                         var colour = "#000";
                         if (global.ui.dataSelection.processed && global.ui.active.processedLambdaPlot != null) {
                             xs = global.ui.active.processedLambdaPlot;
-                            ys = global.ui.detailed.continuum ? global.ui.active.processedContinuum : global.ui.active.processedIntensity;
+                            ys = global.ui.detailed.continuum ? global.ui.active.processedContinuum : global.ui.active.processedIntensity2;
                             colour = global.ui.colours.processed;
                         } else {
                             ys = global.ui.detailed.continuum ? global.ui.active.intensityPlot : global.ui.active.getIntensitySubtracted();
