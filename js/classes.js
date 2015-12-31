@@ -1193,6 +1193,14 @@ ResultsGenerator.prototype.getResultsArray = function() {
     }
     return result;
 };
+ResultsGenerator.prototype.getLocalStorageResult = function(spectra) {
+    var result = {};
+    result['z'] = spectra.getFinalRedshift().toFixed(5);
+    result['id'] = spectra.getFinalTemplateID() ? spectra.getFinalTemplateID() : "0";
+    result['qop'] = "" + spectra.qop;
+    result['com'] = spectra.getComment();
+    return result;
+};
 ResultsGenerator.prototype.getResultFromSpectra = function(spectra) {
     var result = [];
     result.push({name: "ID", value: ("" + spectra.id).pad(4)});

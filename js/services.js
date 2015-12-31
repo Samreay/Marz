@@ -207,7 +207,7 @@ angular.module('servicesZ', ['dialogs.main'])
             }
         }
     }])
-    .service('spectraService', ['global', 'resultsGeneratorService', 'cookieService', 'localStorageService', 'qualityService', 'log', function(global, resultsGeneratorService, cookieService, localStorageService, qualityService, log) {
+    .service('spectraService', ['global', 'resultsGeneratorService', 'cookieService', 'localStorageService', 'qualityService', 'log', 'templatesService', function(global, resultsGeneratorService, cookieService, localStorageService, qualityService, log, templatesService) {
         var self = this;
         var data = global.data;
         var quality = global.ui.quality;
@@ -343,32 +343,11 @@ angular.module('servicesZ', ['dialogs.main'])
         self.loadLocalStorage = function(spectra, vals) {
             spectra.isMatched = true;
 
-            spectra.automaticResults = [{}];
-            for (var i = 1; i < vals.length; i++) {
-                if (vals[i].name == "QOP") {
-                    spectra.setQOP(parseInt(vals[i].value));
-                    qualityService.addResult(spectra.qop);
-                }
-            }
-            for (var i = 1; i < vals.length; i++) {
-                if (vals[i].name == "AutoTID") {
-                    spectra.automaticResults[0].templateId = "" + vals[i].value;
-                } else if (vals[i].name == "AutoZ") {
-                    spectra.automaticResults[0].z = parseFloat(vals[i].value);
-                } else if (vals[i].name == "AutoXCor") {
-                    spectra.automaticResults[0].value = parseFloat(vals[i].value);
-                } else if (vals[i].name == "FinTID" && spectra.qop > 0) {
-                    spectra.manualTemplateID = "" + vals[i].value;
-                } else if (vals[i].name == "FinZ" && spectra.qop > 0) {
-                    spectra.manualRedshift = parseFloat(vals[i].value);
-                } else if (vals[i].name == "Comment") {
-                    spectra.setComment(vals[i].value);
-                } else if (vals[i].name == "HelioCor") {
-                    spectra.helio = parseFloat(vals[i].value);
-                }
-            }
-
-            spectra.automaticBestResults = spectra.automaticResults;
+            spectra.setQOP(parseInt(vals['qop']));
+            qualityService.addResult(spectra.qop);
+            spectra.manualTemplateID = vals['id'];
+            spectra.manualRedshift = parseFloat(vals['z']);
+            spectra.setComment(vals['com']);
 
         };
         self.getSpectra = function(id) {
@@ -595,6 +574,9 @@ angular.module('servicesZ', ['dialogs.main'])
         self.getResultFromSpectra = function(spectra) {
             return self.resultsGenerator.getResultFromSpectra(spectra);
         };
+        self.getLocalStorageResult = function(spectra) {
+            return self.resultsGenerator.getLocalStorageResult(spectra);
+        };
         self.getResultsCSV = function() {
             log.debug("Getting result CSV");
             return self.resultsGenerator.getResultsCSV(personalService.getInitials());
@@ -684,7 +666,7 @@ angular.module('servicesZ', ['dialogs.main'])
             console.log("Clearing", filename);
             for (var i = 0; i < localStorage.length; i++) {
                 var key = localStorage.key(i);
-                if (key.indexOf(filename, 0) == 0) {
+                if (key.indexOf(filename, 0) != -1) {
                     localStorage.removeItem(key);
                     i--;
                 }
@@ -697,10 +679,12 @@ angular.module('servicesZ', ['dialogs.main'])
         self.saveSpectra = function(spectra) {
             if (!active) return;
             var key = self.getKeyFromSpectra(spectra);
-            var val = resultsGeneratorService.getResultFromSpectra(spectra);
-            if (val != null) {
-                val.unshift(Date.now());
-                localStorage[key] = JSON.stringify(val);
+            var val = [resultsGeneratorService.getLocalStorageResult(spectra)];
+            if (val[0]['qop'] != 0) {
+                if (val != null) {
+                    val.unshift(Date.now());
+                    localStorage[key] = JSON.stringify(val);
+                }
             }
         };
         self.loadSpectra = function(spectra) {
@@ -710,7 +694,7 @@ angular.module('servicesZ', ['dialogs.main'])
             if (val != null) {
                 val = JSON.parse(val);
             }
-            return val;
+            return val[1];
         };
 
     }])
