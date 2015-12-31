@@ -97,7 +97,7 @@ def loadMarzResults(filepath):
     return numpy.loadtxt(filepath, dtype=types, delimiter=",")</pre>
         <p>The result is a typed <code>numpy</code> array and can undergo normal array operations:</p>
         <pre class="prettyprint lang-python">res = loadMarzResults(pathToResultsFile)
-confident = res[res['qop'] >= 3]</pre>atin
+confident = res[res['qop'] >= 3]</pre>
         <p>If the number of automatic matches output is changed (in the settings tab), you will have to adjust the columns in the above code accordingly. Similarly, whether heliocentric velocity corrections or CMB dipole corrections are enabled will also change the number of columns.</p>
     </accordion-group>
 </accordion>
