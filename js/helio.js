@@ -557,10 +557,10 @@ function adjustRedshift(z, helio, cmb) {
     var ckps = 299792.458;
     var zz = (1 + z);
     if (helio != null) {
-        zz *= (1 + (helio / ckps));
+        zz /= (1 - (helio / ckps));
     }
     if (cmb != null) {
-        zz *= (1 - (cmb / ckps));
+        zz /= (1 - (cmb / ckps));
     }
     return zz - 1;
 }
