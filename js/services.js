@@ -538,6 +538,12 @@ angular.module('servicesZ', ['dialogs.main'])
         self.resultsGenerator = new ResultsGenerator(global.data, templatesService);
         self.downloading = false;
 
+        self.setHelio = function(val) {
+            self.resultsGenerator.setHelio(val);
+        };
+        self.setCMB = function(val) {
+            self.resultsGenerator.setCMB(val);
+        };
         var numAutomaticCookie = "numAutomatic";
         self.setNumAutomatic = function(num) {
             if (num <= 5) {
@@ -865,9 +871,9 @@ angular.module('servicesZ', ['dialogs.main'])
         };
 
     }])
-    .service('fitsFile', ['$q', 'global', 'spectraService', 'processorService', 'log', function($q, global, spectraService, processorService, log) {
+    .service('fitsFile', ['$q', 'global', 'spectraService', 'processorService', 'resultsGeneratorService', 'log', function($q, global, spectraService, processorService, resultsGeneratorService, log) {
         var self = this;
-        self.fitsFileLoader = new FitsFileLoader($q, global, log, processorService);
+        self.fitsFileLoader = new FitsFileLoader($q, global, log, processorService, resultsGeneratorService);
         self.fitsFileLoader.subscribeToInput(spectraService.setSpectra);
         self.fitsFileLoader.subscribeToInput(processorService.addSpectraListToQueue);
 

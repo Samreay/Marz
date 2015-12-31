@@ -371,7 +371,7 @@ FastAreaFinder.prototype.getArea = function(start, end) {
 
 
 
-function FitsFileLoader($q, global, log, processorService) {
+function FitsFileLoader($q, global, log, processorService, resultGenerator) {
     this.isLoading = false;
     this.hasFitsFile = false;
     this.originalFilename = null;
@@ -385,6 +385,7 @@ function FitsFileLoader($q, global, log, processorService) {
     this.longitude = null;
     this.latitude = null;
     this.altitude = null;
+    this.resultGenerator = resultGenerator;
 
     this.spectra = null;
     this.primaryIndex = 0;
@@ -497,6 +498,9 @@ FitsFileLoader.prototype.parseFitsFile = function(q, originalFilename) {
         var shouldPerformHelio = this.shouldPerformHelio();
         var shouldPerformCMB = this.shouldPerformCMB();
 
+        this.resultGenerator.setHelio(shouldPerformHelio);
+        this.resultGenerator.setCMB(shouldPerformCMB);
+
         var spectraList = [];
         for (var i = 0; i < intensity.length; i++) {
             if (indexesToRemove.indexOf(i) != -1 || !this.useSpectra(intensity[i])) {
@@ -537,7 +541,7 @@ FitsFileLoader.prototype.parseFitsFile = function(q, originalFilename) {
 };
 FitsFileLoader.prototype.shouldPerformHelio = function() {
     var flag = this.header0.get('DO_HELIO');
-    if ((flag != null && flag == true)) { //TODO: FORCE TRUE FOR TESTING
+    if ((flag != null && flag == true)) {
         this.log.debug("Performing heliocentric correction");
         return true;
     } else {
@@ -547,7 +551,7 @@ FitsFileLoader.prototype.shouldPerformHelio = function() {
 };
 FitsFileLoader.prototype.shouldPerformCMB = function() {
     var flag = this.header0.get('DO_CMB');
-    if ((flag != null && flag == true)) { //TODO: FORCE TRUE FOR TESTING
+    if ((flag != null && flag == true)) {
         this.log.debug("Performing CMB correction");
         return true;
     } else {
@@ -1109,11 +1113,20 @@ SpectraManager.prototype.getNumberTotal = function() {
 
 
 
-function ResultsGenerator(data, templates) {
+function ResultsGenerator(data, templates, manual) {
+    this.manual = defaultFor(manual, true);
     this.data = data;
     this.templates = templates;
     this.numAutomatic = 1;
+    this.helio = false;
+    this.cmb = false;
 }
+ResultsGenerator.prototype.setHelio = function(val) {
+    this.helio = val;
+};
+ResultsGenerator.prototype.setCMB = function(val) {
+    this.cmb = val;
+};
 ResultsGenerator.prototype.setNumAutomatic = function(num) {
     this.numAutomatic = num;
 };
@@ -1220,13 +1233,19 @@ ResultsGenerator.prototype.getResultFromSpectra = function(spectra) {
             result.push({name: "AutoXCor"+suffix, value: automatics[i].value.toFixed(5)});
         }
     }
-    result.push({name: "FinTID", value: spectra.getFinalTemplateID() ? spectra.getFinalTemplateID() : "0"});
-    result.push({name: "FinTN", value: this.templates.getNameForTemplate(spectra.getFinalTemplateID())});
-    result.push({name: "FinZ", value: spectra.getFinalRedshift().toFixed(5)});
+    if (this.manual) {
+        result.push({name: "FinTID", value: spectra.getFinalTemplateID() ? spectra.getFinalTemplateID() : "0"});
+        result.push({name: "FinTN", value: this.templates.getNameForTemplate(spectra.getFinalTemplateID())});
+        result.push({name: "FinZ", value: spectra.getFinalRedshift().toFixed(5)});
+    }
     result.push({name: "QOP", value: "" + spectra.qop});
     result.push({name: "Comment", value: spectra.getComment()});
-    result.push({name: "HelioCor", value: "" + (spectra.helio == null ? 0 : round(spectra.helio, 7))});
-    result.push({name: "CMBCor", value: "" + (spectra.cmb == null ? 0 : round(spectra.cmb, 7))});
+    if (this.helio) {
+        result.push({name: "HelioCor", value: "" + (spectra.helio == null ? 0 : round(spectra.helio, 7))});
+    }
+    if (this.cmb) {
+        result.push({name: "CMBCor", value: "" + (spectra.cmb == null ? 0 : round(spectra.cmb, 7))});
+    }
     return result;
 };
 
@@ -1236,4 +1255,4 @@ module.exports = function() {
     this.SpectraManager = SpectraManager;
     this.ResultsGenerator = ResultsGenerator;
     this.FitsFileLoader = FitsFileLoader;
-}
+};
