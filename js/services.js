@@ -692,9 +692,9 @@ angular.module('servicesZ', ['dialogs.main'])
             var key = self.getKeyFromSpectra(spectra);
             var val = localStorage[key];
             if (val != null) {
-                val = JSON.parse(val);
+                val = JSON.parse(val)[1];
             }
-            return val[1];
+            return val;
         };
 
     }])
