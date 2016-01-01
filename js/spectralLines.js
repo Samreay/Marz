@@ -1,4 +1,8 @@
-/** Requires tools.js to be imported */
+var deps = ["./methods"];
+for (var i = 0; i < deps.length; i++) {
+    require(deps[i])();
+}
+
 
 function SpectralLines() {
     this.lines = [];
@@ -139,4 +143,9 @@ SpectralLines.prototype.toggle = function(id) {
             return;
         }
     }
+};
+
+
+module.exports = function() {
+    this.SpectralLines = SpectralLines;
 };

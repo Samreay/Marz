@@ -2,11 +2,11 @@
  * ANY CHANGES OF THIS FILE MUST BE CONVEYED IN A VERSION INCREMENT
  * OF marzVersion IN config.js!
  ******************************************************************/
-var deps = ["./templates", "./helio"];
+var deps = ["./templates", "./helio", "./config"];
 for (var i = 0; i < deps.length; i++) {
     require(deps[i])();
 }
-
+var node = false;
 var templateManager = new TemplateManager();
 var shifted_temp = false;
 var self = this;
@@ -30,6 +30,7 @@ if (!shifted_temp) {
  */
 function handleEvent(data) {
     templateManager.setInactiveTemplates(data.inactiveTemplates);
+    node = data.node;
     var result = null;
     // Whether the data gets processed or matched depends on if a processing property is set
     if (data.processing) {
@@ -253,6 +254,9 @@ self.coalesceResults = function(templateResults, type, intensity, helio, cmb) {
  * @returns {number} QOp integer, 1,2,3,4 or 6
  */
 self.getAutoQOP = function(coalesced) {
+    if (coalesced.length < 2) {
+        return 0;
+    }
     var mainV = coalesced[0].value;
     var secondV = coalesced[1].value;
 
@@ -273,4 +277,4 @@ self.getAutoQOP = function(coalesced) {
 
 module.exports = function() {
     this.handleEvent = handleEvent;
-}
+};

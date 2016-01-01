@@ -144,7 +144,7 @@ if (cluster.isMaster) {
     history: []
   };
   var global = {data: data};
-  var p = new ProcessorManager();
+  var p = new ProcessorManager(true);
   var s = new SpectraManager(data, log);
   var t = new TemplateManager(false);
   var r = new ResultsGenerator(data, t, false);

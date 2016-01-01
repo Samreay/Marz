@@ -841,9 +841,9 @@ FitsFileLoader.prototype.useSpectra = function(intensity) {
 
 
 
-function ProcessorManager() {
+function ProcessorManager(node) {
     this.processing = true;
-
+    this.node = defaultFor(node, false);
     this.getInactiveTemplates = null;
     this.processedCallback = null;
     this.processedCallbackContext = null;
@@ -901,6 +901,7 @@ ProcessorManager.prototype.setWorkers = function(workers, $q) {
 };
 ProcessorManager.prototype.processSpectra = function(spectra) {
     spectra.inactiveTemplates = this.getInactiveTemplates();
+    spectra.node = this.node;
     var processor = this.getIdleProcessor();
     processor.workOnSpectra(spectra, this.node).then(function(result) {
         if (result.data.processing) {

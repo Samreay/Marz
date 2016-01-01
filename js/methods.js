@@ -1285,6 +1285,8 @@ module.exports = function() {
     this.round = round;
     this.getQuasarFFT = getQuasarFFT;
     this.getStandardFFT = getStandardFFT;
+    this.range = range;
+    this.convertSingleVacuumFromAir = convertSingleVacuumFromAir;
 };
 
 

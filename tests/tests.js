@@ -21,7 +21,8 @@ function runTests(name, tests) {
     var failed = 0;
     for (var i = 0; i < tests.length; i++) {
         var t = tests[i];
-        var actual = t.fn();
+
+        var actual = t.fn(t['args']);
         var expected = t.expected;
         var actualString = JSON.stringify(actual, replacer);
         var expectedString = JSON.stringify(expected, replacer);
@@ -43,5 +44,6 @@ function runTests(name, tests) {
 runTests("basic", require("./basicTests"));
 runTests("algorithm", require("./algorithmTests"));
 runTests("translation", require("./translationTests"));
+runTests("verification", require("./verificationTests"));
 
 console.log("\n" + equ + "\nAll tests passed\n" + equ);
