@@ -541,7 +541,7 @@ FitsFileLoader.prototype.parseFitsFile = function(q, originalFilename) {
 };
 FitsFileLoader.prototype.shouldPerformHelio = function() {
     var flag = this.header0.get('DO_HELIO');
-    if ((flag != null && flag == true)) {
+    if ((flag != null && (flag == 1 || flag == "T" || flag == true))) {
         this.log.debug("Performing heliocentric correction");
         return true;
     } else {
@@ -551,7 +551,7 @@ FitsFileLoader.prototype.shouldPerformHelio = function() {
 };
 FitsFileLoader.prototype.shouldPerformCMB = function() {
     var flag = this.header0.get('DO_CMB');
-    if ((flag != null && flag == true)) {
+    if ((flag != null && (flag == 1 || flag == "T" || flag == true))) {
         this.log.debug("Performing CMB correction");
         return true;
     } else {

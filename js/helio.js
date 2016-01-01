@@ -551,6 +551,8 @@ function premat(equinox1, equinox2, fk4) {
  * @returns {number}
  */
 function adjustRedshift(z, helio, cmb) {
+    helio = defaultFor(helio, null);
+    cmb = defaultFor(cmb, null);
     if (helio == null && cmb == null) {
         return z;
     }
