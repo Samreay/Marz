@@ -5,7 +5,7 @@
 // Version only needs to be incremented when matching algorithm changes, not UI.
 // Any change in the version will mean prior redshifts stored in the program
 // will not be loaded (as they may be different with the update).
-var marzVersion = "1.0.5";
+var marzVersion = "1.0.6";
 
 
 // CONFIG FOR PIXEL MASKING

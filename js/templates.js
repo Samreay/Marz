@@ -237,7 +237,11 @@ TemplateManager.prototype.getTemplateFromId = function(id) {
 };
 TemplateManager.prototype.getTemplate = function (id, z, withContinuum) {
     var t = this.templatesHash[id];
-    var lambda = linearScaleFactor(t.start_lambda_linear, t.end_lambda_linear, (1 + z) / (1 + t.redshift) - 1, t.lambda_linear.length);
+    var fact = (1 + z) / (1 + t.redshift);
+    var lambda = t.lambda_linear.slice();
+    for (var i = 0; i < lambda.length; i++) {
+        lambda[i] *= fact;
+    }
     if (withContinuum) {
         return [lambda, t.specWithContinuum_linear];
     } else {

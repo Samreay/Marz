@@ -26,6 +26,9 @@ After doing this, you can analyse a FITS file by running `./autoMarz.sh <FITSFil
 
 # Updates
 
+## 1.0.6
+* Making displayed template more accurate
+
 ## 1.0.5
 * Improving LocalStorage detection for Safari's private browsing mode.
 * Removing extraneous console logging.
