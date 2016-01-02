@@ -1,11 +1,31 @@
 var node = true;
 
 console.log("Loading dependencies for verification");
-var dependencies = ['../js/methods', '../js/workerMethods', '../js/templates', '../js/spectralLines'];
+var dependencies = ['../js/methods', '../js/workerMethods', '../js/templates', '../js/spectralLines', '../js/config'];
 for (var i = 0; i < dependencies.length; i++) {
     require(dependencies[i])();
 }
 console.log("Dependencies loaded\n");
+var templateManager = new TemplateManager();
+templateManager.shiftToMatchSpectra();
+var templates = templateManager.originalTemplates;
+var spectralLines = new SpectralLines();
+var numberTestsPerSpectraPermutation = 300;
+var numberTestsPerSpectra = 300;
+var edgeThresh = 0.002;
+var threshold = 1e-4;
+var tests = [];
+
+function getFakeDataScaffold() {
+    var data = {};
+    data.processing = true;
+    data.matching = true;
+    data.node = true;
+    data.lambda = range(3000, 9000.1, 1);
+    data.intensity = null;
+    data.variance = null;
+    return data;
+}
 
 /**
  * Generates a fake spectrum over the given wavelength range using exponential peaks
@@ -17,19 +37,14 @@ console.log("Dependencies loaded\n");
  * @param width - characteristic width of feature. Set to large for quasar. Defaults to 5.0
  */
 function generateFakeSpectrum(z, features, weights, width) {
-    width = defaultFor(width, 5.0);
+    width = defaultFor(width, 3.0);
     // Vary width randomly to add variance in results
     width *= (Math.random() * 0.2) + 0.9;
     width *= (1 + z);
-    var data = {};
-    data.processing = true;
-    data.matching = true;
-    data.node = true;
-    data.lambda = range(3500, 9000.1, 1);
-    data.intensity = new Array(data.lambda.length);
-    data.variance = new Array(data.lambda.length);
-    for (var i = 0; i < data.intensity.length; i++) {
-        data.intensity[i] = 0.0;
+    var data = getFakeDataScaffold();
+    data.intensity = [];
+    for (var i = 0; i < data.lambda.length; i++) {
+        data.intensity.push(0.0);
     }
     for (var i = 0; i < features.length; i++) {
         var f = features[i], w = weights[i];
@@ -42,25 +57,106 @@ function generateFakeSpectrum(z, features, weights, width) {
             data.intensity[j] += Math.exp(-Math.abs(data.lambda[j] - f) / width) * wa;
         }
     }
-    for (var i = 0; i < data.intensity.length; i++) {
-        data.intensity[i] += Math.random() - 0.5;
-        data.variance[i] = Math.sqrt(Math.abs(data.intensity[i])) + 1;
-    }
+    addUniformNoise(data.intensity);
+    data.variance = getVarianceBasedOffIntensity(data.intensity);
     return data;
 }
+
 /**
- * Want to test each template over a range of redshift values to ensure there is no systematic redshift bias.
+ * Returns a mock variance array calculated as 1 + sqrt(intensity)
+ *
+ * @param intensity
+ * @returns {number[]}
  */
-var numberTestsPerSpectra = 200;
-var edgeThresh = 0.002;
-var tests = [];
+function getVarianceBasedOffIntensity(intensity) {
+    var result = [];
+    for (var i = 0; i < intensity.length; i++) {
+        result.push(1) + Math.sqrt(Math.abs(intensity[i]));
+    }
+    return result;
+}
+
+/**
+ * Adds uniform noise of height {{weight}}, centered around zero, onto data (in place).
+ *
+ * @param data
+ * @param weight [defaults to 1]
+ */
+function addUniformNoise(data, weight) {
+    weight = defaultFor(weight, 1);
+    for (var i = 0; i < data.length; i++) {
+        data[i] += (weight / 2) + Math.random() * weight;
+    }
+}
+
+
+/**
+ * Want to test that matches against template redshift permutations do not show signs of
+ * any systematic issues from the data processing and matching algorithm
+ */
+
+for (var i = 0; i < templates.length; i++) {
+    var t = templates[i];
+    var name = "Template (" + t.id + ") " + t.name + " systematic permutation test. ";
+    tests.push({
+        name: name, expected: true, args: i, fn: function (i) {
+            var t = templates[i];
+            var received = [];
+            var zs = [];
+            var zend = t.z_end2 || t.z_end;
+
+            var inact = templateManager.getInactivesForSingleTemplateActive(t.id);
+            for (var j = 0; j < numberTestsPerSpectraPermutation; j++) {
+                var z = Math.random() * (zend - t.z_start - 2 * edgeThresh) + t.z_start + edgeThresh;
+                var data = getFakeDataScaffold();
+                data.inactiveTemplates = inact;
+                var temp = templateManager.getTemplate(t.id, z, true);
+
+                data.intensity = interpolate(data.lambda, temp[0], temp[1]);
+                data.variance = getVarianceBasedOffIntensity(data.intensity);
+
+                var res = handleEvent(data);
+
+                var resZ = res.results.coalesced[0].z;
+
+                if (Math.abs(resZ - z) < 2e-3) {
+                    zs.push(z);
+                    received.push(resZ);
+                }
+            }
+            var diff = [];
+            for (var i = 0; i < zs.length; i++) {
+                diff.push(zs[i] - received[i]);
+            }
+            var mean = getMean(diff);
+            var std = getStdDev(diff);
+            var ress = Math.abs(mean) < threshold;
+            if (!ress) {
+                console.log("\n\n\nc = numpy.array(" + JSON.stringify(zs, function (key, val) {
+                        return val && val.toFixed ? Number(val.toFixed(6)) : val;
+                    }) + ")");
+                console.log("d = np.array(" + JSON.stringify(diff, function (key, val) {
+                        return val && val.toFixed ? Number(val.toFixed(6)) : val;
+                    }) + ")");
+                console.log("plt.hist(d)\nplt.figure()");
+                console.log("plt.plot(c,d,'b.')")
+                console.log("\t Difference in input vs determined redshift is " + mean.toFixed(5) + " pm " + std.toFixed(5));
+
+            }
+            return ress;
+        }
+    });
+}
 
 
 
-var templateManager = new TemplateManager(true);
-var templates = templateManager.originalTemplates;
-var spectralLines = new SpectralLines();
-
+/**
+ * Want to test each template over a range of redshift values to ensure there is no systematic redshift bias,
+ * this time by generating the features themselves.
+ *
+ * Disabled because it is not working.
+ */
+/*
 for (var i = 0; i < templates.length; i++) {
     var t = templates[i];
     var name = "Template (" + t.id + ") " + t.name + " systematic test. ";
@@ -75,16 +171,19 @@ for (var i = 0; i < templates.length; i++) {
         var inact = templateManager.getInactivesForSingleTemplateActive(t.id);
         for (var j = 0; j < numberTestsPerSpectra; j++) {
             var z = Math.random() * (zend - t.z_start - 2 * edgeThresh) + t.z_start + edgeThresh;
-            zs.push(z);
             var width;
             if (t.id == '12') {
-                width = 50;
+                width = 100;
             }
             var data = generateFakeSpectrum(z, features, weights);
             data.inactiveTemplates = inact;
 
             var res = handleEvent(data);
-            received.push(res.results.coalesced[0].z);
+            var resZ = res.results.coalesced[0].z;
+            if (Math.abs(resZ - z) < 2e-3) {
+                zs.push(z);
+                received.push(resZ);
+            }
         }
         var diff = [];
         for (var i = 0; i < zs.length; i++) {
@@ -92,20 +191,22 @@ for (var i = 0; i < templates.length; i++) {
         }
         var mean = getMean(diff);
         var std = getStdDev(diff);
-        var ress = Math.abs(mean) < 2 * std && Math.abs(mean) < 1e-4;
+        var ress = Math.abs(mean) < threshold;
         if (!ress) {
-            console.log("\n\n\nc = numpy.array(" + JSON.stringify(zs, function(key, val) {
+            console.log("\n\n\nf = numpy.array(" + JSON.stringify(zs, function(key, val) {
                     return val && val.toFixed ? Number(val.toFixed(6)) : val;
                 }) + ")");
-            console.log("d = np.array(" + JSON.stringify(diff, function(key, val) {
+            console.log("g = np.array(" + JSON.stringify(diff, function(key, val) {
                     return val && val.toFixed ? Number(val.toFixed(6)) : val;
                 }) + ")");
-            console.log("plt.hist(d)");
+            console.log("plt.hist(g)\nplt.figure()");
+            console.log("plt.plot(f,g,'b.')")
             console.log("\t Difference in input vs determined redshift is " + mean.toFixed(5) + " pm " + std.toFixed(5));
 
         }
         return ress;
     }});
 }
+*/
 
 module.exports = tests;

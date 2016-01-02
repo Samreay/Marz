@@ -1163,7 +1163,7 @@ function fitAroundIndex(data, index) {
         }
     }
     var offset = (-e[1]/(2*e[2]));
-    if (offset > 1) {
+    if (Math.abs(offset) > 1) {
         offset = 0;
     }
     return index + offset;
@@ -1287,6 +1287,7 @@ module.exports = function() {
     this.getStandardFFT = getStandardFFT;
     this.range = range;
     this.convertSingleVacuumFromAir = convertSingleVacuumFromAir;
+    this.linearScaleFactor = linearScaleFactor;
 };
 
 

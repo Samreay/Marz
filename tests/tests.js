@@ -28,9 +28,9 @@ function runTests(name, tests) {
         var expectedString = JSON.stringify(expected, replacer);
         if (actualString != expectedString) {
             failed++;
-            console.warn("FAILED:   " + t.name + " failed.\n\tExpected:\t" + expectedString + "\n\tReceived:\t" + actualString);
+            console.warn("FAILED:   " + t.name + "\n\tExpected:\t" + expectedString + "\n\tReceived:\t" + actualString);
         } else {
-            console.log("passed:   " + t.name + " passed");
+            console.log("passed:   " + t.name);
         }
     }
     if (failed) {
