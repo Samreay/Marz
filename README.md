@@ -35,6 +35,9 @@ After doing this, you can analyse a FITS file by running `./marz.sh <FITSFilePat
 * Heliocentric and CMB corrections implemented
 * Reduced memory usage on client
 
+## 1.0.6
+* Making displayed template more accurate
+
 ## 1.0.5
 * Improving LocalStorage detection for Safari's private browsing mode.
 * Removing extraneous console logging.
