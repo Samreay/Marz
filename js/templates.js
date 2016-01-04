@@ -175,6 +175,7 @@ function TemplateManager(process) {
         end_lambda: 7069.099501560178,
         z_start: 0,
         z_end: 1.5,
+        z_end2: 1.0,
         log_linear: false,
         features:       ['O2','K','H','Hd','G','Hg','Hb','O3','O3d','Na','N2','Ha','N2d','S2','S2d'],
         featureWeights: [  13, -7, -9,  -5, -4,  4,  12,   2,   3,   -3,   4,   24,   16,   8,   7],

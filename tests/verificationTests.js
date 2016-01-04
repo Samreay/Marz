@@ -13,7 +13,7 @@ var spectralLines = new SpectralLines();
 var numberTestsPerSpectraPermutation = 300;
 var numberTestsPerSpectra = 300;
 var edgeThresh = 0.002;
-var threshold = 5e-5;
+var threshold = 1e-5;
 var scale = 1e5;
 var tests = new TestSuite("verification");
 
