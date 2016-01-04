@@ -1,49 +1,13 @@
-var debug = function(output) {
-    if (typeof output == "string") {
-        console.log(output);
-    } else {
-        console.dir(output);
-    }
-};
+var allPass = true;
 
-var getTime = function() {
-    var hrTime = process.hrtime();
-    return hrTime[0] * 1000 + hrTime[1] / 1000000;
-};
 
-var node = true;
-var replacer = function(key, val) {
-    return val && val.toFixed ? Number(val.toFixed(6)) : val;
-};
-var equ = "========================================";
-function runTests(name, tests) {
-    debug("\nStarting " + name + " tests\n" + equ);
-    var failed = 0;
-    for (var i = 0; i < tests.length; i++) {
-        var t = tests[i];
+allPass = allPass && require("./basicTests").runTests();
+allPass = allPass && require("./algorithmTests").runTests();
+allPass = allPass && require("./translationTests").runTests();
+allPass = allPass && require("./verificationTests").runTests();
 
-        var actual = t.fn(t['args']);
-        var expected = t.expected;
-        var actualString = JSON.stringify(actual, replacer);
-        var expectedString = JSON.stringify(expected, replacer);
-        if (actualString != expectedString) {
-            failed++;
-            console.warn("FAILED:   " + t.name + "\n\tExpected:\t" + expectedString + "\n\tReceived:\t" + actualString);
-        } else {
-            console.log("passed:   " + t.name);
-        }
-    }
-    if (failed) {
-        throw "### Error. " + failed + " tests failed";
-    } else {
-        console.log(equ + "\nAll " + name + " tests passed\n" + equ + "\n");
-    }
+if (allPass) {
+    console.log("\n\n" + "All tests passed!\n");
+} else {
+    console.error("\n\n" + "Test suites failed!\n");
 }
-
-
-runTests("basic", require("./basicTests"));
-runTests("algorithm", require("./algorithmTests"));
-runTests("translation", require("./translationTests"));
-runTests("verification", require("./verificationTests"));
-
-console.log("\n" + equ + "\nAll tests passed\n" + equ);

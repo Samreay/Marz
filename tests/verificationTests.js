@@ -1,7 +1,7 @@
 var node = true;
 
 console.log("Loading dependencies for verification");
-var dependencies = ['../js/methods', '../js/workerMethods', '../js/templates', '../js/spectralLines', '../js/config'];
+var dependencies = ['../js/methods', '../js/workerMethods', '../js/templates', '../js/spectralLines', '../js/config', './test'];
 for (var i = 0; i < dependencies.length; i++) {
     require(dependencies[i])();
 }
@@ -13,8 +13,9 @@ var spectralLines = new SpectralLines();
 var numberTestsPerSpectraPermutation = 300;
 var numberTestsPerSpectra = 300;
 var edgeThresh = 0.002;
-var threshold = 1e-4;
-var tests = [];
+var threshold = 5e-5;
+var scale = 1e5;
+var tests = new TestSuite("verification");
 
 function getFakeDataScaffold() {
     var data = {};
@@ -97,9 +98,9 @@ function addUniformNoise(data, weight) {
 
 for (var i = 0; i < templates.length; i++) {
     var t = templates[i];
-    var name = "Template (" + t.id + ") " + t.name + " systematic permutation test. ";
-    tests.push({
-        name: name, expected: true, args: i, fn: function (i) {
+    var name = "Template (" + t.id + ") " + t.name + " systematic permutation test";
+    tests.addTest(new Test(name,
+        function (i) {
             var t = templates[i];
             var received = [];
             var zs = [];
@@ -130,8 +131,7 @@ for (var i = 0; i < templates.length; i++) {
             }
             var mean = getMean(diff);
             var std = getStdDev(diff);
-            var ress = Math.abs(mean) < threshold;
-            if (!ress) {
+            if (false) {
                 console.log("\n\n\nc = numpy.array(" + JSON.stringify(zs, function (key, val) {
                         return val && val.toFixed ? Number(val.toFixed(6)) : val;
                     }) + ")");
@@ -140,12 +140,11 @@ for (var i = 0; i < templates.length; i++) {
                     }) + ")");
                 console.log("plt.hist(d)\nplt.figure()");
                 console.log("plt.plot(c,d,'b.')")
-                console.log("\t Difference in input vs determined redshift is " + mean.toFixed(5) + " pm " + std.toFixed(5));
-
+                console.log("\t Difference in input vs determined redshift is " + (mean*scale).toFixed(3) + " ± " + std.toFixed(5));
             }
-            return ress;
-        }
-    });
+            this.setSuffix("Mean deviation of (" +  (mean*scale).toFixed(3) + " ± " + (std*scale/Math.sqrt(numberTestsPerSpectraPermutation)).toFixed(3) + ") x 10^5");
+            return mean;
+        }, i).setAbsoluteDeviation(threshold));
 }
 
 
