@@ -901,8 +901,15 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     var staggerHeight = 13;
                     var up = true;
                     var px = -100;
+                    var helio = null;
+                    var cmb = null;
+                    if ($scope.ui.active != null) {
+                        helio = $scope.ui.active.helio;
+                        cmb = $scope.ui.active.cmb;
+                    }
+                    var z = adjustRedshift(parseFloat($scope.detailed.redshift), -helio, -cmb);
+
                     for (var i = 0; i < lines.length; i++) {
-                        var z = parseFloat(global.ui.detailed.redshift);
                         var spectralLineColour = spectralLineColours[lines[i].type];
                         c.fillStyle = spectralLineColour;
                         for (var j = 0; j < lines[i].displayLines.length; j++) {
@@ -1214,11 +1221,13 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     }
                     if ($scope.detailed.templateId != "0" && $scope.ui.dataSelection.matched) {
                         var h = null;
-                        if ($scope.ui.active != null && $scope.ui.active.helio != null) {
+                        var c = null;
+                        if ($scope.ui.active != null) {
                             h = $scope.ui.active.helio;
+                            c = $scope.ui.active.cmb;
                         }
                         var r = templatesService.getTemplateAtRedshift($scope.detailed.templateId,
-                            adjustRedshift(parseFloat($scope.detailed.redshift), -h), $scope.detailed.continuum);
+                            adjustRedshift(parseFloat($scope.detailed.redshift), -h, -c), $scope.detailed.continuum);
                         data.push({id: "template", colour: global.ui.colours.matched, x: r[0],y: r[1]});
                     }
                     data.sort(function(a,b) {
