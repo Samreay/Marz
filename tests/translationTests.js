@@ -1,5 +1,5 @@
 
-console.log("Loading dependencies for algorithms");
+console.log("Loading dependencies for translations");
 var dependencies = ['../js/methods', '../js/helio', './test'];
 for (var i = 0; i < dependencies.length; i++) {
     require(dependencies[i])();

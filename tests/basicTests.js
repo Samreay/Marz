@@ -1,4 +1,4 @@
-console.log("Loading dependencies for algorithms");
+console.log("Loading dependencies for basic");
 var dependencies = ['../js/methods.js', './test'];
 for (var i = 0; i < dependencies.length; i++) {
     require(dependencies[i])();

@@ -1,3 +1,5 @@
+var $q = require('q');
+
 function TestSuite(name) {
     this.name = name;
     this.tests = [];
@@ -6,34 +8,47 @@ function TestSuite(name) {
 TestSuite.prototype.addTest = function(test) {
     this.tests.push(test);
 };
-TestSuite.prototype.runTests = function() {
-    console.log(this.partition);
-    console.log("Running Test Suite ", this.name);
-    console.log(this.partition);
-    var count = 0;
-    for (var i = 0; i < this.tests.length; i++) {
-        var t = this.tests[i];
-        var result = t.test();
+TestSuite.prototype.doNextTest = function(count, q) {
+    var that = this;
+    var test = this.tests.shift();
+    test.test().then(function (result) {
         var pass = result[0], errorMessage = result[1], suffix = result[2];
         if (suffix) {
             suffix = ": " + suffix;
         }
         if (pass) {
-            console.log("passed:\t" + t.name + suffix);
+            console.log("passed:\t" + test.name + suffix);
         } else {
             count++;
-            console.warn("FAILED:\t" + t.name + suffix);
+            console.warn("FAILED:\t" + test.name + suffix);
             console.warn(errorMessage);
         }
-    }
+        if (that.tests.length > 0) {
+            that.doNextTest(count, q);
+        } else {
+            that.finishTests(count, q);
+        }
+    });
+};
+TestSuite.prototype.finishTests = function(count, q) {
     console.log(this.partition);
     if (count) {
         console.warn("Test Suite " + this.name + " failed: " + count.toFixed(0) + " tests failed!");
+        q.reject(count);
     } else {
         console.log("Test Suite " + this.name + " passed");
+        q.resolve(count);
     }
     console.log(this.partition + "\n");
     return count == 0;
+};
+TestSuite.prototype.runTests = function() {
+    var q = $q.defer();
+    console.log(this.partition);
+    console.log("Running Test Suite ", this.name);
+    console.log(this.partition);
+    this.doNextTest(0, q);
+    return q.promise;
 };
 
 
@@ -78,9 +93,19 @@ Test.prototype.getSuffix = function() {
     return this.suffix;
 };
 Test.prototype.test = function() {
+    var q = $q.defer();
     var result = this.fn.bind(this)(this.input);
-    var outcome = this.expectedFn(result);
-    return [outcome[0], outcome[1], this.suffix];
+    if (result.constructor.name == "Promise") {
+        var that = this;
+        result.then(function(v) {
+            var outcome = that.expectedFn(v);
+            q.resolve([outcome[0], outcome[1], that.suffix]);
+        });
+    } else {
+        var outcome = this.expectedFn(result);
+        q.resolve([outcome[0], outcome[1], this.suffix]);
+    }
+    return q.promise;
 };
 
 module.exports = function() {
