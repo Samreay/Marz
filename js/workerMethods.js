@@ -111,9 +111,15 @@ self.matchTemplates = function(lambda, intensity, variance, type, helio, cmb) {
     if (templateManager.isQuasarActive()) {
         quasarFFT = getQuasarFFT(lambda, intensity, variance);
     }
-    var res = getStandardFFT(lambda, intensity, variance);
-    var fft = res[0];
-    var subtracted = res[1];
+    var res = getStandardFFT(lambda, intensity, variance, !node);
+    var subtracted = null;
+    var fft = null;
+    if (node) {
+        fft = res;
+    } else {
+        fft = res[0];
+        subtracted = res[1];
+    }
 
     // For each template, match the appropriate transform
     var templateResults = templateManager.templates.map(function(template) {

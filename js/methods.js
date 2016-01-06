@@ -1217,12 +1217,15 @@ function getQuasarFFT(lambda, intensity, variance) {
     return quasarFFT;
 }
 
-function getStandardFFT(lambda, intensity, variance) {
+function getStandardFFT(lambda, intensity, variance, needSubtracted) {
+    needSubtracted = defaultFor(needSubtracted, false);
     intensity = intensity.slice();
     variance = variance.slice();
     taperSpectra(intensity);
     smoothAndSubtract(intensity);
-    var subtracted = intensity.slice();
+    if (needSubtracted) {
+        var subtracted = intensity.slice();
+    }
     adjustError(variance);
     divideByError(intensity, variance);
     taperSpectra(intensity);
@@ -1237,7 +1240,11 @@ function getStandardFFT(lambda, intensity, variance) {
     var fft = new FFT(intensity.length, intensity.length);
     fft.forward(intensity);
 
-    return [fft, subtracted];
+    if (needSubtracted) {
+        return [fft, subtracted];
+    } else {
+        return fft;
+    }
 }
 
 
