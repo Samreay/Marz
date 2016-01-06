@@ -442,7 +442,7 @@ input[type='range']::-moz-range-thumb {
     margin: 5px;
     padding: 5px 15px 10px 15px;
     border-radius: 10px;
-    min-height: 220px;
+    min-height: 275px;
 }
 
 .marketing.container .row .introCard .inner h2 {
