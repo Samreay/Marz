@@ -562,8 +562,8 @@ FitsFileLoader.prototype.shouldPerformCMB = function() {
 FitsFileLoader.prototype.getWavelengths = function() {
     var q = this.$q.defer();
     this.getRawWavelengths().then(function(lambdas) {
-        var needToShift = this.header0.get('VACUUM') == null || this.header0.get('VACUUM') == 0;
-        var logLinear = this.header0.get('LOGSCALE') != null && this.header0.get('LOGSCALE') != 0;
+        var needToShift = this.header0.get('VACUUM') == null || this.header0.get('VACUUM') == 0 || this.header0.get('VACUUM') == "F" || this.header0.get('VACUUM') == false;
+        var logLinear = this.header0.get('LOGSCALE') != null && (this.header0.get('LOGSCALE') == 1 || this.header0.get('LOGSCALE') == "T" || this.header0.get('LOGSCALE') == true);
 
         if (logLinear) {
             this.log.debug("Log linear wavelength detected");
@@ -612,14 +612,16 @@ FitsFileLoader.prototype.getRawWavelengths = function() {
         q.resolve(lambdas);
 
     } else {
+        var logg = this.log;
+        var numPoints = this.numPoints;
         this.fits.getDataUnit(index).getFrame(0, function (data, q) {
             var d = Array.prototype.slice.call(data);
             var lambdas = [];
-            for (var i = 0; i < data.length / this.numPoints; i++) {
-                var s = d.slice(i * this.numPoints, (i + 1) * this.numPoints);
+            for (var i = 0; i < data.length / numPoints; i++) {
+                var s = d.slice(i * numPoints, (i + 1) * numPoints);
                 lambdas.push(s);
             }
-            this.log.debug(lambdas.length + " wavelength rows found");
+            logg.debug(lambdas.length + " wavelength rows found");
             q.resolve(lambdas);
         }, q);
     }
