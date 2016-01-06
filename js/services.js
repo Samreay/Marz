@@ -912,7 +912,7 @@ angular.module('servicesZ', ['dialogs.main'])
                 var intensity = self.condenseToXPixels(!hasProcessed ? spectra.intensityPlot : spectra.processedContinuum, width);
                 var r = null;
                 if (spectra.getFinalTemplateID() != null && spectra.getFinalTemplateID() != "0") {
-                    r = templatesService.getTemplateAtRedshift(spectra.getFinalTemplateID(), spectra.getFinalRedshift(), true);
+                    r = templatesService.getTemplateAtRedshift(spectra.getFinalTemplateID(), adjustRedshift(spectra.getFinalRedshift(), -spectra.helio, -spectra.cmb), true);
                 }
                 if (r == null || r[0] == null || r[1] == null) {
                     var tempIntensity = null;
