@@ -10,8 +10,8 @@ var templateManager = new TemplateManager();
 templateManager.shiftToMatchSpectra();
 var templates = templateManager.originalTemplates;
 var spectralLines = new SpectralLines();
-var numberTestsPerSpectraPermutation = 300;
-var numberTestsPerSpectra = 300;
+var numberTestsPerSpectraPermutation = 100;
+var numberTestsPerSpectra = 100;
 var edgeThresh = 0.002;
 var threshold = 1e-5;
 var scale = 1e5;
@@ -107,8 +107,9 @@ for (var i = 0; i < templates.length; i++) {
             var zend = t.z_end2 || t.z_end;
 
             var inact = templateManager.getInactivesForSingleTemplateActive(t.id);
-            for (var j = 0; j < numberTestsPerSpectraPermutation; j++) {
-                var z = Math.random() * (zend - t.z_start - 2 * edgeThresh) + t.z_start + edgeThresh;
+            var zsPot = linearScale(t.z_start + edgeThresh, zend - edgeThresh, numberTestsPerSpectraPermutation);
+            for (var j = 0; j < zsPot.length; j++) {
+                var z = zsPot[j];
                 var data = getFakeDataScaffold();
                 data.inactiveTemplates = inact;
                 var temp = templateManager.getTemplate(t.id, z, true);
