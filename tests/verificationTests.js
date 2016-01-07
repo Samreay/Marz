@@ -1,11 +1,11 @@
 var node = true;
 
-console.log("Loading dependencies for verification");
+//console.log("Loading dependencies for verification");
 var dependencies = ['../js/methods', '../js/workerMethods', '../js/templates', '../js/spectralLines', '../js/config', './test'];
 for (var i = 0; i < dependencies.length; i++) {
     require(dependencies[i])();
 }
-console.log("Dependencies loaded\n");
+//console.log("Dependencies loaded\n");
 var templateManager = new TemplateManager();
 templateManager.shiftToMatchSpectra();
 var templates = templateManager.originalTemplates;

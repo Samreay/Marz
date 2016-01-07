@@ -1,7 +1,7 @@
 var $q = require('q');
 var cluster = require('cluster');
 
-var tests = ["./basicTests", "./algorithmTests", "./translationTests", "./fitsParsingTests"]//, "./verificationTests"];
+var tests = ["./basicTests", "./algorithmTests", "./translationTests", "./fitsParsingTests", "./verificationTests"];
 var deps = [];
 for (var i = 0; i < tests.length; i++) {
     deps.push(require(tests[i]));

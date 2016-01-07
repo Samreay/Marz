@@ -34,7 +34,7 @@ TestSuite.prototype.finishTests = function(count, q) {
     console.log(this.partition);
     if (count) {
         console.warn("Test Suite " + this.name + " failed: " + count.toFixed(0) + " tests failed!");
-        q.reject(count);
+        q.resolve(count);
     } else {
         console.log("Test Suite " + this.name + " passed");
         q.resolve(count);
@@ -82,6 +82,24 @@ Test.prototype.setAbsoluteDeviation = function(value) {
         var received = JSON.stringify(output, this.replacer);
         var pass = Math.abs(output) < value;
         var message = "\tThreshold:\t" + expected + "\n\tReceived:\t" + received;
+        return [pass, message];
+    };
+    return this;
+};
+Test.prototype.setAbsoluteDeviationFromValue = function(value, thresh) {
+    this.expectedFn = function(output) {
+        var expected = JSON.stringify(value, this.replacer);
+        var received = JSON.stringify(output, this.replacer);
+        var threshold = JSON.stringify(thresh, this.replacer);
+        var pass = true;
+        if (output instanceof Array) {
+            for (var i = 0; i < output.length; i++) {
+                pass |= Math.abs(output[i] - value[i]) < thresh;
+            }
+        } else {
+            pass = Math.abs(output - value) < thresh;
+        }
+        var message = "\tExpected:\t" + expected + "\n\tReceived:\t" + received + "\n\tThreshold:\t" + threshold;
         return [pass, message];
     };
     return this;

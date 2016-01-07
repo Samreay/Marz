@@ -1,10 +1,10 @@
 
-console.log("Loading dependencies for translations");
+//console.log("Loading dependencies for translations");
 var dependencies = ['../js/methods', '../js/helio', './test'];
 for (var i = 0; i < dependencies.length; i++) {
     require(dependencies[i])();
 }
-console.log("Dependencies loaded\n");
+//console.log("Dependencies loaded\n");
 var tests = new TestSuite("translation");
 
 /**

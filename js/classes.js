@@ -1199,6 +1199,16 @@ ResultsGenerator.prototype.getResultsCSV = function(initials) {
 
     return string;
 };
+ResultsGenerator.prototype.getSpectraWithResults = function() {
+    var result = [];
+    for (var i = 0; i < this.data.spectra.length; i++) {
+        var spectra = this.data.spectra[i];
+        if (spectra.hasRedshiftToBeSaved()) {
+            result.push(spectra);
+        }
+    }
+    return result;
+};
 ResultsGenerator.prototype.getResultsArray = function() {
     var result = [];
     for (var i = 0; i < this.data.spectra.length; i++) {

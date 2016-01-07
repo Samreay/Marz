@@ -60,7 +60,7 @@ function runFitsFile(filename, outputFile, debug, consoleOutput) {
                 qq.resolve(num);
             });
         } else {
-            qq.resolve(r.getResultsArray());
+            qq.resolve(r.getSpectraWithResults());
         }
         var endTime = new Date();
         var elapsed = (endTime - startTime) / 1000;
