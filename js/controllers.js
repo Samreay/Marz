@@ -440,7 +440,7 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             if ($scope.fitTID != '0') {
                 var template = templatesService.getFFTReadyTemplate($scope.fitTID);
                 var fft = null;
-                if ($scope.fitTID == '12') {
+                if (templatesService.isQuasar($scope.fitTID)) {
                     fft = getQuasarFFT(s.processedLambda, s.processedIntensity.slice(), s.processedVariance.slice());
                 } else {
                     fft = getStandardFFT(s.processedLambda, s.processedIntensity.slice(), s.processedVariance.slice());

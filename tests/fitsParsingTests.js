@@ -21,7 +21,7 @@ eval(fs.readFileSync(path.join(appPath, "../js/extension.js")) + '');
 var debug = function(output) {
     return;
 };
-var redshiftThreshold = 1e-5;
+var redshiftThreshold = 1.5e-5;
 var log = {"debug": debug};
 
 if (cluster.isMaster) {

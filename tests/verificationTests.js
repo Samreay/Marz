@@ -14,6 +14,7 @@ var numberTestsPerSpectraPermutation = 100;
 var numberTestsPerSpectra = 100;
 var edgeThresh = 0.002;
 var threshold = 1e-5;
+var quasarThreshold = 2e-5;
 var scale = 1e5;
 var tests = new TestSuite("verification");
 
@@ -99,6 +100,7 @@ function addUniformNoise(data, weight) {
 for (var i = 0; i < templates.length; i++) {
     var t = templates[i];
     var name = "Template (" + t.id + ") " + t.name + " systematic permutation test";
+    var thresh = templateManager.isQuasar(t.id) ? quasarThreshold : threshold;
     tests.addTest(new Test(name,
         function (i) {
             var t = templates[i];
@@ -134,18 +136,17 @@ for (var i = 0; i < templates.length; i++) {
             var std = getStdDev(diff);
             if (false) {
                 console.log("\n\n\nc = numpy.array(" + JSON.stringify(zs, function (key, val) {
-                        return val && val.toFixed ? Number(val.toFixed(6)) : val;
+                        return val && val.toFixed ? Number(val.toFixed(7)) : val;
                     }) + ")");
                 console.log("d = np.array(" + JSON.stringify(diff, function (key, val) {
-                        return val && val.toFixed ? Number(val.toFixed(6)) : val;
+                        return val && val.toFixed ? Number(val.toFixed(7)) : val;
                     }) + ")");
                 console.log("plt.hist(d)\nplt.figure()");
-                console.log("plt.plot(c,d,'b.')")
-                console.log("\t Difference in input vs determined redshift is " + (mean*scale).toFixed(3) + " ± " + std.toFixed(5));
+                console.log("plt.plot(c,d,'b.')");
             }
             this.setSuffix("Mean deviation of (" +  (mean*scale).toFixed(3) + " ± " + (std*scale/Math.sqrt(numberTestsPerSpectraPermutation)).toFixed(3) + ") x 10^5");
             return mean;
-        }, i).setAbsoluteDeviation(threshold));
+        }, i).setAbsoluteDeviation(thresh));
 }
 
 
@@ -172,7 +173,7 @@ for (var i = 0; i < templates.length; i++) {
         for (var j = 0; j < numberTestsPerSpectra; j++) {
             var z = Math.random() * (zend - t.z_start - 2 * edgeThresh) + t.z_start + edgeThresh;
             var width;
-            if (t.id == '12') {
+            if (t.quasar) {
                 width = 100;
             }
             var data = generateFakeSpectrum(z, features, weights);

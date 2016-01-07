@@ -861,7 +861,12 @@ angular.module('servicesZ', ['dialogs.main'])
         self.getTemplates = function() {
             return templates.templates;
         };
-
+        self.getTemplateFromId = function(id) {
+            return templates.getTemplateFromId(id);
+        };
+        self.isQuasar = function(id) {
+            return templates.isQuasar(id);
+        };
         self.getFFTReadyTemplate = function(templateId) {
             var t = templates.templatesHash[templateId];
             if (t.fft == null) {

@@ -123,7 +123,7 @@ self.matchTemplates = function(lambda, intensity, variance, type, helio, cmb) {
 
     // For each template, match the appropriate transform
     var templateResults = templateManager.templates.map(function(template) {
-        if (template.id == '12') {
+        if (templateManager.isQuasar(template.id)) {
             return matchTemplate(template, quasarFFT);
         } else {
             return matchTemplate(template, fft);

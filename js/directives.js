@@ -926,7 +926,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                                 px = x;
                                 var strength = null;
                                 if (baseData != null ) {
-                                    strength = spectraLineAnalysisService.getStrengthOfLine(baseData.x, baseData.y2, lines[i], z, global.ui.detailed.templateId == '12');
+                                    strength = spectraLineAnalysisService.getStrengthOfLine(baseData.x, baseData.y2, lines[i], z, templatesService.isQuasar(global.ui.detailed.templateId));
                                 }
                                 c.beginPath();
                                 c.setLineDash([5, 3]);
