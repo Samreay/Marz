@@ -94,7 +94,7 @@ Test.prototype.setAbsoluteDeviationFromValue = function(value, thresh) {
         var pass = true;
         if (output instanceof Array) {
             for (var i = 0; i < output.length; i++) {
-                pass |= Math.abs(output[i] - value[i]) < thresh;
+                pass &= Math.abs(output[i] - value[i]) < thresh;
             }
         } else {
             pass = Math.abs(output - value) < thresh;

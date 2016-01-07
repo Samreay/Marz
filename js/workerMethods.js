@@ -7,19 +7,8 @@ for (var i = 0; i < deps.length; i++) {
     require(deps[i])();
 }
 var node = false;
-var templateManager = new TemplateManager();
-var shifted_temp = false;
+var templateManager = new TemplateManager(true, true);
 var self = this;
-
-/**
- * This function listens to messages from the main client process. If the processing flag is set
- * in the message data, it processes the data. If the flag is not set, it will match the data and
- * return the results of the matching.
- */
-if (!shifted_temp) {
-    templateManager.shiftToMatchSpectra();
-    shifted_temp = true;
-}
 
 /**
  * Handles all worker related events, including data processing and spectra matching.
@@ -283,4 +272,5 @@ self.getAutoQOP = function(coalesced) {
 
 module.exports = function() {
     this.handleEvent = handleEvent;
+    this.workerTemplateManager = templateManager;
 };
