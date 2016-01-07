@@ -5,11 +5,8 @@ var dependencies = ['../js/methods', '../js/workerMethods', '../js/templates', '
 for (var i = 0; i < dependencies.length; i++) {
     require(dependencies[i])();
 }
-//console.log("Dependencies loaded\n");
-var templateManager = new TemplateManager();
-templateManager.shiftToMatchSpectra();
-var templates = templateManager.originalTemplates;
 var numberTestsPerSpectraPermutation = 100;
+var numberTestsPerSpectraPermutationQuasar = 500;
 var edgeThresh = 0.002;
 var threshold = 1e-5;
 var quasarThreshold = 2e-5;
@@ -83,7 +80,9 @@ for (var i = 0; i < templates.length; i++) {
             var zend = t.z_end2 || t.z_end;
 
             var inact = templateManager.getInactivesForSingleTemplateActive(t.id);
-            var zsPot = linearScale(t.z_start + edgeThresh, zend - edgeThresh, numberTestsPerSpectraPermutation);
+            var isQuasar = templateManager.isQuasar(t.id);
+            var numm = isQuasar ? numberTestsPerSpectraPermutationQuasar : numberTestsPerSpectraPermutation;
+            var zsPot = linearScale(t.z_start + edgeThresh, zend - edgeThresh, numm);
             for (var j = 0; j < zsPot.length; j++) {
                 var z = zsPot[j];
                 z = round(z, 5);
@@ -120,7 +119,7 @@ for (var i = 0; i < templates.length; i++) {
                 console.log("plt.hist(d)\nplt.figure()");
                 console.log("plt.plot(c,d,'b.')");
             }
-            this.setSuffix("    Mean deviation of (" +  (mean*scale).toFixed(3) + " ± " + (std*scale/Math.sqrt(numberTestsPerSpectraPermutation)).toFixed(3) + ") x 10^5");
+            this.setSuffix("    Mean deviation of (" +  (mean*scale).toFixed(3) + " ± " + (std*scale/Math.sqrt(numm)).toFixed(3) + ") x 10^5");
             return mean;
         }, i).setAbsoluteDeviation(thresh));
 }
