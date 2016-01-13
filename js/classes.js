@@ -79,6 +79,8 @@ function Spectra(id, lambda, intensity, variance, sky, name, ra, dec, magnitude,
     this.manualRedshift = null;
     this.manualTemplateID = null;
 
+    this.merges = [];
+
     this.qopLabel = "";
     this.setQOP(0);
     this.imageZ = null;
@@ -88,6 +90,33 @@ function Spectra(id, lambda, intensity, variance, sky, name, ra, dec, magnitude,
         return "" + this.id + this.name + this.getFinalRedshift() + this.getFinalTemplateID() + this.isProcessed + this.isMatched;
     }
 }
+Spectra.prototype.addMergeResult = function(initial, z, tid, qop) {
+    this.merges.push({
+        z: z,
+        tid: "" + tid,
+        initials: initial,
+        qop: qop,
+        qopLabel: this.getLabelForQOP(qop)
+    });
+    if (this.comment != "") {
+        this.comment += " | ";
+    }
+    this.comment += initial + " " + tid + " " + z.toFixed(5) + " " + qop;
+
+};
+Spectra.prototype.needsMerging = function() {
+    var zthresh = globalConfig.mergeZThreshold;
+    var merges = this.getMerges();
+    if (merges.length > 1) {
+        var m0 = merges[0];
+        var m1 = merges[1];
+        var threshBad = Math.abs(m0.z - m1.z) > zthresh;
+        var goodQOP = m1.qop > 2 || m0.qop > 2;
+        var shouldShow = threshBad && goodQOP;
+        return shouldShow;
+    }
+    return true;
+};
 Spectra.prototype.setCompute = function(compute) {
     this.compute = compute;
     if (!compute) {
@@ -98,25 +127,28 @@ Spectra.prototype.setCompute = function(compute) {
 Spectra.prototype.setVersion = function(version) {
     this.version = version;
 };
+Spectra.prototype.getLabelForQOP = function(qop) {
+    if (qop >= 6) {
+        return  "label-primary";
+    } else if (qop >= 4) {
+        return "label-success";
+    } else if (qop >= 3) {
+        return "label-info";
+    } else if (qop >= 2) {
+        return "label-warning";
+    } else if (qop >= 1) {
+        return "label-danger";
+    } else {
+        return "label-default";
+    }
+};
 Spectra.prototype.setQOP = function(qop) {
     if (isNaN(qop)) {
         return;
     }
     this.qop = qop;
     // Best coding practise would have this UI logic outside of this class
-    if (qop >= 6) {
-        this.qopLabel = "label-primary";
-    } else if (qop >= 4) {
-        this.qopLabel = "label-success";
-    } else if (qop >= 3) {
-        this.qopLabel = "label-info";
-    } else if (qop >= 2) {
-        this.qopLabel = "label-warning";
-    } else if (qop >= 1) {
-        this.qopLabel = "label-danger";
-    } else {
-        this.qopLabel = "label-default";
-    }
+    this.qopLabel = this.getLabelForQOP(qop);
 };
 Spectra.prototype.getRA = function() {
     return this.ra * 180 / Math.PI;
@@ -178,6 +210,9 @@ Spectra.prototype.getBestAutomaticResult = function() {
         return this.automaticBestResults[0];
     }
     return null;
+};
+Spectra.prototype.getMerges = function() {
+    return this.merges;
 };
 Spectra.prototype.getMatches = function(number) {
     if (number == null) return this.automaticBestResults;
@@ -933,7 +968,19 @@ ProcessorManager.prototype.addSpectraListToQueue = function(spectraList) {
     for (var i = 0; i < spectraList.length; i++) {
         this.jobs.push(spectraList[i]);
     }
+    this.sortJobs();
     this.setRunning();
+};
+ProcessorManager.prototype.sortJobs = function() {
+    this.jobs.sort(function(a,b) {
+        if (a.qop == 0 && b.qop != 0) {
+            return -1;
+        } else if (a.qop != 0 && b.qop == 0) {
+            return 1;
+        } else {
+            return a.id > b.id ? 1 : -1;
+        }
+    });
 };
 ProcessorManager.prototype.addToPriorityQueue = function(spectra, start) {
     spectra.isMatched = false;
@@ -1252,7 +1299,7 @@ ResultsGenerator.prototype.getResultFromSpectra = function(spectra) {
         result.push({name: "FinZ", value: spectra.getFinalRedshift().toFixed(5)});
     }
     result.push({name: "QOP", value: "" + spectra.qop});
-    result.push({name: "Comment", value: spectra.getComment()});
+    result.push({name: "Comment", value: spectra.getComment().replace(","," ")});
     if (this.helio) {
         result.push({name: "HelioCor", value: "" + (spectra.helio == null ? 0 : round(spectra.helio, 7))});
     }

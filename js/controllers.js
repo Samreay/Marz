@@ -241,7 +241,12 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             {key: 'enter', label: 'enter', controller: "detailed", description: '[Detailed screen] Accepts the suggested automatic QOP at the stated redshift', fn: _.throttle(function($scope) {
                 $scope.acceptAutoQOP();
                 $scope.$apply();
-            }, 200, { 'trailing': false})}];
+            }, 200, { 'trailing': false})},
+            {key: 'q', label: 'q', controller: "detailed", description: "[Detailed screen] Cycles which merge result to show", fn: _.throttle(function($scope) {
+                $scope.toggleMerged();
+                $scope.$apply();
+            }, 200, { 'trailing': false})}
+        ];
         _.forEach(spectraLineService.getAll(), function(line) {
             var elem = {
                 key: line.shortcut,
@@ -519,6 +524,9 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
         $scope.getMatches = function() {
             return $scope.getActive().getMatches($scope.bounds.maxMatches);
         };
+        $scope.getMerges = function() {
+            return $scope.getActive().getMerges();
+        };
         $scope.$watch('settings.redshift', function() {
             $scope.currentlyMatching();
         });
@@ -572,6 +580,15 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
         $scope.selectMatch = function(match) {
             $scope.settings.redshift = match.z;
             $scope.settings.templateId = match.templateId;
+        };
+        $scope.selectMerge = function(i) {
+            var merge = $scope.getActive().getMerges()[i];
+            $scope.settings.mergeIndex = i;
+            $scope.settings.redshift = merge.z;
+            $scope.settings.templateId = merge.tid;
+        };
+        $scope.toggleMerged = function() {
+            $scope.selectMerge(1 - $scope.settings.mergeIndex);
         };
         $scope.getMatchedTemplateRedshift = function() {
             var match = $scope.currentlyMatching();
@@ -823,8 +840,8 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             })
         }
     }])
-    .controller('SidebarController', ['$scope', 'spectraService', 'fitsFile', '$state', 'global', 'resultsLoaderService', '$timeout', 'templatesService', '$window',
-        function($scope, spectraService, fitsFile, $state, global, resultsLoaderService, $timeout, templatesService, $window) {
+    .controller('SidebarController', ['$scope', 'spectraService', 'fitsFile', '$state', 'global', 'resultsLoaderService', '$timeout', 'templatesService', '$window', 'mergeService',
+        function($scope, spectraService, fitsFile, $state, global, resultsLoaderService, $timeout, templatesService, $window, mergeService) {
         $scope.ui = global.ui;
         $scope.data = global.data;
         $scope.filters = global.filters;
@@ -874,6 +891,28 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
         };
         $scope.numDrag = 0;
         $scope.addFiles = function(files) {
+            if (files.length == 3) {
+                var numRes = 0;
+                var res = [];
+                var numFits = 0;
+                var fits = null;
+                for (var i = 0; i < files.length; i++) {
+                    var f = files[i];
+                    if (f.name.endsWith('.mz')) {
+                        numRes++;
+                        res.push(f);
+                    } else if (f.name.endsWith('.fits')) {
+                        numFits++;
+                        fits = f;
+                    }
+                }
+                if (numRes == 2 && numFits == 1) {
+                    mergeService.loadMerge(fits, res);
+                    return;
+                }
+            }
+            $scope.ui.merge = false;
+
             for (var i = 0; i < files.length; i++) {
                 if (!files[i].name.endsWith('fits') && !files[i].name.endsWith('fit')) {
                     resultsLoaderService.loadResults(files[i]);
