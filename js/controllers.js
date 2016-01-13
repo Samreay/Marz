@@ -243,8 +243,8 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
                 $scope.$apply();
             }, 200, { 'trailing': false})},
             {key: 'q', label: 'q', controller: "detailed", description: "[Detailed screen] Cycles which merge result to show", fn: _.throttle(function($scope) {
-                $scope.toggleMerged();
-                $scope.$apply();
+                $timeout(function() { $scope.toggleMerged(); });
+                //$scope.$apply();
             }, 200, { 'trailing': false})}
         ];
         _.forEach(spectraLineService.getAll(), function(line) {
