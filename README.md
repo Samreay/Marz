@@ -34,6 +34,8 @@ After doing this, you can analyse a FITS file by running `./marz.sh <FITSFilePat
 * Normalisation of cross correlation peaks modified
 * Heliocentric and CMB corrections implemented
 * Reduced memory usage on client
+* Adding merging capabilities
+* Sorting job process order for less down time when resuming a file
 
 ## 1.0.6
 * Making displayed template more accurate

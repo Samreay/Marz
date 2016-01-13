@@ -5,6 +5,7 @@ angular.module('servicesZ', ['dialogs.main'])
     .provider('global', function() {
         var dataStore = {
             ui: {
+                merge: false,
                 active: null,
                 graphicalLayout: true,
                 sidebarSmall: false,
@@ -33,6 +34,7 @@ angular.module('servicesZ', ['dialogs.main'])
                     oldRedshift: "0",
                     matchedActive: true,
                     matchedIndex: null,
+                    mergeIndex: 0,
                     smooth: "3",
                     width: 300,
                     spectraFocus: null,
@@ -50,7 +52,8 @@ angular.module('servicesZ', ['dialogs.main'])
                     matched: "#AA0000",
                     sky: "#009DFF",
                     template: '#8C0623',
-                    variance: '#E3A700' //B731E8
+                    variance: '#E3A700',
+                    merges: ["#009DFF", "#005201"]
                 }
             },
             data: {
@@ -235,9 +238,12 @@ angular.module('servicesZ', ['dialogs.main'])
             downloadAutomatically = value;
             cookieService.setCookie(downloadAutomaticallyCookie, downloadAutomatically);
         };
-        self.setAssignAutoQOPs = function(value) {
+        self.setAssignAutoQOPs = function(value, cookieIt) {
+            cookieIt = defaultFor(cookieIt, true);
             self.spectraManager.setAssignAutoQOPs(value);
-            cookieService.setCookie(assignAutoQOPsCookie, value);
+            if (cookieIt) {
+                cookieService.setCookie(assignAutoQOPsCookie, value);
+            }
         };
         self.getAssignAutoQOPs = function() {
             return self.spectraManager.autoQOPs;
@@ -482,14 +488,62 @@ angular.module('servicesZ', ['dialogs.main'])
             return spectralLines.getFromID(id);
         };
     }])
+    .service('mergeService', ['$q', 'resultsLoaderService', 'fitsFile', 'global', 'localStorageService', 'log', 'qualityService', 'spectraService', 'processorService', function($q, resultsLoaderService, fitsFile, global, localStorageService, log, qualityService, spectraService, processorService) {
+        var self = this;
+        self.global = global;
+        self.loadMerge = function(fits, results) {
+            log.debug("Beginning merge.");
+            var promises = [];
+            for (var i = 0; i < results.length; i++) {
+                var q = $q.defer();
+                promises.push(q.promise);
+                resultsLoaderService.loadResults(results[i], q)
+            }
+            fitsFile.loadInFitsFile(fits).then(function() {
+                var filename = self.global.data.fitsFileName;
+                $q.all(promises).then(function(fakes, initials) {
+                    for (var i = 0; i < fakes.length; i++) {
+                        var initials = fakes[i][0];
+                        var fake = fakes[i][1];
+                        for (var j = 0; j < fake.length; j++) {
+                            var fakeSpectrum = fake[j];
+                            var real = global.data.spectraHash[fakeSpectrum.id];
+                            real.addMergeResult(initials, fakeSpectrum.getFinalRedshift(), fakeSpectrum.getFinalTemplateID(), fakeSpectrum.qop);
+
+                            if (real.merges.length == 2) {
+                                if (real.needsMerging()) {
+                                    real.setQOP(0);
+                                } else {
+                                    var q0 = real.merges[0].qop;
+                                    var q1 = real.merges[1].qop;
+                                    var index = q0 > q1 ? 0 : 1;
+                                    real.manualRedshift = real.merges[index].z;
+                                    real.setQOP(real.merges[index].qop);
+                                    qualityService.addResult(real.qop);
+                                    real.manualTemplateID = real.merges[index].tid;
+                                }
+                            }
+                        }
+                    }
+                    spectraService.setAssignAutoQOPs(false, false);
+                    localStorageService.setActive(false);
+                    self.global.ui.merge = true;
+                    self.global.filters.qopFilter = 0;
+                    processorService.sortJobs();
+                })
+            });
+        }
+    }])
     .service('resultsLoaderService', ['$q', 'localStorageService', 'resultsGeneratorService',
         function($q, localStorageService, resultsGeneratorService) {
         var self = this;
         var dropped = false;
 
-        self.loadResults = function(file) {
+        self.loadResults = function(file, q) {
+            q = defaultFor(q, null);
             dropped = true;
             var filename = file.name.substring(0, file.name.lastIndexOf("_"));
+            var initials = file.name.substring(file.name.lastIndexOf("_") + 1, file.name.lastIndexOf(".mz"));
             var reader = new FileReader();
             reader.onload = function(e) {
                 var text = reader.result;
@@ -512,6 +566,7 @@ angular.module('servicesZ', ['dialogs.main'])
                 for (var w = 0; w < headers.length; w++) {
                     headers[w] = headers[w].trim();
                 }
+                var fakes = [];
                 for (var i = 0; i < lines.length - 1; i++) {
                     if (lines[i].indexOf("#") == 0) continue;
                     var columns = lines[i].split(',');
@@ -523,7 +578,14 @@ angular.module('servicesZ', ['dialogs.main'])
                             res[headers[j]] = columns[j].trim();
                         }
                     }
-                    localStorageService.saveSpectra(resultsGeneratorService.convertResultToMimicSpectra(res));
+                    var fakeSpectra = resultsGeneratorService.convertResultToMimicSpectra(res);
+                    if (q == null) {
+                        localStorageService.saveSpectra(fakeSpectra);
+                    }
+                    fakes.push(fakeSpectra);
+                }
+                if (q != null) {
+                    q.resolve([initials, fakes]);
                 }
             };
             reader.readAsText(file);
@@ -703,6 +765,10 @@ angular.module('servicesZ', ['dialogs.main'])
             return val;
         };
 
+        self.setActive = function(val) {
+            active = val;
+        }
+
     }])
     .service('cookieService', [function() {
         var self = this;
@@ -834,7 +900,9 @@ angular.module('servicesZ', ['dialogs.main'])
         self.togglePause = function() {
             self.processorManager.togglePause();
         };
-
+        self.sortJobs = function() {
+            self.processorManager.sortJobs();
+        };
         self.setDefaultNumberOfCores();
 
     }])
@@ -929,12 +997,24 @@ angular.module('servicesZ', ['dialogs.main'])
                 var toBound2 = [];
                 toBound.push([lambda, intensity]);
                 var bounds = self.getMaxes(toBound);
+                bounds[2] = bounds[2] - 0.3 * (bounds[3] - bounds[2]);
                 self.plotZeroLine(canvas, "#C4C4C4", bounds, width, height);
                 self.plot(lambda, intensity, ui.colours.raw, canvas, bounds, width, height);
                 if (tempIntensity != null) {
                     toBound2.push([lambda, tempIntensity]);
                     var bounds2 = self.getMaxes(toBound2);
-                    self.plot(lambda, tempIntensity, ui.colours.matched, canvas, [bounds[0], bounds[1], bounds2[2], bounds2[2] + (2*(bounds2[3] - bounds2[2]))], width, height);
+                    self.plot(lambda, tempIntensity, ui.colours.matched, canvas, [bounds[0], bounds[1], bounds2[2] - 0.*(bounds2[3]-bounds2[2]), bounds2[2] + (2*(bounds2[3] - bounds2[2]))], width, height);
+                }
+                var merges = spectra.getMerges();
+                for (var i = 0; i < merges.length; i++) {
+                    var colour = ui.colours.merges[i];
+                    var z = merges[i].z;
+                    var tid = merges[i].tid;
+                    r = templatesService.getTemplateAtRedshift(tid, adjustRedshift(z, -spectra.helio, -spectra.cmb), true);
+                    var tempIntensity = self.condenseToXPixels(interpolate(spectra.lambda, r[0], r[1]), width);
+                    var boundss = [[lambda, tempIntensity]];
+                    var bound = self.getMaxes(boundss);
+                    self.plot(lambda, tempIntensity, colour, canvas, [bounds[0], bounds[1], bound[2] + 0.2*(i-0.5)*(bound[3]-bound[2]), bound[2] + (2*(bound[3] - bound[2]))], width, height);
                 }
             }
         };
