@@ -73,6 +73,7 @@ globalConfig.fitWindow = 100;
 globalConfig.varianceHeight = 50;
 
 globalConfig.mergeZThreshold = 1e-4; // Redshift threshold above which flag a mismatch
+globalConfig.mergeZThresholdQuasar = 1e-3; // Redshift threshold above which flag a mismatch
 
 module.exports = function () {
     this.globalConfig = globalConfig;

@@ -865,7 +865,9 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
                 $scope.types.push({value: type, label: type});
             });
         });
-
+        $scope.selectMergeDefault = function() {
+            mergeService.updateMergeDefaults();
+        };
         $scope.getButtonLabel = function(qop) {
             var labels = {4: ['Great (4)', '4'], 3: ['Good (3)', '3'], 2: ['Possible (2)', '2'], 1: ['Unknown (1)', '1'], 6: ['It\'s a star! (6)', '6'], 0: ['Unassigned (0)', '0']};
             return labels[qop][$scope.ui.sidebarSmall ? 1 : 0]
@@ -955,7 +957,8 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             return {height: $scope.getListHeight()};
         };
         $scope.getListHeight = function() {
-            return ($("#sidebar").height() - $("#sidebar-wrapper").height() - 35);
+            var sub = $scope.ui.merge ? 45 : 35;
+            return ($("#sidebar").height() - $("#sidebar-wrapper").height() - sub);
         };
         $scope.windowResized = function(element) {
             element.height($scope.getListHeight());

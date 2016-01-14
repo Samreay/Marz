@@ -6,6 +6,8 @@ angular.module('servicesZ', ['dialogs.main'])
         var dataStore = {
             ui: {
                 merge: false,
+                mergeDefault: 0,
+                mergeInitials: [],
                 active: null,
                 graphicalLayout: true,
                 sidebarSmall: false,
@@ -488,11 +490,60 @@ angular.module('servicesZ', ['dialogs.main'])
             return spectralLines.getFromID(id);
         };
     }])
-    .service('mergeService', ['$q', 'resultsLoaderService', 'fitsFile', 'global', 'localStorageService', 'log', 'qualityService', 'spectraService', 'processorService', function($q, resultsLoaderService, fitsFile, global, localStorageService, log, qualityService, spectraService, processorService) {
+    .service('mergeService', ['$q', 'resultsLoaderService', 'fitsFile', 'global', 'localStorageService', 'log', 'qualityService', 'spectraService', 'processorService', 'templatesService', function($q, resultsLoaderService, fitsFile, global, localStorageService, log, qualityService, spectraService, processorService, templatesService) {
         var self = this;
         self.global = global;
+        self.updateMergeDefaults = function() {
+            var spectra = global.data.spectra;
+            for (var i = 0; i < spectra.length; i++) {
+                var real = spectra[i];
+                if (real.mergedUpdated) {
+                    continue;
+                }
+                if (real.merges.length == 2) {
+                    if (self.needsMerging(real)) {
+                        real.setQOPMerge(0);
+                    } else {
+                        var q0 = real.merges[0].qop;
+                        var q1 = real.merges[1].qop;
+                        var index = parseInt(self.global.ui.mergeDefault);
+                        if (q1 > q0) {
+                            index = 1;
+                        } else if (q0 > q1) {
+                            index = 0;
+                        }
+                        real.manualRedshift = real.merges[index].z;
+                        var old = real.qop;
+                        real.setQOPMerge(real.merges[index].qop);
+                        qualityService.changeSpectra(old, real.qop);
+                        real.manualTemplateID = real.merges[index].tid;
+                    }
+                }
+            }
+        };
+        self.needsMerging = function(spectra) {
+            var merges = spectra.getMerges();
+            if (merges.length > 1) {
+                var m0 = merges[0];
+                var m1 = merges[1];
+                var threshBad = null;
+                if (m0.quasar || m1.quasar) {
+                    threshBad = (Math.abs(m0.z - m1.z) > globalConfig.mergeZThresholdQuasar);
+                } else {
+                    threshBad = (Math.abs(m0.z - m1.z) > globalConfig.mergeZThreshold);
+                }
+                var goodQOP = m1.qop > 2 || m0.qop > 2;
+                var shouldShow = threshBad && goodQOP;
+                return shouldShow;
+            }
+            return true;
+        };
         self.loadMerge = function(fits, results) {
             log.debug("Beginning merge.");
+            spectraService.setAssignAutoQOPs(false, false);
+            localStorageService.setActive(false);
+            self.global.ui.merge = true;
+            self.global.filters.qopFilter = 0;
             var promises = [];
             for (var i = 0; i < results.length; i++) {
                 var q = $q.defer();
@@ -501,34 +552,20 @@ angular.module('servicesZ', ['dialogs.main'])
             }
             fitsFile.loadInFitsFile(fits).then(function() {
                 var filename = self.global.data.fitsFileName;
-                $q.all(promises).then(function(fakes, initials) {
+                $q.all(promises).then(function(fakes) {
                     for (var i = 0; i < fakes.length; i++) {
                         var initials = fakes[i][0];
+                        self.global.ui.mergeInitials.push(initials);
                         var fake = fakes[i][1];
                         for (var j = 0; j < fake.length; j++) {
                             var fakeSpectrum = fake[j];
                             var real = global.data.spectraHash[fakeSpectrum.id];
-                            real.addMergeResult(initials, fakeSpectrum.getFinalRedshift(), fakeSpectrum.getFinalTemplateID(), fakeSpectrum.qop);
-
-                            if (real.merges.length == 2) {
-                                if (real.needsMerging()) {
-                                    real.setQOP(0);
-                                } else {
-                                    var q0 = real.merges[0].qop;
-                                    var q1 = real.merges[1].qop;
-                                    var index = q0 > q1 ? 0 : 1;
-                                    real.manualRedshift = real.merges[index].z;
-                                    real.setQOP(real.merges[index].qop);
-                                    qualityService.addResult(real.qop);
-                                    real.manualTemplateID = real.merges[index].tid;
-                                }
-                            }
+                            real.addMergeResult(initials, fakeSpectrum.getFinalRedshift(), fakeSpectrum.getFinalTemplateID(), fakeSpectrum.qop, templatesService.isQuasar(fakeSpectrum.getFinalTemplateID()));
+                            real.mergedUpdated = false;
                         }
+
                     }
-                    spectraService.setAssignAutoQOPs(false, false);
-                    localStorageService.setActive(false);
-                    self.global.ui.merge = true;
-                    self.global.filters.qopFilter = 0;
+                    self.updateMergeDefaults()
                     processorService.sortJobs();
                 })
             });

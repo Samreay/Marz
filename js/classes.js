@@ -80,6 +80,7 @@ function Spectra(id, lambda, intensity, variance, sky, name, ra, dec, magnitude,
     this.manualTemplateID = null;
 
     this.merges = [];
+    this.mergedUpdated = false;
 
     this.qopLabel = "";
     this.setQOP(0);
@@ -90,12 +91,13 @@ function Spectra(id, lambda, intensity, variance, sky, name, ra, dec, magnitude,
         return "" + this.id + this.name + this.getFinalRedshift() + this.getFinalTemplateID() + this.isProcessed + this.isMatched;
     }
 }
-Spectra.prototype.addMergeResult = function(initial, z, tid, qop) {
+Spectra.prototype.addMergeResult = function(initial, z, tid, qop, quasar) {
     this.merges.push({
         z: z,
         tid: "" + tid,
         initials: initial,
         qop: qop,
+        quasar: quasar,
         qopLabel: this.getLabelForQOP(qop)
     });
     if (this.comment != "") {
@@ -103,19 +105,6 @@ Spectra.prototype.addMergeResult = function(initial, z, tid, qop) {
     }
     this.comment += initial + " " + tid + " " + z.toFixed(5) + " " + qop;
 
-};
-Spectra.prototype.needsMerging = function() {
-    var zthresh = globalConfig.mergeZThreshold;
-    var merges = this.getMerges();
-    if (merges.length > 1) {
-        var m0 = merges[0];
-        var m1 = merges[1];
-        var threshBad = Math.abs(m0.z - m1.z) > zthresh;
-        var goodQOP = m1.qop > 2 || m0.qop > 2;
-        var shouldShow = threshBad && goodQOP;
-        return shouldShow;
-    }
-    return true;
 };
 Spectra.prototype.setCompute = function(compute) {
     this.compute = compute;
@@ -149,6 +138,11 @@ Spectra.prototype.setQOP = function(qop) {
     this.qop = qop;
     // Best coding practise would have this UI logic outside of this class
     this.qopLabel = this.getLabelForQOP(qop);
+    this.mergedUpdated = true;
+};
+Spectra.prototype.setQOPMerge = function(qop) {
+    this.setQOP(qop);
+    this.mergedUpdated = false;
 };
 Spectra.prototype.getRA = function() {
     return this.ra * 180 / Math.PI;
