@@ -17,7 +17,7 @@
             <div class="top-spacing" ng-if="showSave()">
                 <button class="btn btn-block btn-sm btn-default" ng-click="toggleSmall()">{{getContractButtonLabel()}}</button>
             </div>
-            <div class="top-spacing" ng-if="ui.merge">
+            <div class="top-spacing" ng-if="ui.merge && !ui.sidebarSmall">
                 <b>Default Merger:</b>
                 <div class="btn-group btn-group-justified">
                     <div class="btn-group" ng-repeat="i in ui.mergeInitials">
