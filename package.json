@@ -1,6 +1,6 @@
 {
-  "name":         "autoMarz",
-  "version":      "0.1.0",
+  "name":         "marz",
+  "version":      "1.1.0",
   "description":  "Command line interface for Marz",
   "main":         "autoMarz.js",
   "dependencies": {

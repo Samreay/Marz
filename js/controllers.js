@@ -6,7 +6,7 @@
 
 angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
     .controller('NavbarController', ['$scope', '$state', 'personalService', 'global', function($scope, $state, personalService, global) {
-        $scope.marzVersion = marzVersion;
+        $scope.marzVersion = globalConfig.marzVersion;
         $scope.states = [
             {name: 'overview', icon: "th"},
             {name: 'detailed', icon: "signal"},
@@ -29,8 +29,11 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
         $scope.makeSmall = function() {
             return global.ui.sidebarSmall && $scope.isDetailedView();
         };
+        $scope.shouldDisplayWelcome = function() {
+            return global.data.fitsFileName == null;
+        };
         window.onbeforeunload = function(){
-            return 'Please ensure changes are all saved before leaving.';
+            return 'Please confirm you wish to exit.';
         };
         var called = false;
         var callback = function() {
@@ -238,7 +241,12 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             {key: 'enter', label: 'enter', controller: "detailed", description: '[Detailed screen] Accepts the suggested automatic QOP at the stated redshift', fn: _.throttle(function($scope) {
                 $scope.acceptAutoQOP();
                 $scope.$apply();
-            }, 200, { 'trailing': false})}];
+            }, 200, { 'trailing': false})},
+            {key: 'q', label: 'q', controller: "detailed", description: "[Detailed screen] Cycles which merge result to show", fn: _.throttle(function($scope) {
+                $timeout(function() { $scope.toggleMerged(); });
+                //$scope.$apply();
+            }, 200, { 'trailing': false})}
+        ];
         _.forEach(spectraLineService.getAll(), function(line) {
             var elem = {
                 key: line.shortcut,
@@ -417,28 +425,41 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             $scope.fitZ = $scope.ui.detailed.redshift;
             $scope.waitingOnFit = true;
             if ($scope.ui.active != null) {
-                if ($scope.ui.active.fft == null) {
+                if ($scope.ui.active.processedIntensity == null) {
                     $scope.reanalyseSpectra(true);
                     return;
                 }
             }
             var tid = $scope.ui.detailed.templateId;
-            if (tid == null || tid === "0" || $scope.ui.active == null || $scope.ui.active.fft == null) {
+            if (tid == null || tid === "0" || $scope.ui.active == null) {
                 $scope.waitingOnFit = false;
             } else {
-
                 $scope.doFit();
             }
         };
         $scope.doFit = function() {
+            var s = $scope.ui.active;
             if ($scope.fitTID == '0') {
                 $scope.fitTID = $scope.ui.detailed.templateId;
             }
             if ($scope.fitTID != '0') {
                 var template = templatesService.getFFTReadyTemplate($scope.fitTID);
-                var results = matchTemplate(template, ($scope.fitTID == '12' ? $scope.ui.active.quasarFFT : $scope.ui.active.fft));
+                var fft = null;
+                if (templatesService.isQuasar($scope.fitTID)) {
+                    fft = getQuasarFFT(s.processedLambda, s.processedIntensity.slice(), s.processedVariance.slice());
+                } else {
+                    fft = getStandardFFT(s.processedLambda, s.processedIntensity.slice(), s.processedVariance.slice());
+                }
+
+                var results = matchTemplate(template, fft);
                 var currentZ = parseFloat($scope.fitZ);
-                var bestZ = getFit(template, results.xcor, currentZ);
+                var helio = 0;
+                var cmb = 0;
+                if ($scope.ui.active != null && $scope.ui.active.helio != null) {
+                    helio = $scope.ui.active.helio;
+                    cmb = $scope.ui.active.cmb;
+                }
+                var bestZ = getFit(template, results.xcor, currentZ, helio, cmb);
                 $scope.ui.detailed.redshift = bestZ.toFixed(5);
             }
             $scope.waitingOnFit = false;
@@ -503,6 +524,9 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
         $scope.getMatches = function() {
             return $scope.getActive().getMatches($scope.bounds.maxMatches);
         };
+        $scope.getMerges = function() {
+            return $scope.getActive().getMerges();
+        };
         $scope.$watch('settings.redshift', function() {
             $scope.currentlyMatching();
         });
@@ -556,6 +580,15 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
         $scope.selectMatch = function(match) {
             $scope.settings.redshift = match.z;
             $scope.settings.templateId = match.templateId;
+        };
+        $scope.selectMerge = function(i) {
+            var merge = $scope.getActive().getMerges()[i];
+            $scope.settings.mergeIndex = i;
+            $scope.settings.redshift = merge.z;
+            $scope.settings.templateId = merge.tid;
+        };
+        $scope.toggleMerged = function() {
+            $scope.selectMerge(1 - $scope.settings.mergeIndex);
         };
         $scope.getMatchedTemplateRedshift = function() {
             var match = $scope.currentlyMatching();
@@ -807,8 +840,8 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             })
         }
     }])
-    .controller('SidebarController', ['$scope', 'spectraService', 'fitsFile', '$state', 'global', 'resultsLoaderService', '$timeout', 'templatesService', '$window',
-        function($scope, spectraService, fitsFile, $state, global, resultsLoaderService, $timeout, templatesService, $window) {
+    .controller('SidebarController', ['$scope', 'spectraService', 'fitsFile', '$state', 'global', 'resultsLoaderService', '$timeout', 'templatesService', '$window', 'mergeService',
+        function($scope, spectraService, fitsFile, $state, global, resultsLoaderService, $timeout, templatesService, $window, mergeService) {
         $scope.ui = global.ui;
         $scope.data = global.data;
         $scope.filters = global.filters;
@@ -832,7 +865,9 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
                 $scope.types.push({value: type, label: type});
             });
         });
-
+        $scope.selectMergeDefault = function() {
+            mergeService.updateMergeDefaults();
+        };
         $scope.getButtonLabel = function(qop) {
             var labels = {4: ['Great (4)', '4'], 3: ['Good (3)', '3'], 2: ['Possible (2)', '2'], 1: ['Unknown (1)', '1'], 6: ['It\'s a star! (6)', '6'], 0: ['Unassigned (0)', '0']};
             return labels[qop][$scope.ui.sidebarSmall ? 1 : 0]
@@ -858,6 +893,28 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
         };
         $scope.numDrag = 0;
         $scope.addFiles = function(files) {
+            if (files.length == 3) {
+                var numRes = 0;
+                var res = [];
+                var numFits = 0;
+                var fits = null;
+                for (var i = 0; i < files.length; i++) {
+                    var f = files[i];
+                    if (f.name.endsWith('.mz')) {
+                        numRes++;
+                        res.push(f);
+                    } else if (f.name.endsWith('.fits')) {
+                        numFits++;
+                        fits = f;
+                    }
+                }
+                if (numRes == 2 && numFits == 1) {
+                    mergeService.loadMerge(fits, res);
+                    return;
+                }
+            }
+            $scope.ui.merge = false;
+
             for (var i = 0; i < files.length; i++) {
                 if (!files[i].name.endsWith('fits') && !files[i].name.endsWith('fit')) {
                     resultsLoaderService.loadResults(files[i]);
@@ -900,7 +957,8 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             return {height: $scope.getListHeight()};
         };
         $scope.getListHeight = function() {
-            return ($("#sidebar").height() - $("#sidebar-wrapper").height() - 35);
+            var sub = $scope.ui.merge ? 45 : 35;
+            return ($("#sidebar").height() - $("#sidebar-wrapper").height() - sub);
         };
         $scope.windowResized = function(element) {
             element.height($scope.getListHeight());

@@ -13,17 +13,24 @@
         </div>
         <ul class="list-group">
             <li class="list-group-item form-inline">
-                <div class="form-group" style="height: 30px">
-                    <toggle-switch class="green" style="width: 170px" model="ui.dataSelection.processed" knob-label="Data" on-label="Processed" off-label="Raw"></toggle-switch>
+                <div class="form-group" ng-if="ui.merge">
+                    <div class="input-group input-group-sm">
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-default" btn-radio="$index" ng-click="selectMerge($index)" ng-model="settings.mergeIndex" ng-repeat="i in getMerges()"><strong>{{i.initials}}</strong><span style="margin-left: 5px; font-size: 1em; text-shadow: none;" class="label {{i.qopLabel}}"> {{i.z.toFixed(5)}}@{{i.qop}}</span> </button>
+                        </div>
+                    </div>
                 </div>
                 <div class="form-group" style="height: 30px">
-                    <toggle-switch class="red" style="width: 170px" model="ui.dataSelection.matched" knob-label="Template"></toggle-switch>
+                    <toggle-switch class="switch-success" style="width: 170px" ng-model="ui.dataSelection.processed" knob-label="Data" on-label="Processed" off-label="Raw"></toggle-switch>
                 </div>
                 <div class="form-group" style="height: 30px">
-                    <toggle-switch style="width: 170px" model="settings.continuum" knob-label="Continuum"></toggle-switch>
+                    <toggle-switch class="switch-danger" style="width: 170px" ng-model="ui.dataSelection.matched" knob-label="Template"></toggle-switch>
                 </div>
                 <div class="form-group" style="height: 30px">
-                    <toggle-switch class="variance" style="width: 170px" model="ui.dataSelection.variance" knob-label="Variance"></toggle-switch>
+                    <toggle-switch class="switch-primary" style="width: 170px" ng-model="settings.continuum" knob-label="Continuum"></toggle-switch>
+                </div>
+                <div class="form-group" style="height: 30px">
+                    <toggle-switch class="switch-warning" style="width: 170px" ng-model="ui.dataSelection.variance" knob-label="Variance"></toggle-switch>
                 </div>
                 <div class="form-group">
                     <div class="btn-group">
@@ -32,10 +39,10 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <div class="input-group input-group-sm" style="width: 245px">
+                    <div class="input-group input-group-sm" style="width: 190px">
                         <span class="input-group-addon">Smooth</span>
                         <input type="text input-sm" class="form-control" ng-model="settings.smooth">
-                        <span class="input-group-addon"><input style="width:120px;" type="range" min="0" max="{{bounds.maxSmooth}}" ng-model="settings.smooth"></span>
+                        <span class="input-group-addon"><input style="width:60px;" type="range" min="0" max="{{bounds.maxSmooth}}" ng-model="settings.smooth"></span>
                     </div>
                 </div>
             </li>
@@ -67,10 +74,10 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <div class="input-group input-group-sm" style="width:354px">
+                    <div class="input-group input-group-sm" style="width:300px">
                         <span class="input-group-addon">Redshift</span>
                         <input type="text" id="redshiftInput" class="form-control" ng-change="changedRedshift()" ng-model="settings.redshift" style="color: red; font-weight: bold; font-size: 1.1em;">
-                        <span class="input-group-addon" style="width:210px"><input  type="range" min="{{settings.bounds.redshiftMin}}" max="{{settings.bounds.redshiftMax}}" step="0.0001" ng-change="changedRedshift()" ng-model="settings.redshift"></span>
+                        <span class="input-group-addon" style="width:150px"><input  type="range" min="{{settings.bounds.redshiftMin}}" max="{{settings.bounds.redshiftMax}}" step="0.0001" ng-change="changedRedshift()" ng-model="settings.redshift"></span>
                     </div>
                 </div>
                 <button class="form-group btn btn-primary btn-sm" style="display: inline-block;" ng-click="fit()" popover-placement="bottom" popover="Performs localised cross correlation fit. Shortcut: u" popover-trigger="mouseenter">Perform Fit</button>

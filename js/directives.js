@@ -901,8 +901,15 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     var staggerHeight = 13;
                     var up = true;
                     var px = -100;
+                    var helio = null;
+                    var cmb = null;
+                    if ($scope.ui.active != null) {
+                        helio = $scope.ui.active.helio;
+                        cmb = $scope.ui.active.cmb;
+                    }
+                    var z = adjustRedshift(parseFloat($scope.detailed.redshift), -helio, -cmb);
+
                     for (var i = 0; i < lines.length; i++) {
-                        var z = parseFloat(global.ui.detailed.redshift);
                         var spectralLineColour = spectralLineColours[lines[i].type];
                         c.fillStyle = spectralLineColour;
                         for (var j = 0; j < lines[i].displayLines.length; j++) {
@@ -919,7 +926,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                                 px = x;
                                 var strength = null;
                                 if (baseData != null ) {
-                                    strength = spectraLineAnalysisService.getStrengthOfLine(baseData.x, baseData.y2, lines[i], z, global.ui.detailed.templateId == '12');
+                                    strength = spectraLineAnalysisService.getStrengthOfLine(baseData.x, baseData.y2, lines[i], z, templatesService.isQuasar(global.ui.detailed.templateId));
                                 }
                                 c.beginPath();
                                 c.setLineDash([5, 3]);
@@ -1171,7 +1178,7 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                         var colour = "#000";
                         if (global.ui.dataSelection.processed && global.ui.active.processedLambdaPlot != null) {
                             xs = global.ui.active.processedLambdaPlot;
-                            ys = global.ui.detailed.continuum ? global.ui.active.processedContinuum : global.ui.active.processedIntensity;
+                            ys = global.ui.detailed.continuum ? global.ui.active.processedContinuum : global.ui.active.processedIntensity2;
                             colour = global.ui.colours.processed;
                         } else {
                             ys = global.ui.detailed.continuum ? global.ui.active.intensityPlot : global.ui.active.getIntensitySubtracted();
@@ -1213,8 +1220,14 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                         }
                     }
                     if ($scope.detailed.templateId != "0" && $scope.ui.dataSelection.matched) {
+                        var h = null;
+                        var c = null;
+                        if ($scope.ui.active != null) {
+                            h = $scope.ui.active.helio;
+                            c = $scope.ui.active.cmb;
+                        }
                         var r = templatesService.getTemplateAtRedshift($scope.detailed.templateId,
-                            parseFloat($scope.detailed.redshift), $scope.detailed.continuum);
+                            adjustRedshift(parseFloat($scope.detailed.redshift), -h, -c), $scope.detailed.continuum);
                         data.push({id: "template", colour: global.ui.colours.matched, x: r[0],y: r[1]});
                     }
                     data.sort(function(a,b) {

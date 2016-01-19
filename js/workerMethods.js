@@ -2,20 +2,13 @@
  * ANY CHANGES OF THIS FILE MUST BE CONVEYED IN A VERSION INCREMENT
  * OF marzVersion IN config.js!
  ******************************************************************/
-
-var templateManager = new TemplateManager();
-var shifted_temp = false;
-var self = this;
-
-/**
- * This function listens to messages from the main client process. If the processing flag is set
- * in the message data, it processes the data. If the flag is not set, it will match the data and
- * return the results of the matching.
- */
-if (!shifted_temp) {
-    templateManager.shiftToMatchSpectra();
-    shifted_temp = true;
+var deps = ["./templates", "./helio", "./config"];
+for (var i = 0; i < deps.length; i++) {
+    require(deps[i])();
 }
+var node = false;
+var templateManager = new TemplateManager(true, true);
+var self = this;
 
 /**
  * Handles all worker related events, including data processing and spectra matching.
@@ -26,6 +19,7 @@ if (!shifted_temp) {
  */
 function handleEvent(data) {
     templateManager.setInactiveTemplates(data.inactiveTemplates);
+    node = data.node;
     var result = null;
     // Whether the data gets processed or matched depends on if a processing property is set
     if (data.processing) {
@@ -39,7 +33,7 @@ function handleEvent(data) {
         result['matching'] = true;
         result['id'] = data.id;
         result['name'] = data.name;
-        result['results'] = self.matchTemplates(data.lambda, data.intensity, data.variance, data.type);
+        result['results'] = self.matchTemplates(data.lambda, data.intensity, data.variance, data.type, data.helio, data.cmb);
     }
     return result;
 }
@@ -59,7 +53,7 @@ self.process = function(data) {
         data.processedVariancePlot = data.variance.slice();
         removeNaNs(data.processedVariancePlot);
         clipVariance(data.processedVariancePlot);
-        normaliseViaShift(data.processedVariancePlot, 0, varianceHeight, null);
+        normaliseViaShift(data.processedVariancePlot, 0, globalConfig.varianceHeight, null);
     }
     data.continuum = self.processData(data.lambda, data.intensity, data.variance);
     return data;
@@ -100,51 +94,31 @@ self.processData = function(lambda, intensity, variance) {
  * @returns a data structure of results, containing both the fit at each redshift for each template, and an
  * ordered list of best results.
  */
-self.matchTemplates = function(lambda, intensity, variance, type) {
+self.matchTemplates = function(lambda, intensity, variance, type, helio, cmb) {
 
-    var quasarIntensity = intensity.slice();
-    var quasarVariance = variance.slice();
-    rollingPointMean(quasarIntensity, rollingPointWindow, rollingPointDecay);
-    taperSpectra(quasarIntensity);
-    quasarVariance = medianAndBoxcarSmooth(quasarVariance, quasarVarianceMedian, quasarVarianceBoxcar);
-    addMinMultiple(quasarVariance, quasarMinMultiple);
-    divideByError(quasarIntensity, quasarVariance);
-    taperSpectra(quasarIntensity);
-    normalise(quasarIntensity);
-
-    // The intensity variable is what will match every other template
-    taperSpectra(intensity);
-    smoothAndSubtract(intensity);
-    var subtracted = intensity.slice();
-    adjustError(variance);
-    divideByError(intensity, variance);
-
-    taperSpectra(intensity);
-    normalise(intensity);
-
-
-    // This rebins (oversampling massively) into an equispaced log array. To change the size and range of
-    // this array, have a look at the config.js file.
-    var result = convertLambdaToLogLambda(lambda, intensity, arraySize, false);
-    var quasarResult = convertLambdaToLogLambda(lambda, quasarIntensity, arraySize, true);
-    quasarIntensity = quasarResult.intensity;
-    intensity = result.intensity;
-
-    // Fourier transform both the intensity and quasarIntensity variables
-    var fft = new FFT(intensity.length, intensity.length);
-    fft.forward(intensity);
-    var quasarFFT = new FFT(quasarIntensity.length, quasarIntensity.length);
-    quasarFFT.forward(quasarIntensity);
+    var quasarFFT = null;
+    if (templateManager.isQuasarActive()) {
+        quasarFFT = getQuasarFFT(lambda, intensity, variance);
+    }
+    var res = getStandardFFT(lambda, intensity, variance, !node);
+    var subtracted = null;
+    var fft = null;
+    if (node) {
+        fft = res;
+    } else {
+        fft = res[0];
+        subtracted = res[1];
+    }
 
     // For each template, match the appropriate transform
     var templateResults = templateManager.templates.map(function(template) {
-        if (template.id == '12') {
+        if (templateManager.isQuasar(template.id)) {
             return matchTemplate(template, quasarFFT);
         } else {
             return matchTemplate(template, fft);
         }
     });
-    var coalesced = self.coalesceResults(templateResults, type, subtracted, fft, quasarFFT);
+    var coalesced = self.coalesceResults(templateResults, type, subtracted, helio, cmb);
 
     return coalesced;
 };
@@ -161,7 +135,7 @@ self.matchTemplates = function(lambda, intensity, variance, type) {
  * @param type
  * @returns {{coalesced: Array, templates: null, intensity: Array}}
  */
-self.coalesceResults = function(templateResults, type, intensity, fft, quasarFFT) {
+self.coalesceResults = function(templateResults, type, intensity, helio, cmb) {
     // Adjust for optional weighting
     var coalesced = [];
     for (var i = 0; i < templateResults.length; i++) {
@@ -180,7 +154,7 @@ self.coalesceResults = function(templateResults, type, intensity, fft, quasarFFT
 
         for (var j = 0; j < tr.peaks.length; j++) {
             tr.peaks[j].value = tr.peaks[j].value / w;
-            tr.peaks[j].z = tr.zs[tr.peaks[j].index];
+            tr.peaks[j].z = adjustRedshift(tr.zs[tr.peaks[j].index], helio, cmb);
             tr.peaks[j].templateId = tr.id;
             tr.peaks[j].xcor = tr.xcor;
             coalesced.push(tr.peaks[j]);
@@ -211,7 +185,7 @@ self.coalesceResults = function(templateResults, type, intensity, fft, quasarFFT
     for (var k = 0; k < topTen.length; k++) {
         // Javascript only rounds to integer, so this should get four decimal places
         var index = fitAroundIndex(topTen[k].xcor, topTen[k].index);
-        var res = getRedshiftForNonIntegerIndex(templateManager.getTemplateFromId(topTen[k].templateId), index);
+        var res = adjustRedshift(getRedshiftForNonIntegerIndex(templateManager.getTemplateFromId(topTen[k].templateId), index), helio, cmb);
         topTen[k] = {
             z:  Math.round(res * 1e5) / 1e5,
             index: index,
@@ -220,6 +194,7 @@ self.coalesceResults = function(templateResults, type, intensity, fft, quasarFFT
         };
     }
     var templates = {};
+    var returnedMax = globalConfig.returnedMax;
     for (var i = 0; i < templateResults.length; i++) {
         var tr = templateResults[i];
         var numCondense = Math.ceil(tr.zs.length / returnedMax);
@@ -229,7 +204,7 @@ self.coalesceResults = function(templateResults, type, intensity, fft, quasarFFT
         var c2 = 0;
         if (tr.zs.length > 1) {
             for (var j = 0; j < tr.zs.length; j++) {
-                c1 += tr.zs[j];
+                c1 += adjustRedshift(tr.zs[j], helio, cmb);
                 c2 += tr.xcor[j];
                 if ((j + 1) % numCondense == 0) {
                     zs.push(c1 / numCondense);
@@ -260,19 +235,11 @@ self.coalesceResults = function(templateResults, type, intensity, fft, quasarFFT
 
     }
     var autoQOP = self.getAutoQOP(topTen);
-    if (node) {
-        fft = null;
-        quasarFFT = null;
-        templateResults = null;
-
-    }
     return {
         coalesced: topTen,
         templates: templates,
-        intensity: intensity,
-        autoQOP: autoQOP,
-        fft: node ? null : {real: fft.real, imag: fft.imag},
-        quasarFFT: node ? null : {real: quasarFFT.real, imag: quasarFFT.imag}
+        intensity2: intensity,
+        autoQOP: autoQOP
     };
 };
 
@@ -282,6 +249,9 @@ self.coalesceResults = function(templateResults, type, intensity, fft, quasarFFT
  * @returns {number} QOp integer, 1,2,3,4 or 6
  */
 self.getAutoQOP = function(coalesced) {
+    if (coalesced.length < 2) {
+        return 0;
+    }
     var mainV = coalesced[0].value;
     var secondV = coalesced[1].value;
 
@@ -298,4 +268,9 @@ self.getAutoQOP = function(coalesced) {
         pqop = 1;
     }
     return (pqop > 2 && isStar ? 6 : pqop);
+};
+
+module.exports = function() {
+    this.handleEvent = handleEvent;
+    this.workerTemplateManager = templateManager;
 };

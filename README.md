@@ -16,15 +16,26 @@ A publicly available server is running via Github-pages at http://samreay.github
 
 Whilst the application was primarily designed around human interaction, it is possible to execute the matching algorithm via the command line. Doing so requires [io.js](https://iojs.org) or [node.js](https://nodejs.org) to be installed.
 
-1. Install [io.js](https://iojs.org) or [node.js](https://nodejs.org)
+1. Install [node.js](https://nodejs.org).
 2. Run `install.sh` found in the top level directory to install `npm` dependencies (which simply runs `npm install`)
 
-After doing this, you can analyse a FITS file by running `./autoMarz.sh <FITSFilePath>`, which will direct output to `stdout`. Command line parameters, including how to save to file, are detailed upon running `autoMarz.sh` without parameters.
+After doing this, you can analyse a FITS file by running `./marz.sh <FITSFilePath>`, which will direct output to `stdout`. Command line parameters, including how to save to file, are detailed upon running `marz.sh` without parameters, or by consulting `autoConfig.js`. Marz can be run on multiple files at once, by specifying more than one file in the command line. If a folder is specified, Marz will run on all `*.fits` files in that folder.
 
 
 ***** 
 
 # Updates
+
+## 1.1.0
+* Rewrite of the command line functionality to allow better usability.
+* Significant performance optimisations
+* Timing module for node.js to assist in optimisations
+* Test module in node.js added
+* Normalisation of cross correlation peaks modified
+* Heliocentric and CMB corrections implemented
+* Reduced memory usage on client
+* Adding merging capabilities
+* Sorting job process order for less down time when resuming a file
 
 ## 1.0.6
 * Making displayed template more accurate

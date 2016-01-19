@@ -11,8 +11,8 @@
         <h4>Problems or feature requests</h4>
         <p>If any bugs are found with the program, or there are features which could be added or improved to make life easier, please either raise an issue on the official Github issue page or send an email to me (the developer).</p>
         <ul>
-            <li><a href="https://github.com/Samreay/ThesisZ/issues">Github issues page</a></li>
-            <li><address><a href="mailto:samuelreay@gmail.com">Send me an email</a></address></li>
+            <li><a target="_blank" href="https://github.com/Samreay/Marz/issues">Github issues page</a></li>
+            <li><address><a target="_blank" ref="mailto:samuelreay@gmail.com">Send me an email</a></address></li>
         </ul>
     </accordion-group>
     <accordion-group heading="Loading Files">
@@ -22,15 +22,21 @@
         <p>To start from scratch, simply drag in a fits file and let the application start analysis. If you have previously been analysing the file and saved results, you can load these results back in by dragging in the previously download results file. The order of drag and drop does matter - please drop the results file first. Note that if you want to analyse a different fits file or stop using results, you must refresh the page (to be updated in the future).</p>
         <p>For quick usage, a few example FITS files that Conor O'Neill has been using in his project are provided:</p>
         <ul>
-            <li><a href="https://github.com/Samreay/ThesisZ/releases/download/0.2.0/alldata_combined_runz_x12_b02.fits">alldata_combined_runz_x12_b02</a></li>
-            <li><a href="https://github.com/Samreay/ThesisZ/releases/download/0.2.0/alldata_combined_runz_x6_b02.fits">alldata_combined_runz_x6_b02</a></li>
-            <li><a href="https://github.com/Samreay/ThesisZ/releases/download/0.2.0/alldata_combined_runz_x3_b02.fits">alldata_combined_runz_x3_b02</a></li>
-            <li><a href="https://github.com/Samreay/ThesisZ/releases/download/0.2.0/alldata_combined_runz_x1_b02.fits">alldata_combined_runz_x1_b02</a></li>
+            <li><a target="_blank" href="https://github.com/Samreay/Marz/releases/download/0.2.0/alldata_combined_runz_x12_b02.fits">alldata_combined_runz_x12_b02</a></li>
+            <li><a target="_blank" href="https://github.com/Samreay/Marz/releases/download/0.2.0/alldata_combined_runz_x6_b02.fits">alldata_combined_runz_x6_b02</a></li>
+            <li><a target="_blank" href="https://github.com/Samreay/Marz/releases/download/0.2.0/alldata_combined_runz_x3_b02.fits">alldata_combined_runz_x3_b02</a></li>
+            <li><a target="_blank" href="https://github.com/Samreay/Marz/releases/download/0.2.0/alldata_combined_runz_x1_b02.fits">alldata_combined_runz_x1_b02</a></li>
         </ul>
         <hr />
         <h4>Background Tasks</h4>
         <p>At the moment, the application processes spectra in two ways. Firstly, it iterates through all spectra and processes the raw data, providing smoothing, removal of cosmic rays, continuum subtraction and normalisation. It then goes back over the processed spectra and analyses them to find the best fitting template at a specific redshift. Whether or not the processing and analysing are done in the same instance or one after the other will become a configurable item.</p>
         <p>The state of the current background iteration is shown in the progress bar at the bottom of the screen. A green bar, matching the green plots, represents the progress through processing the spectra. The progress of the red bar (which comes after the green has finished) and matches the colour of the templates, represents the progress through analysing the spectra. The bar will turn blue when all spectra have been assigned a redshift.</p>
+    </accordion-group>
+    <accordion-group heading="Merging Files">
+        <h4>Merging Files</h4>
+        <p>If you have had two people redshift the same <code>.fits</code> file and want to merge their results together, this can also be done from within Marz.</p>
+        <p>Simply select the <code>.fits</code> file and the two <code>.mz</code> files, togther, and drag them all into the drop zone in one go. Marz will recognise this as starting a merge, and proceed from there.</p>
+        <p>On the overview screen Marz will now display not just the standard spectrum and template match, but also the two redshifted results offset above and below the template. Results which are flagged as needing to be manually merged (disagreeing redshifts) will have their QOP set to 0. Spectra that can be automatically merged will be done so, by chosing the redshift of the result with the highest QOP. If the QOPs are the same, the value of the default merger will be chosen. You can change the default merger in the sidebar. By default, the Overview screen will be set to only show QOP0 results, so that you can focus on the disagreements. The detailed screen will allow you to toggle between the two flagged redshifts either by pressing the relevant buttons or by pressing <code>q</code>. Simply pick a redshift and assign a quality flag as per normal redshifting to move onto the next disagreement. The results for both original <code>.mz</code> files will be appended to the spectrum's comment.</p>
     </accordion-group>
     <accordion-group heading="The Overview Screen">
         <p>The overview screen allows a high level overview of all spectra to be quickly given to the user. Subsets of spectra can be displayed by using the filter options on the left sidebar, where options have been created for object types, templates, redshifts and quality flag (QOP).</p>
@@ -84,9 +90,9 @@
     </accordion-group>
     <accordion-group heading="File Output and Loading Results with Python">
         <h4>Output file structure</h4>
-        <p>Marz saves <code>.mz</code> files as output. These files are formatted ot be ASCII, comma-separated value files. An <a href="https://github.com/Samreay/Marz/releases/download/1.0.0/alldata_SRH.mz"> example file can be found here.</a></p>
-        <p>Comment lines begin with a <code>#</code>, and there should be three header lines marked as comments. The first contains details on who generated results for what file at what time. As such, it contains your initials, the filename analysed and the data the results were downloaded. The second line gives some basic statistics on the file - the number of spectra matched > QOP2, the total number of spectra, and the overall success rate. The third comment line simply contains the headers for the tabular data.</p>
-        <p>The rest of the file is then comprised of one row per matched spectra, where the spectra fibre, name, right ascension, declination, magnitude and type are stated in the first six columns if they exist. The next four columns detail the results of the automatic matching algorithm, giving the automatically matched template ID, template name, redshift of match and cross correlation strength. The next four columns detail the final match (which often should be the same as the automatic match), giving the template ID, name, redshift and QOP flag. Any comments on the spectra are then placed in the final column. </p>
+        <p>Marz saves <code>.mz</code> files as output. These files are formatted ot be ASCII, comma-separated value files. An <a target="_blank" href="https://github.com/Samreay/Marz/releases/download/1.0.0/alldata_SRH.mz"> example file can be found here.</a></p>
+        <p>Comment lines begin with a <code>#</code>, and there should be three header lines marked as comments. The first contains details on who generated results for what file at what time. As such, it contains your initials, the filename analysed and the date the results were downloaded. The second line gives some basic statistics on the file - the number of spectra matched > QOP2, the total number of spectra, and the overall success rate. The third comment line simply contains the headers for the tabular data.</p>
+        <p>The rest of the file is then comprised of one row per matched spectra, where the spectra fibre, name, right ascension, declination, magnitude and type are stated in the first six columns if they exist. The next four columns detail the results of the automatic matching algorithm, giving the automatically matched template ID, template name, redshift of match and cross correlation strength. The next four columns detail the final match (which often should be the same as the automatic match), giving the template ID, name, redshift and QOP flag. Any comments on the spectra are then placed in the final column. If heliocentric or CMB corrections are requested, they will be placed after the comment column.</p>
         <hr />
         <h4>Loading this file with Python</h4>
         <p>Given the popularity of Python in astrophysics, example code to read in the generated Marz output file has been supplied.</p>

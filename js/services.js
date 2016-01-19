@@ -5,6 +5,9 @@ angular.module('servicesZ', ['dialogs.main'])
     .provider('global', function() {
         var dataStore = {
             ui: {
+                merge: false,
+                mergeDefault: 0,
+                mergeInitials: [],
                 active: null,
                 graphicalLayout: true,
                 sidebarSmall: false,
@@ -33,6 +36,7 @@ angular.module('servicesZ', ['dialogs.main'])
                     oldRedshift: "0",
                     matchedActive: true,
                     matchedIndex: null,
+                    mergeIndex: 0,
                     smooth: "3",
                     width: 300,
                     spectraFocus: null,
@@ -50,7 +54,8 @@ angular.module('servicesZ', ['dialogs.main'])
                     matched: "#AA0000",
                     sky: "#009DFF",
                     template: '#8C0623',
-                    variance: '#E3A700' //B731E8
+                    variance: '#E3A700',
+                    merges: ["#009DFF", "#005201"]
                 }
             },
             data: {
@@ -181,7 +186,6 @@ angular.module('servicesZ', ['dialogs.main'])
             quality.barHash = {};
         };
         self.changeSpectra = function(oldQop, newQop) {
-            //console.log("Changing from " + oldQop + " to " + newQop);
             if (oldQop == newQop) {
                 return;
             }
@@ -208,7 +212,7 @@ angular.module('servicesZ', ['dialogs.main'])
             }
         }
     }])
-    .service('spectraService', ['global', 'resultsGeneratorService', 'cookieService', 'localStorageService', 'qualityService', 'log', function(global, resultsGeneratorService, cookieService, localStorageService, qualityService, log) {
+    .service('spectraService', ['global', 'resultsGeneratorService', 'cookieService', 'localStorageService', 'qualityService', 'log', 'templatesService', function(global, resultsGeneratorService, cookieService, localStorageService, qualityService, log, templatesService) {
         var self = this;
         var data = global.data;
         var quality = global.ui.quality;
@@ -236,9 +240,12 @@ angular.module('servicesZ', ['dialogs.main'])
             downloadAutomatically = value;
             cookieService.setCookie(downloadAutomaticallyCookie, downloadAutomatically);
         };
-        self.setAssignAutoQOPs = function(value) {
+        self.setAssignAutoQOPs = function(value, cookieIt) {
+            cookieIt = defaultFor(cookieIt, true);
             self.spectraManager.setAssignAutoQOPs(value);
-            cookieService.setCookie(assignAutoQOPsCookie, value);
+            if (cookieIt) {
+                cookieService.setCookie(assignAutoQOPsCookie, value);
+            }
         };
         self.getAssignAutoQOPs = function() {
             return self.spectraManager.autoQOPs;
@@ -344,30 +351,11 @@ angular.module('servicesZ', ['dialogs.main'])
         self.loadLocalStorage = function(spectra, vals) {
             spectra.isMatched = true;
 
-            spectra.automaticResults = [{}];
-            for (var i = 1; i < vals.length; i++) {
-                if (vals[i].name == "QOP") {
-                    spectra.setQOP(parseInt(vals[i].value));
-                    qualityService.addResult(spectra.qop);
-                }
-            }
-            for (var i = 1; i < vals.length; i++) {
-                if (vals[i].name == "AutoTID") {
-                    spectra.automaticResults[0].templateId = "" + vals[i].value;
-                } else if (vals[i].name == "AutoZ") {
-                    spectra.automaticResults[0].z = parseFloat(vals[i].value);
-                } else if (vals[i].name == "AutoXCor") {
-                    spectra.automaticResults[0].value = parseFloat(vals[i].value);
-                } else if (vals[i].name == "FinTID" && spectra.qop > 0) {
-                    spectra.manualTemplateID = "" + vals[i].value;
-                } else if (vals[i].name == "FinZ" && spectra.qop > 0) {
-                    spectra.manualRedshift = parseFloat(vals[i].value);
-                } else if (vals[i].name == "Comment") {
-                    spectra.setComment(vals[i].value);
-                }
-            }
-
-            spectra.automaticBestResults = spectra.automaticResults;
+            spectra.setQOP(parseInt(vals['qop']));
+            qualityService.addResult(spectra.qop);
+            spectra.manualTemplateID = vals['id'];
+            spectra.manualRedshift = parseFloat(vals['z']);
+            spectra.setComment(vals['com']);
 
         };
         self.getSpectra = function(id) {
@@ -405,7 +393,7 @@ angular.module('servicesZ', ['dialogs.main'])
             spectra.processedLambdaPlot = results.lambda;
             spectra.processedVariance = results.variance;
             spectra.processedVariancePlot = results.processedVariancePlot;
-
+            spectra.processedIntensity = results.intensity;
             if (!self.isProcessing() && self.isFinishedMatching()) {
                 if (global.data.fits.length > 0) {
                     global.data.fits.shift();
@@ -420,21 +408,7 @@ angular.module('servicesZ', ['dialogs.main'])
             if (self.spectraManager.autoQOPs && oldqop == 0) {
                 qualityService.changeSpectra(oldqop, spectra.autoQOP);
             }
-            if (results.results.fft == null) {
-                spectra.fft = null;
-            } else {
-                spectra.fft = new FFT(results.results.fft.real.length, results.results.fft.imag);
-                spectra.fft.real = results.results.fft.real;
-                spectra.fft.imag = results.results.fft.imag;
-            }
-            if (results.results.quasarFFT == null) {
-                spectra.quasarFFT = null;
-            } else {
-                spectra.quasarFFT = new FFT(results.results.quasarFFT.real.length, results.results.quasarFFT.imag);
-                spectra.quasarFFT.real = results.results.quasarFFT.real;
-                spectra.quasarFFT.imag = results.results.quasarFFT.imag;
-            }
-            spectra.processedIntensity = results.results.intensity;
+            spectra.processedIntensity2 = results.results.intensity2;
             if (saveAutomatically) {
                 localStorageService.saveSpectra(spectra);
             }
@@ -516,14 +490,97 @@ angular.module('servicesZ', ['dialogs.main'])
             return spectralLines.getFromID(id);
         };
     }])
+    .service('mergeService', ['$q', 'resultsLoaderService', 'fitsFile', 'global', 'localStorageService', 'log', 'qualityService', 'spectraService', 'processorService', 'templatesService', function($q, resultsLoaderService, fitsFile, global, localStorageService, log, qualityService, spectraService, processorService, templatesService) {
+        var self = this;
+        self.global = global;
+        self.updateMergeDefaults = function() {
+            var spectra = global.data.spectra;
+            for (var i = 0; i < spectra.length; i++) {
+                var real = spectra[i];
+                if (real.mergedUpdated) {
+                    continue;
+                }
+                if (real.merges.length == 2) {
+                    if (self.needsMerging(real)) {
+                        real.setQOPMerge(0);
+                    } else {
+                        var q0 = real.merges[0].qop;
+                        var q1 = real.merges[1].qop;
+                        var index = parseInt(self.global.ui.mergeDefault);
+                        if (q1 > q0) {
+                            index = 1;
+                        } else if (q0 > q1) {
+                            index = 0;
+                        }
+                        real.manualRedshift = real.merges[index].z;
+                        var old = real.qop;
+                        real.setQOPMerge(real.merges[index].qop);
+                        qualityService.changeSpectra(old, real.qop);
+                        real.manualTemplateID = real.merges[index].tid;
+                    }
+                }
+            }
+        };
+        self.needsMerging = function(spectra) {
+            var merges = spectra.getMerges();
+            if (merges.length > 1) {
+                var m0 = merges[0];
+                var m1 = merges[1];
+                var threshBad = null;
+                if (m0.quasar || m1.quasar) {
+                    threshBad = (Math.abs(m0.z - m1.z) > globalConfig.mergeZThresholdQuasar);
+                } else {
+                    threshBad = (Math.abs(m0.z - m1.z) > globalConfig.mergeZThreshold);
+                }
+                var goodQOP = m1.qop > 2 || m0.qop > 2;
+                var shouldShow = threshBad && goodQOP;
+                return shouldShow;
+            }
+            return true;
+        };
+        self.loadMerge = function(fits, results) {
+            log.debug("Beginning merge.");
+            spectraService.setAssignAutoQOPs(false, false);
+            localStorageService.setActive(false);
+            self.global.ui.merge = true;
+            self.global.filters.qopFilter = 0;
+            var promises = [];
+            for (var i = 0; i < results.length; i++) {
+                var q = $q.defer();
+                promises.push(q.promise);
+                resultsLoaderService.loadResults(results[i], q)
+            }
+            fitsFile.loadInFitsFile(fits).then(function() {
+                var filename = self.global.data.fitsFileName;
+                $q.all(promises).then(function(fakes) {
+                    for (var i = 0; i < fakes.length; i++) {
+                        var initials = fakes[i][0];
+                        self.global.ui.mergeInitials.push(initials);
+                        var fake = fakes[i][1];
+                        for (var j = 0; j < fake.length; j++) {
+                            var fakeSpectrum = fake[j];
+                            var real = global.data.spectraHash[fakeSpectrum.id];
+                            real.addMergeResult(initials, fakeSpectrum.getFinalRedshift(), fakeSpectrum.getFinalTemplateID(), fakeSpectrum.qop, templatesService.isQuasar(fakeSpectrum.getFinalTemplateID()));
+                            real.mergedUpdated = false;
+                        }
+
+                    }
+                    self.updateMergeDefaults()
+                    processorService.sortJobs();
+                })
+            });
+        }
+    }])
     .service('resultsLoaderService', ['$q', 'localStorageService', 'resultsGeneratorService',
         function($q, localStorageService, resultsGeneratorService) {
         var self = this;
         var dropped = false;
 
-        self.loadResults = function(file) {
+        self.loadResults = function(file, q) {
+            q = defaultFor(q, null);
             dropped = true;
             var filename = file.name.substring(0, file.name.lastIndexOf("_"));
+            var initials = file.name.substring(file.name.lastIndexOf("_") + 1, file.name.lastIndexOf(".mz"));
             var reader = new FileReader();
             reader.onload = function(e) {
                 var text = reader.result;
@@ -546,6 +603,7 @@ angular.module('servicesZ', ['dialogs.main'])
                 for (var w = 0; w < headers.length; w++) {
                     headers[w] = headers[w].trim();
                 }
+                var fakes = [];
                 for (var i = 0; i < lines.length - 1; i++) {
                     if (lines[i].indexOf("#") == 0) continue;
                     var columns = lines[i].split(',');
@@ -557,7 +615,14 @@ angular.module('servicesZ', ['dialogs.main'])
                             res[headers[j]] = columns[j].trim();
                         }
                     }
-                    localStorageService.saveSpectra(resultsGeneratorService.convertResultToMimicSpectra(res));
+                    var fakeSpectra = resultsGeneratorService.convertResultToMimicSpectra(res);
+                    if (q == null) {
+                        localStorageService.saveSpectra(fakeSpectra);
+                    }
+                    fakes.push(fakeSpectra);
+                }
+                if (q != null) {
+                    q.resolve([initials, fakes]);
                 }
             };
             reader.readAsText(file);
@@ -572,6 +637,12 @@ angular.module('servicesZ', ['dialogs.main'])
         self.resultsGenerator = new ResultsGenerator(global.data, templatesService);
         self.downloading = false;
 
+        self.setHelio = function(val) {
+            self.resultsGenerator.setHelio(val);
+        };
+        self.setCMB = function(val) {
+            self.resultsGenerator.setCMB(val);
+        };
         var numAutomaticCookie = "numAutomatic";
         self.setNumAutomatic = function(num) {
             if (num <= 5) {
@@ -608,13 +679,17 @@ angular.module('servicesZ', ['dialogs.main'])
         self.getResultFromSpectra = function(spectra) {
             return self.resultsGenerator.getResultFromSpectra(spectra);
         };
+        self.getLocalStorageResult = function(spectra) {
+            return self.resultsGenerator.getLocalStorageResult(spectra);
+        };
         self.getResultsCSV = function() {
             log.debug("Getting result CSV");
             return self.resultsGenerator.getResultsCSV(personalService.getInitials());
         };
         self.convertResultToMimicSpectra = function(result) {
+            var helio = result["HelioCor"] == null ? null : result["HelioCor"];
             var spectra = new Spectra(result["ID"], null, null, null, null, result["Name"],
-                result["RA"], result["DEC"],result["Mag"], result["Type"], result.filename);
+                result["RA"], result["DEC"],result["Mag"], result["Type"], result.filename, helio);
             spectra.automaticBestResults = [{templateId: result["AutoTID"], z: result["AutoZ"], value: result["AutoXCor"]}];
             spectra.setComment(result["Comment"]);
             spectra.setQOP(parseInt(result["QOP"]));
@@ -696,7 +771,7 @@ angular.module('servicesZ', ['dialogs.main'])
             console.log("Clearing", filename);
             for (var i = 0; i < localStorage.length; i++) {
                 var key = localStorage.key(i);
-                if (key.indexOf(filename, 0) == 0) {
+                if (key.indexOf(filename, 0) != -1) {
                     localStorage.removeItem(key);
                     i--;
                 }
@@ -709,10 +784,12 @@ angular.module('servicesZ', ['dialogs.main'])
         self.saveSpectra = function(spectra) {
             if (!active) return;
             var key = self.getKeyFromSpectra(spectra);
-            var val = resultsGeneratorService.getResultFromSpectra(spectra);
-            if (val != null) {
-                val.unshift(Date.now());
-                localStorage[key] = JSON.stringify(val);
+            var val = [resultsGeneratorService.getLocalStorageResult(spectra)];
+            if (val[0]['qop'] != 0) {
+                if (val != null) {
+                    val.unshift(Date.now());
+                    localStorage[key] = JSON.stringify(val);
+                }
             }
         };
         self.loadSpectra = function(spectra) {
@@ -720,10 +797,14 @@ angular.module('servicesZ', ['dialogs.main'])
             var key = self.getKeyFromSpectra(spectra);
             var val = localStorage[key];
             if (val != null) {
-                val = JSON.parse(val);
+                val = JSON.parse(val)[1];
             }
             return val;
         };
+
+        self.setActive = function(val) {
+            active = val;
+        }
 
     }])
     .service('cookieService', [function() {
@@ -782,7 +863,7 @@ angular.module('servicesZ', ['dialogs.main'])
         var processTogetherCookie = "processTogether";
 
         self.getDefaultProcessType = function() {
-            return false;
+            return true;
         };
         self.getProcessTogether = function() {
             return processTogether;
@@ -856,7 +937,9 @@ angular.module('servicesZ', ['dialogs.main'])
         self.togglePause = function() {
             self.processorManager.togglePause();
         };
-
+        self.sortJobs = function() {
+            self.processorManager.sortJobs();
+        };
         self.setDefaultNumberOfCores();
 
     }])
@@ -883,7 +966,12 @@ angular.module('servicesZ', ['dialogs.main'])
         self.getTemplates = function() {
             return templates.templates;
         };
-
+        self.getTemplateFromId = function(id) {
+            return templates.getTemplateFromId(id);
+        };
+        self.isQuasar = function(id) {
+            return templates.isQuasar(id);
+        };
         self.getFFTReadyTemplate = function(templateId) {
             var t = templates.templatesHash[templateId];
             if (t.fft == null) {
@@ -893,9 +981,9 @@ angular.module('servicesZ', ['dialogs.main'])
         };
 
     }])
-    .service('fitsFile', ['$q', 'global', 'spectraService', 'processorService', 'log', function($q, global, spectraService, processorService, log) {
+    .service('fitsFile', ['$q', 'global', 'spectraService', 'processorService', 'resultsGeneratorService', 'log', function($q, global, spectraService, processorService, resultsGeneratorService, log) {
         var self = this;
-        self.fitsFileLoader = new FitsFileLoader($q, global, log, processorService);
+        self.fitsFileLoader = new FitsFileLoader($q, global, log, processorService, resultsGeneratorService);
         self.fitsFileLoader.subscribeToInput(spectraService.setSpectra);
         self.fitsFileLoader.subscribeToInput(processorService.addSpectraListToQueue);
 
@@ -934,7 +1022,7 @@ angular.module('servicesZ', ['dialogs.main'])
                 var intensity = self.condenseToXPixels(!hasProcessed ? spectra.intensityPlot : spectra.processedContinuum, width);
                 var r = null;
                 if (spectra.getFinalTemplateID() != null && spectra.getFinalTemplateID() != "0") {
-                    r = templatesService.getTemplateAtRedshift(spectra.getFinalTemplateID(), spectra.getFinalRedshift(), true);
+                    r = templatesService.getTemplateAtRedshift(spectra.getFinalTemplateID(), adjustRedshift(spectra.getFinalRedshift(), -spectra.helio, -spectra.cmb), true);
                 }
                 if (r == null || r[0] == null || r[1] == null) {
                     var tempIntensity = null;
@@ -946,12 +1034,24 @@ angular.module('servicesZ', ['dialogs.main'])
                 var toBound2 = [];
                 toBound.push([lambda, intensity]);
                 var bounds = self.getMaxes(toBound);
+                bounds[2] = bounds[2] - 0.3 * (bounds[3] - bounds[2]);
                 self.plotZeroLine(canvas, "#C4C4C4", bounds, width, height);
                 self.plot(lambda, intensity, ui.colours.raw, canvas, bounds, width, height);
                 if (tempIntensity != null) {
                     toBound2.push([lambda, tempIntensity]);
                     var bounds2 = self.getMaxes(toBound2);
-                    self.plot(lambda, tempIntensity, ui.colours.matched, canvas, [bounds[0], bounds[1], bounds2[2], bounds2[2] + (2*(bounds2[3] - bounds2[2]))], width, height);
+                    self.plot(lambda, tempIntensity, ui.colours.matched, canvas, [bounds[0], bounds[1], bounds2[2] - 0.*(bounds2[3]-bounds2[2]), bounds2[2] + (2*(bounds2[3] - bounds2[2]))], width, height);
+                }
+                var merges = spectra.getMerges();
+                for (var i = 0; i < merges.length; i++) {
+                    var colour = ui.colours.merges[i];
+                    var z = merges[i].z;
+                    var tid = merges[i].tid;
+                    r = templatesService.getTemplateAtRedshift(tid, adjustRedshift(z, -spectra.helio, -spectra.cmb), true);
+                    var tempIntensity = self.condenseToXPixels(interpolate(spectra.lambda, r[0], r[1]), width);
+                    var boundss = [[lambda, tempIntensity]];
+                    var bound = self.getMaxes(boundss);
+                    self.plot(lambda, tempIntensity, colour, canvas, [bounds[0], bounds[1], bound[2] + 0.2*(i-0.5)*(bound[3]-bound[2]), bound[2] + (2*(bound[3] - bound[2]))], width, height);
                 }
             }
         };

@@ -1,6 +1,33 @@
 <div ng-if="isLoading()" class="spinner"></div>
 <div ng-if="!isLoading()">
-    <div ng-if="!ui.graphicalLayout">
+    <div ng-if="shouldDisplayWelcome()" class="usage marketing container">
+
+        <h1 class="center-block welcomeText">Welcome to<img src="images/Marz2.png" width="260" alt="Marz: Manual and Assisted Redshifting"></h1>
+
+        <div class="row">
+            <div class="col-xs-4 introCard">
+                <div class="inner">
+                    <h2>New users</h2>
+                    <p>Before jumping in, it is recommended to visit the <a ui-sref="usage">usage page</a>. It contains instructions on how to get started, example FITS files, what each screen is used for, and Python code which can be used to import results!</p>
+                    <p><a target="_blank" href="https://github.com/Samreay/Marz/releases/download/0.2.0/alldata_combined_runz_x12_b02.fits">Click here if you want an example FITS file straight away!</a></p>
+                </div>
+            </div>
+            <div class="col-xs-4 introCard">
+                <div class="inner">
+                    <h2>Returning users</h2>
+                    <p>You know the deal, drop in a FITS file and have fun. If you can think of any feature that would make your life easier, simply raise <a target="_blank" href="https://github.com/samreay/Marz/issues">raise a Github issue</a>, and I'll jump on it as soon as possible! The more detail and screenshots, the better!</p>
+                </div>
+            </div>
+            <div class="col-xs-4 introCard">
+                <div class="inner">
+                    <h2>The technically minded</h2>
+                    <p>Instructions for command line usage, running your own Marz server, licensing details and version history  can all be found in the <a target="_blank" href="https://github.com/Samreay/Marz">main README.md on Github.</a></p>
+                    <p>Draft formal documentation can be found <a target="_blank" href="docs/Marz.pdf">here.</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div ng-if="!ui.graphicalLayout && !shouldDisplayWelcome()">
         <div class="table-responsive">
             <table class="overviewTable table table-striped table-bordered table-hover table-condensed">
                 <thead>

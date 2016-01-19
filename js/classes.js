@@ -1,6 +1,21 @@
 /** The classes file is used to declare some standard javascript classes which will be used in
  * the angular js services */
 
+
+try {
+    var path = require('path');
+    var appPath = __dirname;
+    var fs = require('fs');
+    eval(fs.readFileSync(path.join(appPath, "../lib/fits.js")) + '');
+    var astro = this.astro;
+    var $q = require("q");
+} catch (err) {
+}
+var deps = ["./config", "./methods", "./helio"];
+for (var i = 0; i < deps.length; i++) {
+    require(deps[i])();
+}
+
 /** The spectra class is used to store information about each spectra loaded into marz
  * @param id - the fibre id
  * @param lambda - an array of wavelengths in Angstroms
@@ -13,11 +28,14 @@
  * @param magnitude - the object's magnitude (extracted from fits file, not band explicit)
  * @param type - the object's type. Used to generate the prior for OzDES matching
  * @param filename - the filename this spectra belonged to. Used for storing data behind the scenes
- * @param drawingService - bad code style, but the angularjs drawing service is passed in to simplify logic in other locations
+ * @param helio - km/s heliocentric velocity correction
+ * @param cmb - km/s 3K background velocity correction
  * @constructor
  */
-function Spectra(id, lambda, intensity, variance, sky, name, ra, dec, magnitude, type, filename) {
-    this.version = marzVersion;
+function Spectra(id, lambda, intensity, variance, sky, name, ra, dec, magnitude, type, filename, helio, cmb) {
+    this.version = globalConfig.marzVersion;
+    this.helio = defaultFor(helio, null);
+    this.cmb = defaultFor(cmb, null);
     this.id = id;
     this.name = name;
     this.ra = ra;
@@ -34,7 +52,7 @@ function Spectra(id, lambda, intensity, variance, sky, name, ra, dec, magnitude,
     if (variance != null) {
         this.variancePlot = variance.slice();
         removeNaNs(this.variancePlot);
-        normaliseViaShift(this.variancePlot, 0, varianceHeight, null);
+        normaliseViaShift(this.variancePlot, 0, globalConfig.varianceHeight, null);
     }
     this.autoQOP = null;
     this.sky = sky;
@@ -61,6 +79,9 @@ function Spectra(id, lambda, intensity, variance, sky, name, ra, dec, magnitude,
     this.manualRedshift = null;
     this.manualTemplateID = null;
 
+    this.merges = [];
+    this.mergedUpdated = false;
+
     this.qopLabel = "";
     this.setQOP(0);
     this.imageZ = null;
@@ -70,6 +91,21 @@ function Spectra(id, lambda, intensity, variance, sky, name, ra, dec, magnitude,
         return "" + this.id + this.name + this.getFinalRedshift() + this.getFinalTemplateID() + this.isProcessed + this.isMatched;
     }
 }
+Spectra.prototype.addMergeResult = function(initial, z, tid, qop, quasar) {
+    this.merges.push({
+        z: z,
+        tid: "" + tid,
+        initials: initial,
+        qop: qop,
+        quasar: quasar,
+        qopLabel: this.getLabelForQOP(qop)
+    });
+    if (this.comment != "") {
+        this.comment += " | ";
+    }
+    this.comment += initial + " " + tid + " " + z.toFixed(5) + " " + qop;
+
+};
 Spectra.prototype.setCompute = function(compute) {
     this.compute = compute;
     if (!compute) {
@@ -80,25 +116,33 @@ Spectra.prototype.setCompute = function(compute) {
 Spectra.prototype.setVersion = function(version) {
     this.version = version;
 };
+Spectra.prototype.getLabelForQOP = function(qop) {
+    if (qop >= 6) {
+        return  "label-primary";
+    } else if (qop >= 4) {
+        return "label-success";
+    } else if (qop >= 3) {
+        return "label-info";
+    } else if (qop >= 2) {
+        return "label-warning";
+    } else if (qop >= 1) {
+        return "label-danger";
+    } else {
+        return "label-default";
+    }
+};
 Spectra.prototype.setQOP = function(qop) {
     if (isNaN(qop)) {
         return;
     }
     this.qop = qop;
     // Best coding practise would have this UI logic outside of this class
-    if (qop >= 6) {
-        this.qopLabel = "label-primary";
-    } else if (qop >= 4) {
-        this.qopLabel = "label-success";
-    } else if (qop >= 3) {
-        this.qopLabel = "label-info";
-    } else if (qop >= 2) {
-        this.qopLabel = "label-warning";
-    } else if (qop >= 1) {
-        this.qopLabel = "label-danger";
-    } else {
-        this.qopLabel = "label-default";
-    }
+    this.qopLabel = this.getLabelForQOP(qop);
+    this.mergedUpdated = true;
+};
+Spectra.prototype.setQOPMerge = function(qop) {
+    this.setQOP(qop);
+    this.mergedUpdated = false;
 };
 Spectra.prototype.getRA = function() {
     return this.ra * 180 / Math.PI;
@@ -161,6 +205,9 @@ Spectra.prototype.getBestAutomaticResult = function() {
     }
     return null;
 };
+Spectra.prototype.getMerges = function() {
+    return this.merges;
+};
 Spectra.prototype.getMatches = function(number) {
     if (number == null) return this.automaticBestResults;
     if (this.automaticBestResults == null) return [];
@@ -207,7 +254,9 @@ Spectra.prototype.getProcessingAndMatchingMessage = function() {
         lambda: this.lambda,
         type: this.type,
         intensity: this.intensity,
-        variance: this.variance
+        variance: this.variance,
+        helio: this.helio,
+        cmb: this.cmb
     }
 };
 Spectra.prototype.getProcessMessage = function() {
@@ -217,7 +266,9 @@ Spectra.prototype.getProcessMessage = function() {
         name: this.name,
         lambda: this.lambda,
         intensity: this.intensity,
-        variance: this.variance
+        variance: this.variance,
+        helio: this.helio,
+        cmb: this.cmb
     };
 };
 Spectra.prototype.getMatchMessage = function() {
@@ -228,7 +279,9 @@ Spectra.prototype.getMatchMessage = function() {
         type: this.type,
         lambda: this.processedLambda,
         intensity: this.processedIntensity,
-        variance: this.processedVariance
+        variance: this.processedVariance,
+        helio: this.helio,
+        cmb: this.cmb
     };
 };
 
@@ -262,7 +315,6 @@ function Processor($q, node, worker) {
     }
 }
 Processor.prototype.respond = function(e) {
-    //window.onFileMatched("Got response");
     this.promise.resolve(e);
     this.promise = null;
     if (this.flaggedForDeletion) {
@@ -284,29 +336,6 @@ Processor.prototype.workOnSpectra = function(data) {
     }
     return this.promise.promise;
 };
-
-function getProcessors($q, numberProcessors, node) {
-    var processors = [];
-    if (node) {
-        //window.onFileMatched("IN 1");
-        var workers = getNodeWorkers(numberProcessors);
-        //window.onFileMatched("IN 2");
-        //window.onFileMatched(workers.length);
-        for (var i = 0; i < workers.length; i++) {
-            processors.push(new Processor($q, true, workers[i]))
-        }
-    } else {
-        for (var i = 0; i < numberProcessors; i++) {
-            processors.push(new Processor($q, false))
-        }
-    }
-    //window.onFileMatched("IN 3");
-    return processors;
-}
-
-function getNodeWorkers(numberProcessors) {
-    return window.getWorkers();
-}
 
 
 /**
@@ -371,7 +400,7 @@ FastAreaFinder.prototype.getArea = function(start, end) {
 
 
 
-function FitsFileLoader($q, global, log, processorService) {
+function FitsFileLoader($q, global, log, processorService, resultGenerator) {
     this.isLoading = false;
     this.hasFitsFile = false;
     this.originalFilename = null;
@@ -379,6 +408,13 @@ function FitsFileLoader($q, global, log, processorService) {
     this.MJD = null;
     this.date = null;
     this.header0 = null;
+    this.epoch = null;
+    this.radecsys = null;
+    this.JD = null;
+    this.longitude = null;
+    this.latitude = null;
+    this.altitude = null;
+    this.resultGenerator = resultGenerator;
 
     this.spectra = null;
     this.primaryIndex = 0;
@@ -411,7 +447,7 @@ FitsFileLoader.prototype.loadInFitsFile = function(file) {
     this.log.debug("Loading FITs file");
     this.fits = new astro.FITS(pass, function() {
         this.log.debug("Loaded FITS file");
-        this.parseFitsFile(q);
+        this.parseFitsFile(q, this.originalFilename);
         this.processorService.setPause();
     }.bind(this));
     return q.promise;
@@ -435,12 +471,29 @@ FitsFileLoader.prototype.getHDUFromName = function(name) {
  *
  * @param q
  */
-FitsFileLoader.prototype.parseFitsFile = function(q) {
+FitsFileLoader.prototype.parseFitsFile = function(q, originalFilename) {
     this.log.debug("Getting headers");
     this.header0 = this.fits.getHDU(0).header;
     this.MJD = this.header0.get('UTMJD');
-    date = MJDtoYMD(this.MJD);
+    this.originalFilename = originalFilename
 
+    this.JD = this.MJD + 2400000.5;
+    this.longitude = this.header0.get('LONG_OBS');
+    this.latitude  = this.header0.get('LAT_OBS');
+    this.altitude  = this.header0.get('ALT_OBS');
+    this.epoch = this.header0.get('EPOCH');
+    this.radecsys = this.header0.get('RADECSYS');
+    if (this.radecsys == "FK5") {
+        this.radecsys = true;
+    } else if (this.radecsys == "FK4") {
+        this.radecsys = false;
+    } else if (this.radecsys == null) {
+        console.warn("Warning, RADECSYS header not set. Defaulting to FK5");
+        this.radecsys = true;
+    } else {
+        throw "RADECSYS type " + this.radecsys + " is not supported. Please choose either FK4 or FK5";
+    }
+    this.date = MJDtoYMD(this.MJD);
     this.numPoints = this.fits.getHDU(0).data.width;
 
     this.$q.all([this.getWavelengths(), this.getIntensityData(), this.getVarianceData(), this.getSkyData(), this.getDetailsData()]).then(function(data) {
@@ -471,6 +524,12 @@ FitsFileLoader.prototype.parseFitsFile = function(q) {
         indexesToRemove.sort();
         indexesToRemove = indexesToRemove.unique();
 
+        var shouldPerformHelio = this.shouldPerformHelio();
+        var shouldPerformCMB = this.shouldPerformCMB();
+
+        this.resultGenerator.setHelio(shouldPerformHelio);
+        this.resultGenerator.setCMB(shouldPerformCMB);
+
         var spectraList = [];
         for (var i = 0; i < intensity.length; i++) {
             if (indexesToRemove.indexOf(i) != -1 || !this.useSpectra(intensity[i])) {
@@ -487,10 +546,17 @@ FitsFileLoader.prototype.parseFitsFile = function(q) {
             var mag = details == null ? null : details['MAGNITUDE'][i];
             var type = details == null ? null : details['TYPE'][i];
 
-
-            var s = new Spectra(id, llambda, int, vari, skyy, name, ra, dec, mag, type, this.originalFilename);
+            var helio = null;
+            var cmb = null;
+            if (shouldPerformHelio) {
+                helio = getHeliocentricVelocityCorrection(ra, dec, this.JD, this.longitude, this.latitude, this.altitude, this.epoch, this.radecsys);
+            }
+            if (shouldPerformCMB) {
+                cmb = getCMBCorrection(ra, dec, this.epoch, this.radecsys);
+            }
+            var s = new Spectra(id, llambda, int, vari, skyy, name, ra, dec, mag, type, this.originalFilename, helio, cmb);
             s.setCompute(int != null && vari != null);
-            spectraList.push(s)
+            spectraList.push(s);
         }
         this.log.debug("Spectra list made");
         this.isLoading = false;
@@ -502,11 +568,31 @@ FitsFileLoader.prototype.parseFitsFile = function(q) {
 
     }.bind(this))
 };
+FitsFileLoader.prototype.shouldPerformHelio = function() {
+    var flag = this.header0.get('DO_HELIO');
+    if ((flag != null && (flag == 1 || flag == "T" || flag == true))) {
+        this.log.debug("Performing heliocentric correction");
+        return true;
+    } else {
+        this.log.debug("No heliocentric correction");
+        return false;
+    }
+};
+FitsFileLoader.prototype.shouldPerformCMB = function() {
+    var flag = this.header0.get('DO_CMB');
+    if ((flag != null && (flag == 1 || flag == "T" || flag == true))) {
+        this.log.debug("Performing CMB correction");
+        return true;
+    } else {
+        this.log.debug("No CMB correction");
+        return false;
+    }
+};
 FitsFileLoader.prototype.getWavelengths = function() {
     var q = this.$q.defer();
     this.getRawWavelengths().then(function(lambdas) {
-        var needToShift = this.header0.get('VACUUM') == null || this.header0.get('VACUUM') == 0;
-        var logLinear = this.header0.get('LOGSCALE') != null && this.header0.get('LOGSCALE') != 0;
+        var needToShift = this.header0.get('VACUUM') == null || this.header0.get('VACUUM') == 0 || this.header0.get('VACUUM') == "F" || this.header0.get('VACUUM') == false;
+        var logLinear = this.header0.get('LOGSCALE') != null && (this.header0.get('LOGSCALE') == 1 || this.header0.get('LOGSCALE') == "T" || this.header0.get('LOGSCALE') == true);
 
         if (logLinear) {
             this.log.debug("Log linear wavelength detected");
@@ -555,14 +641,16 @@ FitsFileLoader.prototype.getRawWavelengths = function() {
         q.resolve(lambdas);
 
     } else {
+        var logg = this.log;
+        var numPoints = this.numPoints;
         this.fits.getDataUnit(index).getFrame(0, function (data, q) {
             var d = Array.prototype.slice.call(data);
             var lambdas = [];
-            for (var i = 0; i < data.length / this.numPoints; i++) {
-                var s = d.slice(i * this.numPoints, (i + 1) * this.numPoints);
+            for (var i = 0; i < data.length / numPoints; i++) {
+                var s = d.slice(i * numPoints, (i + 1) * numPoints);
                 lambdas.push(s);
             }
-            this.log.debug(lambdas.length + " wavelength rows found");
+            logg.debug(lambdas.length + " wavelength rows found");
             q.resolve(lambdas);
         }, q);
     }
@@ -784,9 +872,9 @@ FitsFileLoader.prototype.useSpectra = function(intensity) {
 
 
 
-function ProcessorManager() {
+function ProcessorManager(node) {
     this.processing = true;
-
+    this.node = defaultFor(node, false);
     this.getInactiveTemplates = null;
     this.processedCallback = null;
     this.processedCallbackContext = null;
@@ -844,6 +932,7 @@ ProcessorManager.prototype.setWorkers = function(workers, $q) {
 };
 ProcessorManager.prototype.processSpectra = function(spectra) {
     spectra.inactiveTemplates = this.getInactiveTemplates();
+    spectra.node = this.node;
     var processor = this.getIdleProcessor();
     processor.workOnSpectra(spectra, this.node).then(function(result) {
         if (result.data.processing) {
@@ -873,7 +962,19 @@ ProcessorManager.prototype.addSpectraListToQueue = function(spectraList) {
     for (var i = 0; i < spectraList.length; i++) {
         this.jobs.push(spectraList[i]);
     }
+    this.sortJobs();
     this.setRunning();
+};
+ProcessorManager.prototype.sortJobs = function() {
+    this.jobs.sort(function(a,b) {
+        if (a.qop == 0 && b.qop != 0) {
+            return -1;
+        } else if (a.qop != 0 && b.qop == 0) {
+            return 1;
+        } else {
+            return a.id > b.id ? 1 : -1;
+        }
+    });
 };
 ProcessorManager.prototype.addToPriorityQueue = function(spectra, start) {
     spectra.isMatched = false;
@@ -989,7 +1090,7 @@ SpectraManager.prototype.setMatchedResults = function(results) {
     if (spectra == null || spectra.name != results.name) return;
     spectra.automaticResults = results.results.coalesced;
     spectra.templateResults = results.results.templates;
-    spectra.setVersion(marzVersion);
+    spectra.setVersion(globalConfig.marzVersion);
     spectra.autoQOP = results.results.autoQOP;
     spectra.automaticBestResults = results.results.coalesced;
     spectra.isMatching = false;
@@ -1056,11 +1157,20 @@ SpectraManager.prototype.getNumberTotal = function() {
 
 
 
-function ResultsGenerator(data, templates) {
+function ResultsGenerator(data, templates, manual) {
+    this.manual = defaultFor(manual, true);
     this.data = data;
     this.templates = templates;
     this.numAutomatic = 1;
+    this.helio = false;
+    this.cmb = false;
 }
+ResultsGenerator.prototype.setHelio = function(val) {
+    this.helio = val;
+};
+ResultsGenerator.prototype.setCMB = function(val) {
+    this.cmb = val;
+};
 ResultsGenerator.prototype.setNumAutomatic = function(num) {
     this.numAutomatic = num;
 };
@@ -1091,11 +1201,15 @@ ResultsGenerator.prototype.getStatistics = function(results) {
 
 ResultsGenerator.prototype.getResultsCSV = function(initials) {
     var results = this.getResultsArray();
+
     initials = defaultFor(initials, "");
+
     var string = "# Results generated by " + initials
-        + " for file [[" + this.data.fitsFileName + "]] at " + new Date().toLocaleString() + " (JSON: " + JSON.stringify(new Date()) + ") at version {{" + marzVersion + "}}\n";
+        + " for file [[" + this.data.fitsFileName + "]] at " + new Date().toLocaleString() + " (JSON: " + JSON.stringify(new Date()) + ") at version {{" + globalConfig.marzVersion + "}}\n";
     string += this.getStatistics(results);
+
     string += "#";
+
     if (results.length > 0) {
         var spaces = results[0].map(function(x) { return x.name.length; });
         for (var i = 0; i < results.length; i++) {
@@ -1126,6 +1240,16 @@ ResultsGenerator.prototype.getResultsCSV = function(initials) {
 
     return string;
 };
+ResultsGenerator.prototype.getSpectraWithResults = function() {
+    var result = [];
+    for (var i = 0; i < this.data.spectra.length; i++) {
+        var spectra = this.data.spectra[i];
+        if (spectra.hasRedshiftToBeSaved()) {
+            result.push(spectra);
+        }
+    }
+    return result;
+};
 ResultsGenerator.prototype.getResultsArray = function() {
     var result = [];
     for (var i = 0; i < this.data.spectra.length; i++) {
@@ -1134,6 +1258,14 @@ ResultsGenerator.prototype.getResultsArray = function() {
             result.push(this.getResultFromSpectra(spectra));
         }
     }
+    return result;
+};
+ResultsGenerator.prototype.getLocalStorageResult = function(spectra) {
+    var result = {};
+    result['z'] = spectra.getFinalRedshift().toFixed(5);
+    result['id'] = spectra.getFinalTemplateID() ? spectra.getFinalTemplateID() : "0";
+    result['qop'] = "" + spectra.qop;
+    result['com'] = spectra.getComment();
     return result;
 };
 ResultsGenerator.prototype.getResultFromSpectra = function(spectra) {
@@ -1155,10 +1287,26 @@ ResultsGenerator.prototype.getResultFromSpectra = function(spectra) {
             result.push({name: "AutoXCor"+suffix, value: automatics[i].value.toFixed(5)});
         }
     }
-    result.push({name: "FinTID", value: spectra.getFinalTemplateID() ? spectra.getFinalTemplateID() : "0"});
-    result.push({name: "FinTN", value: this.templates.getNameForTemplate(spectra.getFinalTemplateID())});
-    result.push({name: "FinZ", value: spectra.getFinalRedshift().toFixed(5)});
+    if (this.manual) {
+        result.push({name: "FinTID", value: spectra.getFinalTemplateID() ? spectra.getFinalTemplateID() : "0"});
+        result.push({name: "FinTN", value: this.templates.getNameForTemplate(spectra.getFinalTemplateID())});
+        result.push({name: "FinZ", value: spectra.getFinalRedshift().toFixed(5)});
+    }
     result.push({name: "QOP", value: "" + spectra.qop});
-    result.push({name: "Comment", value: spectra.getComment()});
+    result.push({name: "Comment", value: spectra.getComment().replace(","," ")});
+    if (this.helio) {
+        result.push({name: "HelioCor", value: "" + (spectra.helio == null ? 0 : round(spectra.helio, 7))});
+    }
+    if (this.cmb) {
+        result.push({name: "CMBCor", value: "" + (spectra.cmb == null ? 0 : round(spectra.cmb, 7))});
+    }
     return result;
+};
+
+
+module.exports = function() {
+    this.ProcessorManager = ProcessorManager;
+    this.SpectraManager = SpectraManager;
+    this.ResultsGenerator = ResultsGenerator;
+    this.FitsFileLoader = FitsFileLoader;
 };

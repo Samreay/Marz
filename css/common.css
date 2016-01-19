@@ -73,6 +73,9 @@ p.fill-height {
     background: linear-gradient(to bottom, #DDD 0%,#CCC 100%);
     overflow: hidden;
 }
+.top-bar.more {
+    height: 35px;
+}
 .top-bar p {
     display: inline-block;
     margin: 0 0 0 15px;
@@ -86,6 +89,9 @@ p.fill-height {
 .under-bar {
     width: 100%;
     height: calc(100% - 30px);
+}
+.under-bar.more {
+    height: calc(100% - 35px);
 }
 .unselectable {
     -moz-user-select: none;
