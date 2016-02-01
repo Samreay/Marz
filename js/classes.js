@@ -667,6 +667,9 @@ FitsFileLoader.prototype.getIntensityData = function() {
 
     var index = this.getHDUFromName("intensity");
     if (index == null) {
+        index = this.getHDUFromName("flux");
+    }
+    if (index == null) {
         index = this.primaryIndex;
     }
     var q = this.$q.defer();
@@ -694,6 +697,9 @@ FitsFileLoader.prototype.getIntensityData = function() {
 FitsFileLoader.prototype.getVarianceData = function() {
     this.log.debug("Getting spectra variance");
     var index = this.getHDUFromName("variance");
+    if (index == null) {
+        index = this.getHDUFromName("ivar");
+    }
     var q = this.$q.defer();
     if (index == null) {
         q.resolve(null);

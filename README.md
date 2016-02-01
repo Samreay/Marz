@@ -26,6 +26,9 @@ After doing this, you can analyse a FITS file by running `./marz.sh <FITSFilePat
 
 # Updates
 
+## 1.1.1
+* Searching for new extension names for DESI
+
 ## 1.1.0
 * Rewrite of the command line functionality to allow better usability.
 * Significant performance optimisations
