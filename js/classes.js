@@ -483,6 +483,7 @@ FitsFileLoader.prototype.parseFitsFile = function(q, originalFilename) {
     this.altitude  = this.header0.get('ALT_OBS');
     this.epoch = this.header0.get('EPOCH');
     this.radecsys = this.header0.get('RADECSYS');
+    this.inverseVariance = false;
     if (this.radecsys == "FK5") {
         this.radecsys = true;
     } else if (this.radecsys == "FK4") {
@@ -667,6 +668,9 @@ FitsFileLoader.prototype.getIntensityData = function() {
 
     var index = this.getHDUFromName("intensity");
     if (index == null) {
+        index = this.getHDUFromName("flux");
+    }
+    if (index == null) {
         index = this.primaryIndex;
     }
     var q = this.$q.defer();
@@ -694,6 +698,12 @@ FitsFileLoader.prototype.getIntensityData = function() {
 FitsFileLoader.prototype.getVarianceData = function() {
     this.log.debug("Getting spectra variance");
     var index = this.getHDUFromName("variance");
+    if (index == null) {
+        index = this.getHDUFromName("ivar");
+        if (index != null) {
+            this.inverseVariance = true;
+        }
+    }
     var q = this.$q.defer();
     if (index == null) {
         q.resolve(null);
@@ -704,7 +714,15 @@ FitsFileLoader.prototype.getVarianceData = function() {
             var d = Array.prototype.slice.call(data);
             var variance = [];
             for (var i = 0; i < data.length / this.numPoints; i++) {
-                variance.push(d.slice(i * this.numPoints, (i + 1) * this.numPoints));
+                if (this.inverseVariance) {
+                    var arr = d.slice(i * this.numPoints, (i + 1) * this.numPoints);
+                    for (var j = 0; j < arr.length; j++) {
+                        arr[j] = 1.0 / arr[j];
+                    }
+                    variance.push(arr);
+                } else {
+                    variance.push(d.slice(i * this.numPoints, (i + 1) * this.numPoints));
+                }
             }
             q.resolve(variance)
         }.bind(this), q);
