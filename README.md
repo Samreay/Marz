@@ -26,11 +26,15 @@ After doing this, you can analyse a FITS file by running `./marz.sh <FITSFilePat
 
 # Updates
 
+## 1.1.2
+* Updating extension names and column names for DESI (again).
+* Making code more memory efficient.
+
 ## 1.1.1
-* Searching for new extension names for DESI
+* Searching for new extension names for DESI.
 
 ## 1.1.0
-* Rewrite of the command line functionality to allow better usability.
+* Rewrite of the command line functionality to allow better usability
 * Significant performance optimisations
 * Timing module for node.js to assist in optimisations
 * Test module in node.js added
