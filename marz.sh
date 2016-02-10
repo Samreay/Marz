@@ -1,1 +1,1 @@
-node --max_old_space_size=2048 autoMarz.js $@
+node --max_old_space_size=4096 autoMarz.js $@

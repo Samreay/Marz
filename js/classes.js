@@ -32,10 +32,11 @@ for (var i = 0; i < deps.length; i++) {
  * @param cmb - km/s 3K background velocity correction
  * @constructor
  */
-function Spectra(id, lambda, intensity, variance, sky, name, ra, dec, magnitude, type, filename, helio, cmb) {
+function Spectra(id, lambda, intensity, variance, sky, name, ra, dec, magnitude, type, filename, helio, cmb, node) {
     this.version = globalConfig.marzVersion;
     this.helio = defaultFor(helio, null);
     this.cmb = defaultFor(cmb, null);
+    this.node = defaultFor(node, false);
     this.id = id;
     this.name = name;
     this.ra = ra;
@@ -49,7 +50,7 @@ function Spectra(id, lambda, intensity, variance, sky, name, ra, dec, magnitude,
     this.variancePlot = variance;
     this.comment = "";
     this.compute = true;
-    if (variance != null) {
+    if (variance != null && !this.node) {
         this.variancePlot = variance.slice();
         removeNaNs(this.variancePlot);
         normaliseViaShift(this.variancePlot, 0, globalConfig.varianceHeight, null);
@@ -63,7 +64,7 @@ function Spectra(id, lambda, intensity, variance, sky, name, ra, dec, magnitude,
     this.isMatched = false;
     this.isMatching = false;
 
-    if (this.intensity != null) {
+    if (this.intensity != null && !this.node) {
         this.intensityPlot = this.intensity.slice();
         this.processedLambdaPlot = null;
     }
@@ -87,10 +88,10 @@ function Spectra(id, lambda, intensity, variance, sky, name, ra, dec, magnitude,
     this.imageZ = null;
     this.imageTID = null;
     this.image = null;
-    this.getHash = function() {
-        return "" + this.id + this.name + this.getFinalRedshift() + this.getFinalTemplateID() + this.isProcessed + this.isMatched;
-    }
 }
+Spectra.prototype.getHash = function() {
+    return "" + this.id + this.name + this.getFinalRedshift() + this.getFinalTemplateID() + this.isProcessed + this.isMatched;
+};
 Spectra.prototype.addMergeResult = function(initial, z, tid, qop, quasar) {
     this.merges.push({
         z: z,
@@ -400,7 +401,8 @@ FastAreaFinder.prototype.getArea = function(start, end) {
 
 
 
-function FitsFileLoader($q, global, log, processorService, resultGenerator) {
+function FitsFileLoader($q, global, log, processorService, resultGenerator, node) {
+    this.node = defaultFor(node, false);
     this.isLoading = false;
     this.hasFitsFile = false;
     this.originalFilename = null;
@@ -541,11 +543,11 @@ FitsFileLoader.prototype.parseFitsFile = function(q, originalFilename) {
             var int = intensity[i];
             var vari = variance == null ? null : variance[i];
             var skyy = sky == null ? null : (sky.length == 1) ? sky[0] : sky[i];
-            var name = details == null ? "Unknown spectra " + id : details['NAME'][i];
-            var ra = details == null ? null : details['RA'][i];
-            var dec = details == null ? null : details['DEC'][i];
-            var mag = details == null ? null : details['MAGNITUDE'][i];
-            var type = details == null ? null : details['TYPE'][i];
+            var name = details['NAME'] == null ? "Unknown spectra " + id : details['NAME'][i];
+            var ra = details['RA'] == null ? null : details['RA'][i];
+            var dec = details['DEC'] == null ? null : details['DEC'][i];
+            var mag = details['MAGNITUDE'] == null ? null : details['MAGNITUDE'][i];
+            var type = details['TYPE'] == null ? null : details['TYPE'][i];
 
             var helio = null;
             var cmb = null;
@@ -555,7 +557,7 @@ FitsFileLoader.prototype.parseFitsFile = function(q, originalFilename) {
             if (shouldPerformCMB) {
                 cmb = getCMBCorrection(ra, dec, this.epoch, this.radecsys);
             }
-            var s = new Spectra(id, llambda, int, vari, skyy, name, ra, dec, mag, type, this.originalFilename, helio, cmb);
+            var s = new Spectra(id, llambda, int, vari, skyy, name, ra, dec, mag, type, this.originalFilename, helio, cmb, this.node);
             s.setCompute(int != null && vari != null);
             spectraList.push(s);
         }
@@ -781,6 +783,9 @@ FitsFileLoader.prototype.getSkyData = function() {
 FitsFileLoader.prototype.getDetailsData = function() {
     this.log.debug("Getting details");
     var index = this.getHDUFromName("fibres");
+    if (index == null) {
+        index = this.getHDUFromName("fibermap")
+    }
     var q = this.$q.defer();
     if (index == null) {
         q.resolve(null);
@@ -789,66 +794,94 @@ FitsFileLoader.prototype.getDetailsData = function() {
     try {
         this.getFibres(q, index, {});
     } catch (err) {
-        q.resolve(null);
+        q.resolve({});
     }
     return q.promise;
 };
 FitsFileLoader.prototype.getFibres = function(q, index, cumulative) {
     this.log.debug("Getting fibres");
-    this.fits.getDataUnit(index).getColumn("TYPE", function(data) {
-        cumulative['FIBRE'] = data;
+    if (this.fits.getDataUnit(index).columns.indexOf("TYPE") > -1) {
+        this.fits.getDataUnit(index).getColumn("TYPE", function (data) {
+            cumulative['FIBRE'] = data;
+            this.getNames(q, index, cumulative);
+        }.bind(this));
+    } else {
         this.getNames(q, index, cumulative);
-    }.bind(this));
+    }
 };
 FitsFileLoader.prototype.getNames = function(q, index, cumulative) {
     this.log.debug("Getting names");
-    this.fits.getDataUnit(index).getColumn("NAME", function(data) {
-        var names = [];
-        for (var i = 0; i < data.length; i++) {
-            names.push(data[i].replace(/\s+/g, '').replace(/\u0000/g, ""));
-        }
-        cumulative['NAME'] = names;
+    if (this.fits.getDataUnit(index).columns.indexOf("NAME") > -1) {
+        this.fits.getDataUnit(index).getColumn("NAME", function(data) {
+            var names = [];
+            for (var i = 0; i < data.length; i++) {
+                names.push(data[i].replace(/\s+/g, '').replace(/\u0000/g, ""));
+            }
+            cumulative['NAME'] = names;
+            this.getRA(q, index, cumulative);
+        }.bind(this));
+    } else {
         this.getRA(q, index, cumulative);
-    }.bind(this));
+    }
 };
 FitsFileLoader.prototype.getRA = function(q, index, cumulative) {
     this.log.debug("Getting RA");
-    this.fits.getDataUnit(index).getColumn("RA", function(data) {
-        cumulative['RA'] = data;
+    if (this.fits.getDataUnit(index).columns.indexOf("RA") > -1) {
+        this.fits.getDataUnit(index).getColumn("RA", function(data) {
+            cumulative['RA'] = data;
+            this.getDec(q, index, cumulative);
+        }.bind(this));
+    } else {
         this.getDec(q, index, cumulative);
-    }.bind(this));
+    }
 };
 FitsFileLoader.prototype.getDec = function(q, index, cumulative) {
     this.log.debug("Getting DEC");
-    this.fits.getDataUnit(index).getColumn("DEC", function(data) {
-        cumulative['DEC'] = data;
+    if (this.fits.getDataUnit(index).columns.indexOf("DEC") > -1) {
+        this.fits.getDataUnit(index).getColumn("DEC", function(data) {
+            cumulative['DEC'] = data;
+            this.getMagnitudes(q, index, cumulative);
+        }.bind(this));
+    } else {
         this.getMagnitudes(q, index, cumulative);
-    }.bind(this));
+    }
 };
 
 FitsFileLoader.prototype.getMagnitudes = function(q, index, cumulative) {
     this.log.debug("Getting magnitude");
-    this.fits.getDataUnit(index).getColumn("MAGNITUDE", function(data) {
-        cumulative['MAGNITUDE'] = data;
+    if (this.fits.getDataUnit(index).columns.indexOf("MAGNITUDE") > -1) {
+        this.fits.getDataUnit(index).getColumn("MAGNITUDE", function(data) {
+            cumulative['MAGNITUDE'] = data;
+            this.getComments(q, index, cumulative);
+        }.bind(this));
+    } else {
         this.getComments(q, index, cumulative);
-    }.bind(this));
+    }
 };
 FitsFileLoader.prototype.getComments = function(q, index, cumulative) {
-    this.log.debug("Getting comment");
-    this.fits.getDataUnit(index).getColumn("COMMENT", function(data) {
-        this.global.data.types.length = 0;
-        var ts = [];
-        for (var i = 0; i < data.length; i++) {
-            var t = data[i].split(' ')[0];
-            t = t.trim().replace(/\W/g, '');
-            ts.push(t);
-            if (t != 'Parked' && this.global.data.types.indexOf(t) == -1) {
-                this.global.data.types.push(t);
+    this.log.debug("Getting comment/objtype");
+    var c = "COMMENT";
+    if (this.fits.getDataUnit(index).columns.indexOf("OBJTYPE") > -1) {
+        c = "OBJTYPE"
+    }
+    if (this.fits.getDataUnit(index).columns.indexOf(c) > -1) {
+            this.fits.getDataUnit(index).getColumn(c, function(data) {
+            this.global.data.types.length = 0;
+            var ts = [];
+            for (var i = 0; i < data.length; i++) {
+                var t = data[i].split(' ')[0];
+                t = t.trim().replace(/\W/g, '');
+                ts.push(t);
+                if (t != 'Parked' && this.global.data.types.indexOf(t) == -1) {
+                    this.global.data.types.push(t);
+                }
             }
-        }
-        cumulative['TYPE'] = ts;
+            cumulative['TYPE'] = ts;
+            q.resolve(cumulative);
+        }.bind(this));
+    } else {
         q.resolve(cumulative);
-    }.bind(this));
+    }
 };
 
 /**
@@ -1102,6 +1135,15 @@ SpectraManager.prototype.setFinishedCallback = function(fn) {
 };
 SpectraManager.prototype.setAssignAutoQOPs = function (autoQOPs) {
     this.autoQOPs = autoQOPs;
+};
+SpectraManager.prototype.setMatchedResultsNode = function(results) {
+    this.setMatchedResults(results);
+    var spectra = this.data.spectraHash[results.id];
+    if (spectra == null || spectra.name != results.name) return;
+    spectra.processedLambda = null;
+    spectra.processedContinuum = null;
+    spectra.processedIntensity2 = null;
+    spectra.processedVariance = null;
 };
 SpectraManager.prototype.setMatchedResults = function(results) {
     var spectra = this.data.spectraHash[results.id];
