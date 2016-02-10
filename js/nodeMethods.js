@@ -24,7 +24,7 @@ function init(workers, log, argv) {
     s = new SpectraManager(data, log);
     t = new TemplateManager(false);
     r = new ResultsGenerator(data, t, false);
-    fl = new FitsFileLoader($q, global, log, p, r);
+    fl = new FitsFileLoader($q, global, log, p, r, true);
     fl.subscribeToInput(s.setSpectra, s);
     fl.subscribeToInput(p.addSpectraListToQueue, p);
     p.setNode();
@@ -36,7 +36,7 @@ function init(workers, log, argv) {
         return argv['disabledTemplates']
     });
     p.setProcessedCallback(s.setProcessedResults, s);
-    p.setMatchedCallback(s.setMatchedResults, s);
+    p.setMatchedCallback(s.setMatchedResultsNode, s);
 }
 function runFitsFile(filename, outputFile, debug, consoleOutput) {
     consoleOutput = defaultFor(consoleOutput, true);

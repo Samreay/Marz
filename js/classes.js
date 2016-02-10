@@ -32,10 +32,11 @@ for (var i = 0; i < deps.length; i++) {
  * @param cmb - km/s 3K background velocity correction
  * @constructor
  */
-function Spectra(id, lambda, intensity, variance, sky, name, ra, dec, magnitude, type, filename, helio, cmb) {
+function Spectra(id, lambda, intensity, variance, sky, name, ra, dec, magnitude, type, filename, helio, cmb, node) {
     this.version = globalConfig.marzVersion;
     this.helio = defaultFor(helio, null);
     this.cmb = defaultFor(cmb, null);
+    this.node = defaultFor(node, false);
     this.id = id;
     this.name = name;
     this.ra = ra;
@@ -49,7 +50,7 @@ function Spectra(id, lambda, intensity, variance, sky, name, ra, dec, magnitude,
     this.variancePlot = variance;
     this.comment = "";
     this.compute = true;
-    if (variance != null) {
+    if (variance != null && !this.node) {
         this.variancePlot = variance.slice();
         removeNaNs(this.variancePlot);
         normaliseViaShift(this.variancePlot, 0, globalConfig.varianceHeight, null);
@@ -63,7 +64,7 @@ function Spectra(id, lambda, intensity, variance, sky, name, ra, dec, magnitude,
     this.isMatched = false;
     this.isMatching = false;
 
-    if (this.intensity != null) {
+    if (this.intensity != null && !this.node) {
         this.intensityPlot = this.intensity.slice();
         this.processedLambdaPlot = null;
     }
@@ -87,10 +88,10 @@ function Spectra(id, lambda, intensity, variance, sky, name, ra, dec, magnitude,
     this.imageZ = null;
     this.imageTID = null;
     this.image = null;
-    this.getHash = function() {
-        return "" + this.id + this.name + this.getFinalRedshift() + this.getFinalTemplateID() + this.isProcessed + this.isMatched;
-    }
 }
+Spectra.prototype.getHash = function() {
+    return "" + this.id + this.name + this.getFinalRedshift() + this.getFinalTemplateID() + this.isProcessed + this.isMatched;
+};
 Spectra.prototype.addMergeResult = function(initial, z, tid, qop, quasar) {
     this.merges.push({
         z: z,
@@ -400,7 +401,8 @@ FastAreaFinder.prototype.getArea = function(start, end) {
 
 
 
-function FitsFileLoader($q, global, log, processorService, resultGenerator) {
+function FitsFileLoader($q, global, log, processorService, resultGenerator, node) {
+    this.node = defaultFor(node, false);
     this.isLoading = false;
     this.hasFitsFile = false;
     this.originalFilename = null;
@@ -555,7 +557,7 @@ FitsFileLoader.prototype.parseFitsFile = function(q, originalFilename) {
             if (shouldPerformCMB) {
                 cmb = getCMBCorrection(ra, dec, this.epoch, this.radecsys);
             }
-            var s = new Spectra(id, llambda, int, vari, skyy, name, ra, dec, mag, type, this.originalFilename, helio, cmb);
+            var s = new Spectra(id, llambda, int, vari, skyy, name, ra, dec, mag, type, this.originalFilename, helio, cmb, this.node);
             s.setCompute(int != null && vari != null);
             spectraList.push(s);
         }
@@ -1133,6 +1135,15 @@ SpectraManager.prototype.setFinishedCallback = function(fn) {
 };
 SpectraManager.prototype.setAssignAutoQOPs = function (autoQOPs) {
     this.autoQOPs = autoQOPs;
+};
+SpectraManager.prototype.setMatchedResultsNode = function(results) {
+    this.setMatchedResults(results);
+    var spectra = this.data.spectraHash[results.id];
+    if (spectra == null || spectra.name != results.name) return;
+    spectra.processedLambda = null;
+    spectra.processedContinuum = null;
+    spectra.processedIntensity2 = null;
+    spectra.processedVariance = null;
 };
 SpectraManager.prototype.setMatchedResults = function(results) {
     var spectra = this.data.spectraHash[results.id];
