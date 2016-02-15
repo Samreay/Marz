@@ -7,7 +7,9 @@ var path = require('path');
 var fs = require('fs');
 var appPath = __dirname;
 eval(fs.readFileSync(path.join(appPath, "./extension.js")) + '');
-
+var ProgressBar = require('progress');
+var green = '\u001b[42m \u001b[0m';
+var red = '\u001b[41m \u001b[0m';
 var p = null, s = null, t = null, r = null, fl = null, data = null, global = null;
 
 function init(workers, log, argv) {
@@ -44,6 +46,11 @@ function runFitsFile(filename, outputFile, debug, consoleOutput) {
     var qq = $q.defer();
     var startTime = new Date();
     debug("Processing file " + filename);
+    s.setPacer(new ProgressBar('        Analysing spectra  [:bar] :percent (:current/:total) :elapseds :etas', {
+        complete: green,
+        incomplete: red,
+        total: 30
+    }));
     s.setFinishedCallback(function () {
         debug("Getting results");
         var values = r.getResultsCSV();

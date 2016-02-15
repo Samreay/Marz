@@ -99,13 +99,16 @@ if (cluster.isMaster) {
 
     var struct = require(path.join(appPath, './js/nodeMethods'));
     struct.init(workers, log, argv);
-
+    var counter = 0;
+    var totalLength = queue.length;
     var handleReturn = function (num) {
         totalNum += num;
         if (queue.length > 0) {
             var filename = queue.shift();
+            counter += 1;
+            console.log(counter + "/" + totalLength + ": Analysing " + filename);
             var outputName = getOutputFilename(filename, argv);
-            struct.runFitsFile(filename, outputName, debug).then(handleReturn);
+            struct.runFitsFile(filename, outputName, debug, debugFlag).then(handleReturn);
         } else {
             var globalEndTime = new Date();
             var elapsed = (globalEndTime - globalStartTime) / 1000;

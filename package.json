@@ -1,10 +1,11 @@
 {
   "name":         "marz",
-  "version":      "1.1.0",
+  "version":      "1.1.2",
   "description":  "Command line interface for Marz",
   "main":         "autoMarz.js",
   "dependencies": {
     "minimist": ">=1.2.0",
-    "q": ">=1.4.0"
+    "q": ">=1.4.0",
+    "progress": ">=1.0.0"
   }
 }

@@ -451,7 +451,7 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
                     fft = getStandardFFT(s.processedLambda, s.processedIntensity.slice(), s.processedVariance.slice());
                 }
 
-                var results = matchTemplate(template, fft);
+                var results = matchTemplate([template], fft);
                 var currentZ = parseFloat($scope.fitZ);
                 var helio = 0;
                 var cmb = 0;
