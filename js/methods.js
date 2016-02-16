@@ -1109,7 +1109,12 @@ function extractResults(templates, finals) {
     for (var i = 0; i < finals.length; i++) {
         var ev = defaultFor(templates[i].eigenvalue, 1.0);
         if (i == 0) {
-            final[j] /= ev;
+            if (finals.length > 1) {
+                for (var j = 0; j < final.length; j++) {
+                    final[j] *=  final[j] / ev;
+                }
+            }
+
         } else {
             var f = finals[i];
             for (var j = 0; j < final.length; j++) {

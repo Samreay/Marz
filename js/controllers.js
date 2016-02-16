@@ -682,15 +682,21 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             }
         };
         $scope.nextTemplate = function() {
-            var t = parseInt($scope.settings.templateId);
-            if (t < templatesService.getTemplates().length) {
-                $scope.settings.templateId = "" + (t + 1);
+            var t = $scope.settings.templateId;
+            var ts = templatesService.getTemplates();
+            var tt = templatesService.getTemplateFromId(t);
+            var i = ts.indexOf(tt);
+            if (i < ts.length) {
+                $scope.settings.templateId = "" + ts[i+1].id;
             }
         };
         $scope.previousTemplate = function() {
-            var t = parseInt($scope.settings.templateId);
-            if (t > 0) {
-                $scope.settings.templateId = "" + (t - 1);
+            var t = $scope.settings.templateId;
+            var ts = templatesService.getTemplates();
+            var tt = templatesService.getTemplateFromId(t);
+            var i = ts.indexOf(tt);
+            if (i > 0) {
+                $scope.settings.templateId = "" + ts[i-1].id;
             }
         };
         for (var i = 0; i < $scope.keybinds.length; i++) {

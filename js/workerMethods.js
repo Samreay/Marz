@@ -52,7 +52,9 @@ self.process = function(data) {
     if (!node) {
         data.processedVariancePlot = data.variance.slice();
         removeNaNs(data.processedVariancePlot);
-        clipVariance(data.processedVariancePlot);
+        for (var i = 0; i < 3; i++ ) {
+            clipVariance(data.processedVariancePlot);
+        }
         normaliseViaShift(data.processedVariancePlot, 0, globalConfig.varianceHeight, null);
     }
     data.continuum = self.processData(data.lambda, data.intensity, data.variance);
