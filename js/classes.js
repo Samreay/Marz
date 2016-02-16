@@ -491,7 +491,7 @@ FitsFileLoader.prototype.parseFitsFile = function(q, originalFilename) {
     } else if (this.radecsys == "FK4") {
         this.radecsys = false;
     } else if (this.radecsys == null) {
-        console.warn("Warning, RADECSYS header not set. Defaulting to FK5");
+        this.log.debug("RADECSYS header not set. Defaulting to FK5");
         this.radecsys = true;
     } else {
         throw "RADECSYS type " + this.radecsys + " is not supported. Please choose either FK4 or FK5";
@@ -1129,6 +1129,7 @@ function SpectraManager(data, log) {
     this.finishedCallback = null;
     this.log = log;
     this.autoQOPs = false;
+    this.pacer = null;
 }
 SpectraManager.prototype.setFinishedCallback = function(fn) {
     this.finishedCallback = fn;
@@ -1158,7 +1159,11 @@ SpectraManager.prototype.setMatchedResults = function(results) {
     if (this.autoQOPs == true && spectra.qop == 0) {
         spectra.setQOP(results.results.autoQOP);
     }
-    this.log.debug("Matched " + results.id);
+    if (this.pacer == null) {
+        this.log.debug("Matched " + results.id);
+    } else {
+        this.pacer.tick();
+    }
     if (this.isFinishedMatching() && !this.isProcessing()) {
         if (this.finishedCallback) {
             this.finishedCallback();
@@ -1167,6 +1172,9 @@ SpectraManager.prototype.setMatchedResults = function(results) {
 };
 SpectraManager.prototype.setSpectra = function(spectraList) {
     this.data.spectra.length = 0;
+    if (this.pacer != null) {
+        this.pacer.total = spectraList.length;
+    }
     this.data.spectraHash = {};
     for (var i = 0; i < spectraList.length; i++) {
         this.data.spectra.push(spectraList[i]);
@@ -1210,7 +1218,9 @@ SpectraManager.prototype.getNumberTotal = function() {
     return this.data.spectra.length;
 };
 
-
+SpectraManager.prototype.setPacer = function(pacer) {
+    this.pacer = pacer;
+}
 
 
 

@@ -26,6 +26,12 @@ After doing this, you can analyse a FITS file by running `./marz.sh <FITSFilePat
 
 # Updates
 
+## 1.1.3
+* Adding in node dependency `progress`, and reformatting the console output.
+* Base framework for eigenspectra added. 
+* Updating variance plotting and culling.
+* Fixing bug in template shortcuts.
+
 ## 1.1.2
 * Updating extension names and column names for DESI (again).
 * Making code more memory efficient.

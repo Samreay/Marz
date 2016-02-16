@@ -1104,20 +1104,37 @@ function getFit(template, xcor, val, helio, cmb) {
     return adjustRedshift(getRedshiftForNonIntegerIndex(template, fitAroundIndex(xcor, bestIndex)), helio, cmb);
 }
 
-function extractResults(template, final) {
+function extractResults(templates, finals) {
+    var final = finals[0];
+    for (var i = 0; i < finals.length; i++) {
+        var ev = defaultFor(templates[i].eigenvalue, 1.0);
+        if (i == 0) {
+            if (finals.length > 1) {
+                for (var j = 0; j < final.length; j++) {
+                    final[j] *=  final[j] / ev;
+                }
+            }
+
+        } else {
+            var f = finals[i];
+            for (var j = 0; j < final.length; j++) {
+                final[j] += f[j] / ev;
+            }
+        }
+    }
     final = circShift(final, final.length/2);
-    final = pruneResults(final, template);
+    final = pruneResults(final, templates[0]);
     normaliseXCorr(final);
 
 
-    if (template.endZIndex2 != null) {
-        final = pruneResults2(final, template);
+    if (templates[0].endZIndex2 != null) {
+        final = pruneResults2(final, templates[0]);
     }
-    var finalPeaks = getPeaksFromNormalised(final, template);
+    var finalPeaks = getPeaksFromNormalised(final);
 
     return {
-        id: template.id,
-        zs: template.zs,
+        id: templates[0].id,
+        zs: templates[0].zs,
         xcor: final,
         peaks: finalPeaks
     };
@@ -1131,11 +1148,15 @@ function extractResults(template, final) {
  * @returns {{id: String, zs: Array, xcor: Array, peaks: Array}} a data structure containing the id of the template, the redshifts of the template, the xcor
  * results of the template and a list of peaks in the xcor array.
  */
-function matchTemplate(template, fft) {
-    var fftNew = fft.multiply(template.fft);
-    var final = fftNew.inverse();
+function matchTemplate(templates, fft) {
+    var finals = templates.map(function(template) {
+        var fftNew = fft.multiply(template.fft);
+        var final = fftNew.inverse();
+        return final
+    });
 
-    return extractResults(template, final)
+
+    return extractResults(templates, finals)
 }
 
 /**

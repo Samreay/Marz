@@ -52,7 +52,9 @@ self.process = function(data) {
     if (!node) {
         data.processedVariancePlot = data.variance.slice();
         removeNaNs(data.processedVariancePlot);
-        clipVariance(data.processedVariancePlot);
+        for (var i = 0; i < 3; i++ ) {
+            clipVariance(data.processedVariancePlot);
+        }
         normaliseViaShift(data.processedVariancePlot, 0, globalConfig.varianceHeight, null);
     }
     data.continuum = self.processData(data.lambda, data.intensity, data.variance);
@@ -75,6 +77,30 @@ self.processData = function(lambda, intensity, variance) {
     polyFitReject(lambda, intensity);
     cullLines(intensity);
     return res;
+};
+
+self.getTemplatesToMatch = function() {
+    var ts = templateManager.templates;
+    var result = [];
+    var eigens = {}
+    for (var i = 0; i < ts.length; i++) {
+        var t = ts[i];
+        if (t.eigentemplate == null) {
+            result.push([t])
+        } else {
+            if (eigens[t.eigentemplate] == null) {
+                eigens[t.eigentemplate] = [t]
+            } else {
+                eigens[t.eigentemplate].push(t)
+            }
+        }
+    }
+    for (var key in eigens) {
+        if (eigens.hasOwnProperty(key)) {
+            result.push(eigens[key]);
+        }
+    }
+    return result;
 };
 
 /**
@@ -111,11 +137,12 @@ self.matchTemplates = function(lambda, intensity, variance, type, helio, cmb) {
     }
 
     // For each template, match the appropriate transform
-    var templateResults = templateManager.templates.map(function(template) {
-        if (templateManager.isQuasar(template.id)) {
-            return matchTemplate(template, quasarFFT);
+    var ts = self.getTemplatesToMatch();
+    var templateResults = ts.map(function(templates) {
+        if (templateManager.isQuasar(templates[0].id)) {
+            return matchTemplate(templates, quasarFFT);
         } else {
-            return matchTemplate(template, fft);
+            return matchTemplate(templates, fft);
         }
     });
     var coalesced = self.coalesceResults(templateResults, type, subtracted, helio, cmb);
