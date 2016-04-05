@@ -6,7 +6,7 @@
 // Any change in the version will mean prior redshifts stored in the program
 // will not be loaded (as they may be different with the update).
 var globalConfig = {};
-globalConfig.marzVersion = "1.1.3";
+globalConfig.marzVersion = "1.1.4";
 
 // CONFIG FOR PIXEL MASKING
 globalConfig.minVal = -1e4;          // Intensity less than this is bad

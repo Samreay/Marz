@@ -26,6 +26,9 @@ After doing this, you can analyse a FITS file by running `./marz.sh <FITSFilePat
 
 # Updates
 
+## 1.1.4
+* Modifying CSS to minimal-font browsers
+
 ## 1.1.3
 * Adding in node dependency `progress`, and reformatting the console output.
 * Base framework for eigenspectra added. 

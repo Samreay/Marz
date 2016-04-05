@@ -46,7 +46,7 @@ body {
     top: 0;
     bottom: 0;
     left: 0;
-    width: 213px;
+    width: 230px;
 }
 
 .sidebarSmall #sidebar {
@@ -57,7 +57,7 @@ body {
     position: absolute;
     top: 0;
     bottom: 0;
-    left: 213px;
+    left: 230px;
     right: 0;
     overflow: auto;
 }
