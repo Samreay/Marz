@@ -26,6 +26,9 @@ After doing this, you can analyse a FITS file by running `./marz.sh <FITSFilePat
 
 # Updates
 
+## 1.1.5
+* Allowing no FIBER extension
+
 ## 1.1.4
 * Modifying CSS to minimal-font browsers
 

@@ -543,11 +543,11 @@ FitsFileLoader.prototype.parseFitsFile = function(q, originalFilename) {
             var int = intensity[i];
             var vari = variance == null ? null : variance[i];
             var skyy = sky == null ? null : (sky.length == 1) ? sky[0] : sky[i];
-            var name = details['NAME'] == null ? "Unknown spectra " + id : details['NAME'][i];
-            var ra = details['RA'] == null ? null : details['RA'][i];
-            var dec = details['DEC'] == null ? null : details['DEC'][i];
-            var mag = details['MAGNITUDE'] == null ? null : details['MAGNITUDE'][i];
-            var type = details['TYPE'] == null ? null : details['TYPE'][i];
+            var name = details == null || details['NAME'] == null ? "Unknown spectra " + id : details['NAME'][i];
+            var ra = details == null || details['RA'] == null ? null : details['RA'][i];
+            var dec = details == null || details['DEC'] == null ? null : details['DEC'][i];
+            var mag = details == null || details['MAGNITUDE'] == null ? null : details['MAGNITUDE'][i];
+            var type = details == null || details['TYPE'] == null ? null : details['TYPE'][i];
 
             var helio = null;
             var cmb = null;
