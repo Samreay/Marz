@@ -497,7 +497,8 @@ FitsFileLoader.prototype.parseFitsFile = function(q, originalFilename) {
         throw "RADECSYS type " + this.radecsys + " is not supported. Please choose either FK4 or FK5";
     }
     this.date = MJDtoYMD(this.MJD);
-    this.numPoints = this.fits.getHDU(0).data.width;
+    this.dataExt = this.getHDUFromName(globalConfig.dataExt);
+    this.numPoints = this.fits.getHDU(this.dataExt).data.width;
 
     this.$q.all([this.getWavelengths(), this.getIntensityData(), this.getVarianceData(), this.getSkyData(), this.getDetailsData()]).then(function(data) {
         this.log.debug("Load promises complete");
@@ -623,14 +624,15 @@ FitsFileLoader.prototype.getWavelengths = function() {
 FitsFileLoader.prototype.getRawWavelengths = function() {
     this.log.debug("Getting spectra wavelengths");
     var q = this.$q.defer();
-    var index = this.getHDUFromName("wavelength");
+    var index = this.getHDUFromName(globalConfig.waveExt);
     if (index == null) {
         this.log.debug("Wavelength extension not found. Checking headings");
-        var CRVAL1 = this.header0.get('CRVAL1');
-        var CRPIX1 = this.header0.get('CRPIX1');
-        var CDELT1 = this.header0.get('CDELT1');
+        header = this.fits.getHDU(this.dataExt).header;
+        var CRVAL1 = header.get('CRVAL1');
+        var CRPIX1 = header.get('CRPIX1');
+        var CDELT1 = header.get('CDELT1');
         if (CDELT1 == null) {
-            CDELT1 = this.header0.get('CD1_1');
+            CDELT1 = header.get('CD1_1');
         }
         if (CRVAL1 == null || CRPIX1 == null || CDELT1 == null) {
             q.reject("Wavelength header values incorrect: CRVAL1=" + CRVAL1 + ", CRPIX1=" + CRPIX1 + ", CDELT1=" + CDELT1 + ".");
@@ -667,11 +669,7 @@ FitsFileLoader.prototype.getRawWavelengths = function() {
  */
 FitsFileLoader.prototype.getIntensityData = function() {
     this.log.debug("Getting spectra intensity");
-
-    var index = this.getHDUFromName("intensity");
-    if (index == null) {
-        index = this.getHDUFromName("flux");
-    }
+    var index = this.dataExt;
     if (index == null) {
         index = this.primaryIndex;
     }
@@ -699,13 +697,7 @@ FitsFileLoader.prototype.getIntensityData = function() {
  */
 FitsFileLoader.prototype.getVarianceData = function() {
     this.log.debug("Getting spectra variance");
-    var index = this.getHDUFromName("variance");
-    if (index == null) {
-        index = this.getHDUFromName("ivar");
-        if (index != null) {
-            this.inverseVariance = true;
-        }
-    }
+    var index = this.getHDUFromName(globalConfig.varExt);
     var q = this.$q.defer();
     if (index == null) {
         q.resolve(null);
@@ -746,7 +738,7 @@ FitsFileLoader.prototype.getVarianceData = function() {
  */
 FitsFileLoader.prototype.getSkyData = function() {
     this.log.debug("Getting sky");
-    var index = this.getHDUFromName("sky");
+    var index = this.getHDUFromName(globalConfig.skyExt);
     var q = this.$q.defer();
     if (index == null) {
         q.resolve(null);
@@ -782,10 +774,7 @@ FitsFileLoader.prototype.getSkyData = function() {
  */
 FitsFileLoader.prototype.getDetailsData = function() {
     this.log.debug("Getting details");
-    var index = this.getHDUFromName("fibres");
-    if (index == null) {
-        index = this.getHDUFromName("fibermap")
-    }
+    var index = this.getHDUFromName(globalConfig.detailsExt);
     var q = this.$q.defer();
     if (index == null) {
         q.resolve(null);
