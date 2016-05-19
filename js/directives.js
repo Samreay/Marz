@@ -1050,7 +1050,8 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     }
 
                     var availableCallouts = _.filter(callouts, function(c) {
-                        return (1 + redshift) * c[0] >= start && (1 + redshift) * c[1] <= end;
+                        var zmean = ((1 + redshift) * c[0] + (1 + redshift) * c[1]) / 2.;
+                        return zmean >= start && zmean <= end;
                     });
 
                     var numCallouts = Math.min(desiredNumberOfCallouts, availableCallouts.length);
