@@ -27,6 +27,7 @@ function TemplateManager(process, shiftToMatch) {
      * spec -               the spectrum itself
      * isStar -             If the spectrum describes a stellar object. Used for QOP values
      * quasar -             If the spectrum describes a quasar. Used for fitting methodology.
+     * weights -            Given prior information on object type, adjust xcor peaks using these weights. Smaller means higher weighted.
      */
     var originalTemplates = [{
         id: '1',
