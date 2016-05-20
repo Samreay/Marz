@@ -8,6 +8,13 @@
 var globalConfig = {};
 globalConfig.marzVersion = "1.1.5";
 
+globalConfig.waveExt = 'wavelength';
+globalConfig.dataExt = 'intensity';
+globalConfig.varExt = 'variance';
+globalConfig.ivarExt = 'ivar';
+globalConfig.skyExt = 'sky';
+globalConfig.detailsExt = 'fibres';
+
 // CONFIG FOR PIXEL MASKING
 globalConfig.minVal = -1e4;          // Intensity less than this is bad
 globalConfig.maxVal = 1e6;           // Intensity greater than this is bad

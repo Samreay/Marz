@@ -152,6 +152,8 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                 var callout = false;
                 var maxCallouts = 8;
                 var minCalloutWidth = 350;
+                // array of [min lambda, max lambda, relative importance of
+                // viewing that cutout] to define callout windows
                 var callouts = [[1000, 1100, 5], [1200, 1260, 10], [1500, 1600, 2], [1850, 2000, 3],
                     [2700, 2900, 4], [3700, 3780, 10], [3800, 4100, 7], [4250, 4400, 5], [4800, 5100, 8], [6500, 6800, 9], [6700, 6750, 6]];
                 var defaultMin = 3300;
@@ -1050,7 +1052,8 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     }
 
                     var availableCallouts = _.filter(callouts, function(c) {
-                        return (1 + redshift) * c[0] >= start && (1 + redshift) * c[1] <= end;
+                        var zmean = ((1 + redshift) * c[0] + (1 + redshift) * c[1]) / 2.;
+                        return zmean >= start && zmean <= end;
                     });
 
                     var numCallouts = Math.min(desiredNumberOfCallouts, availableCallouts.length);
