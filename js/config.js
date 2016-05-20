@@ -11,6 +11,7 @@ globalConfig.marzVersion = "1.1.5";
 globalConfig.waveExt = 'wavelength';
 globalConfig.dataExt = 'intensity';
 globalConfig.varExt = 'variance';
+globalConfig.ivarExt = 'ivar';
 globalConfig.skyExt = 'sky';
 globalConfig.detailsExt = 'fibres';
 

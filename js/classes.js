@@ -698,6 +698,12 @@ FitsFileLoader.prototype.getIntensityData = function() {
 FitsFileLoader.prototype.getVarianceData = function() {
     this.log.debug("Getting spectra variance");
     var index = this.getHDUFromName(globalConfig.varExt);
+    if (index == null) {
+        index = this.getHDUFromName(globalConfig.ivarExt);
+        if (index != null) {
+            this.inverseVariance = true;
+        }
+    }
     var q = this.$q.defer();
     if (index == null) {
         q.resolve(null);
