@@ -609,7 +609,7 @@ angular.module('servicesZ', ['dialogs.main'])
                     var columns = lines[i].split(',');
                     var res = {filename: filename, v: version};
                     for (var j = 0; j < columns.length; j++) {
-                        if (isFloatString(columns[j])) {
+                        if ((headers[j] != 'Name') && (headers[j] != 'Type') && (isFloatString(columns[j]))) {
                             res[headers[j]] = parseFloat(columns[j].trim());
                         } else {
                             res[headers[j]] = columns[j].trim();
