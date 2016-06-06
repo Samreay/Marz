@@ -133,56 +133,41 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
                 $state.go('usage');
             }},
             {key: 'n', label: 'n', description: 'Selects to the next spectra', fn: _.throttle(function() {
-                $scope.setNextSpectra();
-                $scope.$apply();
+                $scope.$apply(function() {$scope.setNextSpectra();});
             }, 300, { 'trailing': false})},
             {key: 'b', label: 'b', description: 'Selects to the previous spectra', fn: _.throttle(function() {
-                $scope.setPreviousSpectra();
-                $scope.$apply();
+                $scope.$apply(function() {$scope.setPreviousSpectra();});
             }, 300, { 'trailing': false})},
             {key: 't', label: 't', description: 'Toggle whether templates are displayed', fn: _.throttle(function() {
-                global.ui.dataSelection.matched = !global.ui.dataSelection.matched;
-                $scope.$apply();
+                $scope.$apply(function() {global.ui.dataSelection.matched = !global.ui.dataSelection.matched;});
             }, 300, { 'trailing': false})},
             {key: ['1', 'num1'], label: '1', controller: "detailed", description: '[Detailed screen] Save with manual QOP of 1', fn: _.throttle(function($scope) {
-                $timeout(function() {
-                    $scope.saveManual(1);
-                });
+                $timeout(function() { $scope.saveManual(1); });
             }, 400, { 'trailing': false})},
             {key: ['2', 'num2'], label: '2', controller: "detailed", description: '[Detailed screen] Save with manual QOP of 2', fn: _.throttle(function($scope) {
-                $timeout(function() {
-                    $scope.saveManual(2);
-                    $scope.$digest();
-                });
+                $timeout(function() { $scope.saveManual(2); });
             }, 400, { 'trailing': false})},
             {key: ['3', 'num3'], label: '3', controller: "detailed", description: '[Detailed screen] Save with manual QOP of 3', fn: _.throttle(function($scope) {
-                $scope.saveManual(3);
-                $scope.$apply();
+                $timeout(function() { $scope.saveManual(3); });
             }, 400, { 'trailing': false})},
             {key: ['4', 'num4'], label: '4', controller: "detailed", description: '[Detailed screen] Save with manual QOP of 4', fn: _.throttle(function($scope) {
-                $scope.$apply(function() {$scope.saveManual(4);});
+                $timeout(function() {$scope.saveManual(4);});
             }, 400, { 'trailing': false})},
             {key: ['6', 'num6'], label: '6', controller: "detailed", description: '[Detailed screen] Save with manual QOP of 6', fn: _.throttle(function($scope) {
-                $scope.saveManual(6);
-                $scope.$apply();
+                $timeout(function() {$scope.saveManual(6);});
             }, 400, { 'trailing': false})},
             {key: ['0', 'num0'], label: '0', controller: "detailed", description: '[Detailed screen] Remove QOP result (set QOP to 0)', fn: _.throttle(function($scope) {
-                $scope.saveManual(0);
-                $scope.$apply();
+                $timeout(function() { $scope.saveManual(0); });
             }, 400, { 'trailing': false})},
             {key: 'z', label: 'z', controller: "detailed", description: '[Detailed screen] Focus on redshift input', fn: function($scope, e) {
                 $scope.setFocusToRedshift();
                 e.preventDefault();
             }},
             {key: 'm', label: 'm', controller: "detailed", description: '[Detailed screen] Set view to manually found redshift', fn: function($scope) {
-                $timeout(function() {
-                    $scope.resetToManual();
-                });
+                $timeout(function() { $scope.resetToManual(); });
             }},
             {key: 'shift+r', label: 'shift+r', controller: "detailed", description: '[Detailed screen] Set view to automatically found redshift', fn: function($scope) {
-                $timeout(function() {
-                    $scope.resetToAutomatic();
-                });
+                $timeout(function() { $scope.resetToAutomatic(); });
             }},
             {key: 'o', label: 'o', controller: "detailed", description: '[Detailed screen] Show the next automatic redshift result', fn: _.throttle(function($scope) {
                 $timeout(function() { $scope.nextMatchedDetails()});
@@ -203,34 +188,37 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
                 });
             }},
             {key: 'l', label: 'l', controller: "detailed", description: '[Detailed screen] Toggles spectral lines', fn: function($scope) {
-                $scope.toggleSpectralLines();
-                $scope.$apply();
+                $scope.$apply(function() {$scope.toggleSpectralLines();});
             }},
             {key: 'left', label: 'left', controller: "detailed", description: '[Detailed screen] Decrements redshift by 0.0001', fn: function($scope) {
-                var z = parseFloat(global.ui.detailed.redshift);
-                if (z > global.ui.detailed.bounds.redshiftMin) {
-                    global.ui.detailed.redshift = (z - 0.0001).toFixed(5);
-                }
-                $scope.$apply();
+                $scope.$apply(function() {
+                    var z = parseFloat(global.ui.detailed.redshift);
+                    if (z > global.ui.detailed.bounds.redshiftMin) {
+                      global.ui.detailed.redshift = (z - 0.0001).toFixed(5);
+                    }
+                });
             }},
             {key: 'right', label: 'right', controller: "detailed", description: '[Detailed screen] Increments redshift by 0.001', fn: function($scope) {
-                var z = parseFloat(global.ui.detailed.redshift);
-                if (z < global.ui.detailed.bounds.redshiftMax) {
-                    global.ui.detailed.redshift = (z + 0.0001).toFixed(5);
-                }
-                $scope.$apply();
+                $scope.$apply(function() {
+                    var z = parseFloat(global.ui.detailed.redshift);
+                    if (z < global.ui.detailed.bounds.redshiftMax) {
+                        global.ui.detailed.redshift = (z + 0.0001).toFixed(5);
+                    }
+                });
             }},
             {key: 'down', label: 'down', controller: "detailed", description: '[Detailed screen] Selects the next template', fn: function($scope) {
-                if(document.activeElement != $('#templateInput')[0]) {
-                    $scope.nextTemplate();
-                }
-                $scope.$apply();
+                $scope.$apply(function() {
+                    if(document.activeElement != $('#templateInput')[0]) {
+                        $scope.nextTemplate();
+                    }
+                });
             }},
             {key: 'up', label: 'up', controller: "detailed", description: '[Detailed screen] Selects the previous template', fn: function($scope) {
-                if(document.activeElement != $('#templateInput')[0]) {
-                    $scope.previousTemplate();
-                }
-                $scope.$apply();
+                $scope.$apply(function() {
+                    if(document.activeElement != $('#templateInput')[0]) {
+                        $scope.previousTemplate();
+                    }
+                });
             }},
             {key: '.', label: '.', controller: "detailed", description: '[Detailed screen] Cycles spectral lines forward', fn: function($scope) {
                 $timeout(function() { $scope.nextSpectralLine(); });
@@ -239,12 +227,10 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
                 $timeout(function() { $scope.previousSpectralLine(); });
             }},
             {key: 'enter', label: 'enter', controller: "detailed", description: '[Detailed screen] Accepts the suggested automatic QOP at the stated redshift', fn: _.throttle(function($scope) {
-                $scope.acceptAutoQOP();
-                $scope.$apply();
+                $scope.$apply(function() {$scope.acceptAutoQOP();});
             }, 200, { 'trailing': false})},
             {key: 'q', label: 'q', controller: "detailed", description: "[Detailed screen] Cycles which merge result to show", fn: _.throttle(function($scope) {
                 $timeout(function() { $scope.toggleMerged(); });
-                //$scope.$apply();
             }, 200, { 'trailing': false})}
         ];
         _.forEach(spectraLineService.getAll(), function(line) {
