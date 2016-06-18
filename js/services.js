@@ -604,12 +604,13 @@ angular.module('servicesZ', ['dialogs.main'])
                     headers[w] = headers[w].trim();
                 }
                 var fakes = [];
+                var notFloatColumns = ['Name', 'Type', 'AutoTID', 'FinTID'];
                 for (var i = 0; i < lines.length - 1; i++) {
                     if (lines[i].indexOf("#") == 0) continue;
                     var columns = lines[i].split(',');
                     var res = {filename: filename, v: version};
                     for (var j = 0; j < columns.length; j++) {
-                        if (isFloatString(columns[j])) {
+                        if ((notFloatColumns.indexOf(headers[j]) == -1) && (isFloatString(columns[j]))) {
                             res[headers[j]] = parseFloat(columns[j].trim());
                         } else {
                             res[headers[j]] = columns[j].trim();
