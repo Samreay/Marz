@@ -477,7 +477,7 @@ FitsFileLoader.prototype.parseFitsFile = function(q, originalFilename) {
     this.log.debug("Getting headers");
     this.header0 = this.fits.getHDU(0).header;
     this.MJD = this.header0.get('UTMJD');
-    this.originalFilename = originalFilename
+    this.originalFilename = originalFilename;
 
     this.JD = this.MJD + 2400000.5;
     this.longitude = this.header0.get('LONG_OBS');
@@ -553,10 +553,10 @@ FitsFileLoader.prototype.parseFitsFile = function(q, originalFilename) {
             var helio = null;
             var cmb = null;
             if (shouldPerformHelio) {
-                helio = getHeliocentricVelocityCorrection(ra, dec, this.JD, this.longitude, this.latitude, this.altitude, this.epoch, this.radecsys);
+                helio = getHeliocentricVelocityCorrection(ra  * 180 / Math.PI, dec * 180 / Math.PI, this.JD, this.longitude, this.latitude, this.altitude, this.epoch, this.radecsys);
             }
             if (shouldPerformCMB) {
-                cmb = getCMBCorrection(ra, dec, this.epoch, this.radecsys);
+                cmb = getCMBCorrection(ra * 180 / Math.PI, dec * 180 / Math.PI, this.epoch, this.radecsys);
             }
             var s = new Spectra(id, llambda, int, vari, skyy, name, ra, dec, mag, type, this.originalFilename, helio, cmb, this.node);
             s.setCompute(int != null && vari != null);
