@@ -604,7 +604,7 @@ angular.module('servicesZ', ['dialogs.main'])
                     headers[w] = headers[w].trim();
                 }
                 var fakes = [];
-                var notFloatColumns = ['Name', 'Type', 'AutoTID', 'FinTID'];
+                var notFloatColumns = ['Name', 'Type', 'AutoTID', 'FinTID', 'Comment'];
                 for (var i = 0; i < lines.length - 1; i++) {
                     if (lines[i].indexOf("#") == 0) continue;
                     var columns = lines[i].split(',');
