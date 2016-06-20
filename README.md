@@ -26,6 +26,11 @@ After doing this, you can analyse a FITS file by running `./marz.sh <FITSFilePat
 
 # Updates
 
+
+## 1.2.1
+* Keybinding methods updated
+* Updates to input loading
+
 ## 1.2.0
 * Input RA and DEC in FITs files assumed to be in radians, not degrees.
 
