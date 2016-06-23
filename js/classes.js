@@ -1297,7 +1297,7 @@ ResultsGenerator.prototype.getResultsCSV = function(initials) {
                 first = 0;
             }
             for (var j = 0; j < res.length; j++) {
-                string += ((first++ == 0) ? " " : ",  ") + (res[j].value == null ? "" : res[j].value.replace(",","")).spacePad(spaces[j]);
+                string += ((first++ == 0) ? " " : ",  ") + (res[j].value == null ? "" : res[j].value.replace(/,/g,"")).spacePad(spaces[j]);
             }
             string += "\n";
         }
