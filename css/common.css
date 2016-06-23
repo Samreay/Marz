@@ -49,6 +49,7 @@ p.fill-height {
     padding-left: 10px;
 }
 .spectra-list-item {
+    overflow: hidden;
     height: 30px;
     line-height: 30px;
     vertical-align: middle;

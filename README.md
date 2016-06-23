@@ -26,6 +26,9 @@ After doing this, you can analyse a FITS file by running `./marz.sh <FITSFilePat
 
 # Updates
 
+## 1.2.3
+* Update to UI to make it scale with font better, for users that customise their text size. *No algorithm changes*
+
 ## 1.2.2
 * Updates to `.mz` saving to replace out all commas in comments.
 
