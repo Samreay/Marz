@@ -1067,9 +1067,11 @@ function getStdDevMask(data, mask) {
 }
 function rmsNormalisePeaks(final) {
     var peaks = getPeaks(final).value;
-    var rms = getStdDev(peaks);
-    for (var i = 0; i < final.length; i++) {
-        final[i] /= rms;
+    if (peaks.length > 1) {
+        var rms = getStdDev(peaks);
+        for (var i = 0; i < final.length; i++) {
+            final[i] /= rms;
+        }
     }
 }
 function normaliseXCorr(final) {
