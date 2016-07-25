@@ -5,7 +5,7 @@
  */
 
 angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
-    .controller('NavbarController', ['$scope', '$state', 'personalService', 'global', function($scope, $state, personalService, global) {
+    .controller('NavbarController', ['$scope', '$state', 'personalService', 'global', 'dialogs', function($scope, $state, personalService, global, dialogs) {
         $scope.marzVersion = globalConfig.marzVersion;
         $scope.states = [
             {name: 'overview', icon: "th"},
@@ -22,6 +22,9 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
         $scope.changeInitials = function() {
             $scope.initials = personalService.updateInitials();
         };
+        $scope.showAttribution = function() {
+            dialogs.create('templates/partials/bibtex.html', null, {}, {}, {});
+        }
     }])
     .controller('MainController', ['$scope', 'spectraService', 'global', '$state', '$timeout', 'spectraLineService', 'browserService', '$rootScope', 'processorService',
         function($scope, spectraService, global, $state, $timeout, spectraLineService, browserService, $rootScope, processorService) {

@@ -26,6 +26,9 @@ After doing this, you can analyse a FITS file by running `./marz.sh <FITSFilePat
 
 # Updates
 
+## 1.2.5
+* Adding attribution button to supply BibTeX
+
 ## 1.2.4
 * Update to xcor normalisation, such that results with only one peak have a normalisation factor of 1, instead of returning NaN.
 
