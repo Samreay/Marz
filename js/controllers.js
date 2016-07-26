@@ -507,6 +507,9 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
                 processorService.addToPriorityQueue($scope.getActive(), start);
             }
         };
+        $scope.getRanges = function() {
+            return $scope.settings.ranges;
+        };
         $scope.showTopResults = function() {
             return $scope.hasActive() && $scope.getActive().hasMatches()
         };

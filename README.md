@@ -26,6 +26,9 @@ After doing this, you can analyse a FITS file by running `./marz.sh <FITSFilePat
 
 # Updates
 
+## 1.2.6
+* Adding range values similar to DS9, such that any unremoved artifacts do not disrubt the plot extents too much.
+
 ## 1.2.5
 * Adding attribution button to supply BibTeX
 

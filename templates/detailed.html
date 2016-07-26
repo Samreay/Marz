@@ -45,6 +45,12 @@
                         <span class="input-group-addon"><input style="width:60px;" type="range" min="0" max="{{bounds.maxSmooth}}" ng-model="settings.smooth"></span>
                     </div>
                 </div>
+                <div class="input-group input-group-sm" style="width: 16em;">
+                    <span class="input-group-addon">Range</span>
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-default" btn-radio="$index" ng-model="settings.rangeIndex" ng-repeat="i in getRanges() track by $index">{{i}}</button>
+                    </div>
+                </div>
             </li>
             <li class="list-group-item form-inline">
                 <div class="form-group">

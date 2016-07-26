@@ -36,6 +36,8 @@ angular.module('servicesZ', ['dialogs.main'])
                     oldRedshift: "0",
                     matchedActive: true,
                     matchedIndex: null,
+                    rangeIndex: 0,
+                    ranges: [100, 99.5, 99, 98],
                     mergeIndex: 0,
                     smooth: "3",
                     width: 300,

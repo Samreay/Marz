@@ -6,7 +6,7 @@
 // Any change in the version will mean prior redshifts stored in the program
 // will not be loaded (as they may be different with the update).
 var globalConfig = {};
-globalConfig.marzVersion = "1.2.5";
+globalConfig.marzVersion = "1.2.6";
 
 globalConfig.waveExt = 'wavelength';
 globalConfig.dataExt = 'intensity';

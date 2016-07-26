@@ -491,39 +491,18 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                             c++;
                         }
                         if (!bound.callout) {
-                            var xs = data[i].x;
-                            if (data[i].bound) {
-                                if (xs != null) {
-                                    for (var j = 0; j < xs.length; j++) {
-                                        if (xs[j] < bound.xMin) {
-                                            bound.xMin = xs[j];
-                                        }
-                                        if (xs[j] > bound.xMax) {
-                                            bound.xMax = xs[j];
-                                        }
-                                    }
-                                }
+                            if (data[i].bound && data[i].xMin != null && data[i].xMax != null) {
+                                bound.xMin = data[i].xMin;
+                                bound.xMax = data[i].xMax;
                             }
                         }
                     }
+                    var currentRangeIndex = $scope.detailed.rangeIndex;
+
                     for (var i = 0; i < data.length; i++) {
                         if (data[i].bound) {
-                            var xs = data[i].x;
-                            var ys = data[i].y;
-                            if (data[i].y2 != null) {
-                                ys = data[i].y2;
-                            }
-                            if (ys != null) {
-                                for (var j = 0; j < ys.length; j++) {
-                                    if (xs[j] < bound.xMin || xs[j] > bound.xMax) continue;
-                                    if (ys[j] < bound.yMin) {
-                                        bound.yMin = ys[j];
-                                    }
-                                    if (ys[j] > bound.yMax) {
-                                        bound.yMax = ys[j];
-                                    }
-                                }
-                            }
+                            bound.yMin = data[i].yMins[currentRangeIndex];
+                            bound.yMax = data[i].yMaxs[currentRangeIndex];
                         }
                     }
                     if (c == 0) {
@@ -1140,6 +1119,30 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     for (var i = 0; i < data.length; i++) {
                         if (data[i].id == id) {
                             data[i].y2 = fastSmooth(data[i].y, smooth);
+                            var ys2 = data[i].y2.slice(startRawTruncate);
+                            ys2 = ys2.sort(function(a, b) {
+                                if (!isFinite(a-b)) {
+                                    return !isFinite(a) ? -1 : 1;
+                                } else {
+                                    return a - b;
+                                }
+                            });
+                            var numPoints = ys2.length;
+                            for (var k = 0; k < numPoints; k++) {
+                                if (isFinite(ys2[k])) {
+                                    break;
+                                }
+                            }
+                            var yMins = [], yMaxs = [];
+                            for (var j = 0; j < $scope.detailed.ranges.length; j++) {
+                                var range = $scope.detailed.ranges[j];
+                                yMins.push(ys2[Math.floor(0.01 * (100 - range) * (numPoints - k)) + k]);
+                                yMaxs.push(ys2[Math.ceil(0.01 * (range) * (numPoints - 1 - k)) + k]);
+                            }
+                            data[i].yMins = yMins;
+                            data[i].yMaxs = yMaxs;
+                            console.log(yMins)
+                            console.log(yMaxs)
                         }
                     }
                 };
@@ -1155,13 +1158,14 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                     }
                 };
                 var addBaseData = function() {
-                    for (var i = 0; i < data.length; i++) {
+                    var i = 0;
+                    for (i = 0; i < data.length; i++) {
                         if (data[i].id == 'data') {
                             data.splice(i, 1);
                             break;
                         }
                     }
-                    for (var i = 0; i < data.length; i++) {
+                    for (i = 0; i < data.length; i++) {
                         if (data[i].id == 'variance') {
                             data.splice(i, 1);
                             break;
@@ -1180,7 +1184,12 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                             xs = global.ui.active.lambda;
                             colour = global.ui.colours.raw;
                         }
-                        baseData = {id: 'data', bound: true, colour: colour, x: xs, y: ys};
+                        var xs2 = xs.slice();
+                        xs2.sort(function(a, b) { return a - b; });
+                        var xMin = xs2[startRawTruncate];
+                        var xMax = xs2[xs2.length - 1];
+                        baseData = {id: 'data', bound: true, colour: colour, x: xs, y: ys, xMin: xMin,
+                            xMax: xMax};
                         data.push(baseData);
                         if (global.ui.dataSelection.variance) {
                             if (global.ui.dataSelection.processed && global.ui.active.processedVariancePlot != null) {
@@ -1259,6 +1268,10 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                         bounds[0].lockedBounds = false;
                         redraw();
                     }
+                });
+                $scope.$watch('detailed.rangeIndex', function(newV, oldV) {
+                    bounds[0].lockedBounds = false; // Unlock the bounds to rescale
+                    redraw()
                 });
                 $scope.$watch('getActiveHash()', function() {
                     addBaseData();
