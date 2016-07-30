@@ -26,6 +26,9 @@ After doing this, you can analyse a FITS file by running `./marz.sh <FITSFilePat
 
 # Updates
 
+## 1.2.8
+* Updating introduction screen.
+
 ## 1.2.7
 * Updating run scripts so that `marz.sh` can be run from a remove directory.
 
