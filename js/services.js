@@ -577,6 +577,8 @@ angular.module('servicesZ', ['dialogs.main'])
         function($q, localStorageService, resultsGeneratorService) {
         var self = this;
         var dropped = false;
+        var same_version = true;
+        var major_version = globalConfig.marzVersion.substring(0, globalConfig.marzVersion.lastIndexOf("."));
 
         self.loadResults = function(file, q) {
             q = defaultFor(q, null);
@@ -592,6 +594,8 @@ angular.module('servicesZ', ['dialogs.main'])
                 if (lines[0].indexOf("{{") > 0) {
                     version = lines[0].substring(lines[0].indexOf("{{") + 2, lines[0].indexOf("}}"));
                 }
+                same_version = version.substring(version.lastIndexOf(".")) == major_version;
+
                 if (newFilename.length > 1) {
                     filename = newFilename;
                 }
@@ -634,6 +638,9 @@ angular.module('servicesZ', ['dialogs.main'])
         self.hasAnyResults = function() {
             return dropped;
         };
+        self.sameVersion = function() {
+            return same_version;
+        }
     }])
     .service('resultsGeneratorService', ['global', 'templatesService', 'personalService', 'log', 'cookieService', function(global, templatesService, personalService, log, cookieService) {
         var self = this;
@@ -765,7 +772,7 @@ angular.module('servicesZ', ['dialogs.main'])
         self.getKeyFromSpectra = function(spectra) {
             var v = "";
             if (spectra.version != "1.0.0") {
-                v = spectra.version;
+                v = spectra.version.substring(0, spectra.version.lastIndexOf("."));
             }
             return v + spectra.filename + spectra.name;
         };

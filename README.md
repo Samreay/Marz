@@ -26,6 +26,9 @@ After doing this, you can analyse a FITS file by running `./marz.sh <FITSFilePat
 
 # Updates
 
+## 1.3.0
+* Changing the way versioning results works. Minor version increases will no longer removed past results.
+
 ## 1.2.8
 * Updating introduction screen.
 
