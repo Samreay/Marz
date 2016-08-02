@@ -573,8 +573,8 @@ angular.module('servicesZ', ['dialogs.main'])
             });
         }
     }])
-    .service('resultsLoaderService', ['$q', 'localStorageService', 'resultsGeneratorService',
-        function($q, localStorageService, resultsGeneratorService) {
+    .service('resultsLoaderService', ['$q', 'localStorageService', 'resultsGeneratorService', '$rootScope',
+        function($q, localStorageService, resultsGeneratorService, $rootScope) {
         var self = this;
         var dropped = false;
         var same_version = true;
@@ -594,7 +594,7 @@ angular.module('servicesZ', ['dialogs.main'])
                 if (lines[0].indexOf("{{") > 0) {
                     version = lines[0].substring(lines[0].indexOf("{{") + 2, lines[0].indexOf("}}"));
                 }
-                same_version = version.substring(version.lastIndexOf(".")) == major_version;
+                same_version = version.substring(0, version.lastIndexOf(".")) == major_version;
 
                 if (newFilename.length > 1) {
                     filename = newFilename;
@@ -630,6 +630,8 @@ angular.module('servicesZ', ['dialogs.main'])
                 }
                 if (q != null) {
                     q.resolve([initials, fakes]);
+                } else {
+                    $rootScope.$apply()
                 }
             };
             reader.readAsText(file);
