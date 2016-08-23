@@ -1141,8 +1141,6 @@ angular.module('directivesZ', ['servicesZ', 'ngSanitize'])
                             }
                             data[i].yMins = yMins;
                             data[i].yMaxs = yMaxs;
-                            console.log(yMins)
-                            console.log(yMaxs)
                         }
                     }
                 };
