@@ -529,14 +529,15 @@ angular.module('servicesZ', ['dialogs.main'])
                 var m0 = merges[0];
                 var m1 = merges[1];
                 var threshBad = null;
-                if (m0.quasar || m1.quasar) {
+                if (m0.quasar && m1.quasar) {
                     threshBad = (Math.abs(m0.z - m1.z) > globalConfig.mergeZThresholdQuasar);
                 } else {
                     threshBad = (Math.abs(m0.z - m1.z) > globalConfig.mergeZThreshold);
                 }
                 var goodQOP = m1.qop > 2 || m0.qop > 2;
-                var shouldShow = threshBad && goodQOP;
-                return shouldShow;
+                var disparate = goodQOP && (m0.qop <= 2 || m1.qop <= 2);
+                console.log(disparate, goodQOP, threshBad)
+                return disparate || (threshBad && goodQOP);
             }
             return true;
         };
@@ -553,7 +554,6 @@ angular.module('servicesZ', ['dialogs.main'])
                 resultsLoaderService.loadResults(results[i], q)
             }
             fitsFile.loadInFitsFile(fits).then(function() {
-                var filename = self.global.data.fitsFileName;
                 $q.all(promises).then(function(fakes) {
                     for (var i = 0; i < fakes.length; i++) {
                         var initials = fakes[i][0];
@@ -567,7 +567,7 @@ angular.module('servicesZ', ['dialogs.main'])
                         }
 
                     }
-                    self.updateMergeDefaults()
+                    self.updateMergeDefaults();
                     processorService.sortJobs();
                 })
             });
