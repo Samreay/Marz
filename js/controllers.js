@@ -970,7 +970,11 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
         };
         $scope.getDropText = function() {
             if (resultsLoaderService.hasAnyResults()) {
-                return "Have loaded results. Drop in FITs file."
+                if (resultsLoaderService.sameVersion()) {
+                    return "Have loaded results. Drop in FITs file."
+                } else {
+                    return "Warning. Results version does not match current Marz version. Results hidden."
+                }
             } else {
                 return "Drop a FITs file or a results file. Or drop a results file and THEN a FITs file."
             }
