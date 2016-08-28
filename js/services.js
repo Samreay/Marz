@@ -320,6 +320,12 @@ angular.module('servicesZ', ['dialogs.main'])
             global.ui.active = spectra;
             var id = spectra.getFinalTemplateID();
             var z = spectra.getFinalRedshift();
+            if (spectra.getMerges().length > 0) {
+                var merges = spectra.getMerges();
+                var mergeIndex = global.ui.mergeDefault;
+                id = merges[mergeIndex].tid;
+                z = merges[mergeIndex].z;
+            }
             if (id != null && z != null) {
                 global.ui.detailed.templateId = id;
                 global.ui.detailed.redshift = z;
@@ -421,8 +427,7 @@ angular.module('servicesZ', ['dialogs.main'])
                 }
             }
             if (global.ui.active == spectra) {
-                global.ui.detailed.templateId = spectra.getFinalTemplateID();
-                global.ui.detailed.redshift = spectra.getFinalRedshift();
+                self.setActive(spectra);
             }
             if (self.isFinishedMatching()) {
                 if (global.data.fits.length > 0) {

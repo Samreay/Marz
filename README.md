@@ -26,6 +26,10 @@ After doing this, you can analyse a FITS file by running `./marz.sh <FITSFilePat
 
 # Updates
 
+## 1.3.2
+* Making merging labels easier to read.
+* Setting redshift and template to default redshifters values and not Marz's top result when merging.
+
 ## 1.3.1
 * Updating merging algorithm to match manual OzDES algorithm.
 

@@ -524,7 +524,21 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
         };
         $scope.$watch('settings.redshift', function() {
             $scope.currentlyMatching();
+            $scope.currentlyMerging();
         });
+        $scope.currentlyMerging = function() {
+            if ($scope.getActive() && $scope.getActive().getMerges().length > 0) {
+                var merges = $scope.getActive().getMerges();
+                for (var i = 0; i < merges.length; i++) {
+                    var z = merges[i].z;
+                    if (z == $scope.settings.redshift) {
+                        $scope.settings.mergeIndex = i;
+                        return;
+                    }
+                }
+            }
+            $scope.settings.mergeIndex = -1;
+        };
         $scope.currentlyMatching = function() {
             var matched = false;
             if ($scope.getActive() && $scope.getActive().getMatches()) {
