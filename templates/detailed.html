@@ -16,7 +16,7 @@
                 <div class="form-group" ng-if="ui.merge">
                     <div class="input-group input-group-sm">
                         <div class="btn-group">
-                            <button class="btn btn-sm btn-default" btn-radio="$index" ng-click="selectMerge($index)" ng-model="settings.mergeIndex" ng-repeat="i in getMerges()"><strong>{{i.initials}}</strong><span style="margin-left: 5px; font-size: 1em; text-shadow: none;" class="label {{i.qopLabel}}"> {{i.z.toFixed(5)}}@{{i.qop}}</span> </button>
+                            <button class="btn btn-sm btn-default" btn-radio="$index" ng-click="selectMerge($index)" ng-model="settings.mergeIndex" ng-repeat="i in getMerges()"><strong>{{i.initials}}</strong><span style="margin-left: 5px; font-size: 1em; text-shadow: none;" class="label {{i.qopLabel}}"> {{i.z.toFixed(5)}} @ {{i.qop}}</span> </button>
                         </div>
                     </div>
                 </div>
