@@ -517,6 +517,9 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             return $scope.getActive().getMatches($scope.bounds.maxMatches);
         };
         $scope.getMerges = function() {
+            if ($scope.getActive() == null) {
+                return null;
+            }
             return $scope.getActive().getMerges();
         };
         $scope.$watch('settings.redshift', function() {

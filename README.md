@@ -26,6 +26,9 @@ After doing this, you can analyse a FITS file by running `./marz.sh <FITSFilePat
 
 # Updates
 
+## 1.3.1
+* Updating merging algorithm to match manual OzDES algorithm.
+
 ## 1.3.0
 * Changing the way versioning results works. Minor version increases will no longer removed past results.
 
@@ -33,7 +36,7 @@ After doing this, you can analyse a FITS file by running `./marz.sh <FITSFilePat
 * Updating introduction screen.
 
 ## 1.2.7
-* Updating run scripts so that `marz.sh` can be run from a remove directory.
+* Updating run scripts so that `marz.sh` can be run from a remote directory.
 
 ## 1.2.6
 * Adding range values similar to DS9, such that any unremoved artifacts do not disrubt the plot extents too much.

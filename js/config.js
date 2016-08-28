@@ -6,7 +6,7 @@
 // Any change in the version will mean prior redshifts stored in the program
 // will not be loaded (as they may be different with the update).
 var globalConfig = {};
-globalConfig.marzVersion = "1.3.0";
+globalConfig.marzVersion = "1.3.1";
 
 globalConfig.waveExt = 'wavelength';
 globalConfig.dataExt = 'intensity';
@@ -79,8 +79,8 @@ globalConfig.fitWindow = 100;
 // USER INTERFACE
 globalConfig.varianceHeight = 50;
 
-globalConfig.mergeZThreshold = 1e-4; // Redshift threshold above which flag a mismatch
-globalConfig.mergeZThresholdQuasar = 1e-3; // Redshift threshold above which flag a mismatch
+globalConfig.mergeZThreshold = 2e-4; // Redshift threshold above which flag a mismatch
+globalConfig.mergeZThresholdQuasar = 1.5e-3; // Redshift threshold above which flag a mismatch
 
 module.exports = function () {
     this.globalConfig = globalConfig;
