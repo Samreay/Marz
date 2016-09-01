@@ -26,6 +26,9 @@ After doing this, you can analyse a FITS file by running `./marz.sh <FITSFilePat
 
 # Updates
 
+## 1.3.4
+* Updating `fitsjs` dependency to increase maximum number of cards.
+
 ## 1.3.3
 * Preserving comments in merging.
 
