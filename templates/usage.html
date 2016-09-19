@@ -85,7 +85,8 @@
         <p>The options to clear the internal saved data are irreversible. If you have saved <code>.mz</code> output via downloading the results, these can still be loaded in without hassle, this section only pertains to the automatic background saving of results.</p>
     </accordion-group>
     <accordion-group heading="Keybindings">
-        <p>Many key bindings have been added to this application from the RUNZ default keymapping to make usage easier. The following commands are available:</p>
+        <p>Many key bindings have been added to this application from the RUNZ default keymapping to make usage easier. Note that the way the key bindings and browser interact, make sure you don't have any input element selected when pressing the keyboard shortcuts. In most cases this is obvious - if you are in the comment text input, typing will write out a comment, not trigger shortcuts. However, the same is true if you have a check-button focused, or a slider. So, if a shortcut doesn't work, click away and try again!</p>
+        <p>The following commands are available:</p>
         <keybind bind="bind" ng-repeat="bind in keybinds"></keybind>
     </accordion-group>
     <accordion-group heading="File Output and Loading Results with Python">

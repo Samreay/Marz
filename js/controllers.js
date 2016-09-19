@@ -135,10 +135,10 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             {key: 'shift+?', label: '?', description: 'Go to the Usage tab', fn: function() {
                 $state.go('usage');
             }},
-            {key: 'n', label: 'n', description: 'Selects to the next spectra', fn: _.throttle(function() {
+            {key: 'n', label: 'n', description: 'Selects the next spectra', fn: _.throttle(function() {
                 $scope.$apply(function() {$scope.setNextSpectra();});
             }, 300, { 'trailing': false})},
-            {key: 'b', label: 'b', description: 'Selects to the previous spectra', fn: _.throttle(function() {
+            {key: 'b', label: 'b', description: 'Selects the previous spectra', fn: _.throttle(function() {
                 $scope.$apply(function() {$scope.setPreviousSpectra();});
             }, 300, { 'trailing': false})},
             {key: 't', label: 't', description: 'Toggle whether templates are displayed', fn: _.throttle(function() {

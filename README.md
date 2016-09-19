@@ -26,6 +26,9 @@ After doing this, you can analyse a FITS file by running `./marz.sh <FITSFilePat
 
 # Updates
 
+## 1.3.6
+* Improving keybinding documentation.
+
 ## 1.3.5
 * Adding type "AGN"
 
