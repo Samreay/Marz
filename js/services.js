@@ -567,7 +567,7 @@ angular.module('servicesZ', ['dialogs.main'])
                         for (var j = 0; j < fake.length; j++) {
                             var fakeSpectrum = fake[j];
                             var real = global.data.spectraHash[fakeSpectrum.id];
-                            real.addMergeResult(initials, fakeSpectrum.getFinalRedshift(), fakeSpectrum.getFinalTemplateID(), fakeSpectrum.qop, templatesService.isQuasar(fakeSpectrum.getFinalTemplateID()));
+                            real.addMergeResult(initials, fakeSpectrum.getFinalRedshift(), fakeSpectrum.getFinalTemplateID(), fakeSpectrum.qop, templatesService.isQuasar(fakeSpectrum.getFinalTemplateID()), fakeSpectrum.getComment());
                             real.mergedUpdated = false;
                         }
 

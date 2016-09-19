@@ -92,7 +92,7 @@ function Spectra(id, lambda, intensity, variance, sky, name, ra, dec, magnitude,
 Spectra.prototype.getHash = function() {
     return "" + this.id + this.name + this.getFinalRedshift() + this.getFinalTemplateID() + this.isProcessed + this.isMatched;
 };
-Spectra.prototype.addMergeResult = function(initial, z, tid, qop, quasar) {
+Spectra.prototype.addMergeResult = function(initial, z, tid, qop, quasar, comment) {
     this.merges.push({
         z: z,
         tid: "" + tid,
@@ -104,7 +104,7 @@ Spectra.prototype.addMergeResult = function(initial, z, tid, qop, quasar) {
     if (this.comment != "") {
         this.comment += " | ";
     }
-    this.comment += initial + " " + tid + " " + z.toFixed(5) + " " + qop;
+    this.comment += initial + " " + tid + " " + z.toFixed(5) + " " + qop + " {" + comment + "}";
 
 };
 Spectra.prototype.setCompute = function(compute) {
