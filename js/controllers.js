@@ -174,7 +174,10 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             }},
             {key: 'o', label: 'o', controller: "detailed", description: '[Detailed screen] Show the next automatic redshift result', fn: _.throttle(function($scope) {
                 $timeout(function() { $scope.nextMatchedDetails()});
-            }, 300, { 'trailing': false})},
+            }, 200, { 'trailing': false})},
+            {key: 'i', label: 'i', controller: "detailed", description: '[Detailed screen] Show the previous automatic redshift result', fn: _.throttle(function($scope) {
+                $timeout(function() { $scope.prevMatchedDetails()});
+            }, 200, { 'trailing': false})},
             {key: 'u', label: 'u', controller: "detailed", description: '[Detailed screen] Fit the result within a localised window', fn: function($scope) {
                 $timeout(function() { $scope.fit()});
             }},
@@ -553,6 +556,11 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
                         } else {
                             matches[i].next = matches[0];
                         }
+                        if (i > 0) {
+                            matches[i].prev = matches[i - 1];
+                        } else {
+                            matches[i].prev = matches[matches.length - 1];
+                        }
                         return matches[i];
                     }
                 }
@@ -581,6 +589,20 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
                         $scope.reanalyseSpectra(true)
                     } else {
                     $scope.selectMatch(match.next);
+                }
+            }
+            $scope.currentlyMatching();
+            $scope.$apply();
+        };
+        $scope.prevMatchedDetails = function() {
+            var match = $scope.currentlyMatching();
+            if (match == null) {
+                $scope.selectMatch($scope.getMatches()[0]);
+            } else {
+                if (match == match.prev) {
+                    $scope.reanalyseSpectra(true)
+                } else {
+                    $scope.selectMatch(match.prev);
                 }
             }
             $scope.currentlyMatching();

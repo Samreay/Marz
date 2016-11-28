@@ -26,6 +26,9 @@ After doing this, you can analyse a FITS file by running `./marz.sh <FITSFilePat
 
 # Updates
 
+## 1.3.7
+* Adding ability to go back in past matches using the 'i' shortcut.
+
 ## 1.3.6
 * Improving keybinding documentation.
 
