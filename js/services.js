@@ -541,8 +541,8 @@ angular.module('servicesZ', ['dialogs.main'])
                 }
                 var goodQOP = m1.qop > 2 || m0.qop > 2;
                 var disparate = goodQOP && (m0.qop <= 2 || m1.qop <= 2);
-                console.log(disparate, goodQOP, threshBad)
-                return disparate || (threshBad && goodQOP);
+                var checkAnyway = (m0.qop > 3 && m1.qop == 3) || (m0.qop == 3 && m1.qop > 3);
+                return checkAnyway || disparate || (threshBad && goodQOP);
             }
             return true;
         };

@@ -26,6 +26,9 @@ After doing this, you can analyse a FITS file by running `./marz.sh <FITSFilePat
 
 # Updates
 
+## 1.3.8
+* Updating merging so that any QOP 3 and QOP 4 disagreement needs merging.
+
 ## 1.3.7
 * Adding ability to go back in past matches using the 'i' shortcut.
 
