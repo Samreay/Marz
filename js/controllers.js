@@ -26,8 +26,8 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
             dialogs.create('templates/partials/bibtex.html', null, {}, {}, {});
         }
     }])
-    .controller('MainController', ['$scope', 'spectraService', 'global', '$state', '$timeout', 'spectraLineService', 'browserService', '$rootScope', 'processorService',
-        function($scope, spectraService, global, $state, $timeout, spectraLineService, browserService, $rootScope, processorService) {
+    .controller('MainController', ['$scope', 'spectraService', 'global', '$state', '$timeout', 'spectraLineService', 'browserService', '$rootScope', 'processorService', '$location',
+        function($scope, spectraService, global, $state, $timeout, spectraLineService, browserService, $rootScope, processorService, $location) {
         //$scope.data = global.data;
         $scope.makeSmall = function() {
             return global.ui.sidebarSmall && $scope.isDetailedView();
@@ -35,6 +35,13 @@ angular.module('controllersZ', ['ui.router', 'ui.bootstrap', 'servicesZ'])
         $scope.shouldDisplayWelcome = function() {
             return global.data.fitsFileName == null;
         };
+
+        // Parse URL params
+        var search = $location.search();
+        var default_smooth = search["smooth"];
+        if (typeof default_smooth === 'undefined') default_smooth = "3";
+        global.ui.detailed.smooth = default_smooth;
+
         window.onbeforeunload = function(){
             return 'Please confirm you wish to exit.';
         };
